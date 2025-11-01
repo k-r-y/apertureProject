@@ -1,0 +1,1969 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Login & Registration System Analysis - Aperture Studios</title>
+    <style>
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+
+      body {
+        font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+        line-height: 1.6;
+        color: #333;
+        background: #fff;
+        padding: 40px;
+        max-width: 1200px;
+        margin: 0 auto;
+      }
+
+      .cover-page {
+        text-align: center;
+        padding: 100px 40px;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        border-radius: 20px;
+        margin-bottom: 40px;
+        page-break-after: always;
+      }
+
+      .cover-page h1 {
+        font-size: 48px;
+        margin-bottom: 20px;
+        font-weight: 700;
+      }
+
+      .cover-page h2 {
+        font-size: 32px;
+        margin-bottom: 40px;
+        font-weight: 400;
+        opacity: 0.9;
+      }
+
+      .cover-page .meta {
+        font-size: 18px;
+        margin-top: 60px;
+        opacity: 0.8;
+      }
+
+      .toc {
+        background: #f8f9fa;
+        padding: 30px;
+        border-radius: 10px;
+        margin-bottom: 40px;
+        page-break-after: always;
+      }
+
+      .toc h2 {
+        font-size: 32px;
+        margin-bottom: 20px;
+        color: #667eea;
+      }
+
+      .toc ul {
+        list-style: none;
+        padding-left: 0;
+      }
+
+      .toc li {
+        padding: 12px 0;
+        border-bottom: 1px solid #dee2e6;
+        font-size: 18px;
+      }
+
+      .toc li:last-child {
+        border-bottom: none;
+      }
+
+      .section {
+        margin-bottom: 50px;
+        page-break-inside: avoid;
+      }
+
+      h1 {
+        font-size: 36px;
+        color: #667eea;
+        margin-bottom: 20px;
+        padding-bottom: 10px;
+        border-bottom: 3px solid #667eea;
+      }
+
+      h2 {
+        font-size: 28px;
+        color: #764ba2;
+        margin-top: 30px;
+        margin-bottom: 15px;
+      }
+
+      h3 {
+        font-size: 22px;
+        color: #495057;
+        margin-top: 25px;
+        margin-bottom: 12px;
+        background: #f8f9fa;
+        padding: 10px 15px;
+        border-left: 4px solid #667eea;
+      }
+
+      h4 {
+        font-size: 18px;
+        color: #495057;
+        margin-top: 20px;
+        margin-bottom: 10px;
+        font-weight: 600;
+      }
+
+      p {
+        margin-bottom: 15px;
+        font-size: 16px;
+        text-align: justify;
+      }
+
+      ul,
+      ol {
+        margin-bottom: 15px;
+        padding-left: 30px;
+      }
+
+      li {
+        margin-bottom: 8px;
+        font-size: 16px;
+      }
+
+      .badge {
+        display: inline-block;
+        padding: 4px 12px;
+        border-radius: 20px;
+        font-size: 14px;
+        font-weight: 600;
+        margin-right: 8px;
+      }
+
+      .badge-success {
+        background: #28a745;
+        color: white;
+      }
+
+      .badge-danger {
+        background: #dc3545;
+        color: white;
+      }
+
+      .badge-warning {
+        background: #ffc107;
+        color: #212529;
+      }
+
+      .badge-info {
+        background: #17a2b8;
+        color: white;
+      }
+
+      .badge-primary {
+        background: #667eea;
+        color: white;
+      }
+
+      .alert {
+        padding: 15px 20px;
+        border-radius: 8px;
+        margin-bottom: 20px;
+        page-break-inside: avoid;
+      }
+
+      .alert-success {
+        background: #d4edda;
+        border-left: 4px solid #28a745;
+        color: #155724;
+      }
+
+      .alert-danger {
+        background: #f8d7da;
+        border-left: 4px solid #dc3545;
+        color: #721c24;
+      }
+
+      .alert-warning {
+        background: #fff3cd;
+        border-left: 4px solid #ffc107;
+        color: #856404;
+      }
+
+      .alert-info {
+        background: #d1ecf1;
+        border-left: 4px solid #17a2b8;
+        color: #0c5460;
+      }
+
+      .code-block {
+        background: #282c34;
+        color: #abb2bf;
+        padding: 20px;
+        border-radius: 8px;
+        margin: 20px 0;
+        overflow-x: auto;
+        font-family: "Courier New", Courier, monospace;
+        font-size: 14px;
+        line-height: 1.5;
+        page-break-inside: avoid;
+      }
+
+      .code-block code {
+        color: #abb2bf;
+      }
+
+      .code-inline {
+        background: #f4f4f4;
+        padding: 3px 8px;
+        border-radius: 4px;
+        font-family: "Courier New", Courier, monospace;
+        font-size: 14px;
+        color: #e83e8c;
+      }
+
+      .highlight {
+        background: #fff3cd;
+        padding: 2px 6px;
+        border-radius: 3px;
+        font-weight: 600;
+      }
+
+      .file-reference {
+        background: #e7f3ff;
+        padding: 8px 12px;
+        border-radius: 6px;
+        font-family: "Courier New", Courier, monospace;
+        font-size: 14px;
+        color: #004085;
+        margin: 10px 0;
+        display: inline-block;
+      }
+
+      table {
+        width: 100%;
+        border-collapse: collapse;
+        margin: 20px 0;
+        page-break-inside: avoid;
+      }
+
+      table th {
+        background: #667eea;
+        color: white;
+        padding: 12px;
+        text-align: left;
+        font-weight: 600;
+      }
+
+      table td {
+        padding: 12px;
+        border-bottom: 1px solid #dee2e6;
+      }
+
+      table tr:nth-child(even) {
+        background: #f8f9fa;
+      }
+
+      .priority-box {
+        border: 2px solid #667eea;
+        border-radius: 10px;
+        padding: 20px;
+        margin: 20px 0;
+        page-break-inside: avoid;
+      }
+
+      .priority-box h3 {
+        background: none;
+        border: none;
+        padding: 0;
+        margin-top: 0;
+      }
+
+      .benefit-list {
+        background: #e7f3ff;
+        padding: 15px 20px;
+        border-radius: 8px;
+        margin: 15px 0;
+      }
+
+      .benefit-list strong {
+        color: #004085;
+      }
+
+      .implementation-box {
+        background: #f8f9fa;
+        border-left: 4px solid #28a745;
+        padding: 15px 20px;
+        margin: 15px 0;
+        border-radius: 4px;
+      }
+
+      .implementation-box strong {
+        color: #28a745;
+      }
+
+      .page-break {
+        page-break-after: always;
+      }
+
+      .emoji {
+        font-style: normal;
+      }
+
+      @media print {
+        body {
+          padding: 20px;
+        }
+
+        .code-block {
+          page-break-inside: avoid;
+        }
+
+        .section {
+          page-break-inside: avoid;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <!-- Cover Page -->
+    <div class="cover-page">
+      <h1>Login & Registration System</h1>
+      <h2>Comprehensive Analysis & Improvement Guide</h2>
+      <div class="meta">
+        <p><strong>Project:</strong> Aperture Studios</p>
+        <p><strong>Focus Areas:</strong> UI/UX, Security, Email Verification</p>
+        <p><strong>Date:</strong> 2025</p>
+      </div>
+    </div>
+
+    <!-- Table of Contents -->
+    <div class="toc">
+      <h2>Table of Contents</h2>
+      <ul>
+        <li>1. Executive Summary</li>
+        <li>2. Current System Analysis</li>
+        <li>3. UI/UX Improvements</li>
+        <li>4. Security Improvements</li>
+        <li>5. Email Verification Implementation</li>
+        <li>6. Additional Features</li>
+        <li>7. Priority Rankings</li>
+        <li>8. Implementation Roadmap</li>
+      </ul>
+    </div>
+
+    <!-- Executive Summary -->
+    <div class="section">
+      <h1>1. Executive Summary</h1>
+
+      <div class="alert alert-info">
+        <strong>System Status:</strong> Your authentication system has a solid
+        foundation with good security practices, but needs enhancements for
+        production readiness.
+      </div>
+
+      <h2>Current Strengths</h2>
+      <ul>
+        <li>
+          <span class="badge badge-success">✓</span> Using prepared statements
+          (SQL injection safe)
+        </li>
+        <li>
+          <span class="badge badge-success">✓</span> Password hashing with
+          password_hash()
+        </li>
+        <li>
+          <span class="badge badge-success">✓</span> Basic XSS protection with
+          htmlspecialchars()
+        </li>
+        <li>
+          <span class="badge badge-success">✓</span> Clean, modern UI design
+        </li>
+        <li>
+          <span class="badge badge-success">✓</span> Responsive layout with
+          Bootstrap 5
+        </li>
+      </ul>
+
+      <h2>Critical Gaps</h2>
+      <ul>
+        <li>
+          <span class="badge badge-danger">✗</span> No email verification -
+          users can register with any email
+        </li>
+        <li>
+          <span class="badge badge-danger">✗</span> No rate limiting -
+          vulnerable to brute force attacks
+        </li>
+        <li>
+          <span class="badge badge-danger">✗</span> No CSRF protection - forms
+          can be submitted from other sites
+        </li>
+        <li>
+          <span class="badge badge-danger">✗</span> No account lockout -
+          unlimited login attempts
+        </li>
+        <li>
+          <span class="badge badge-warning">!</span> Using JavaScript alerts -
+          should use modern toast notifications
+        </li>
+      </ul>
+
+      <h2>Files Analyzed</h2>
+      <ul>
+        <li>
+          <span class="file-reference">logIn.php</span> - Login form and
+          authentication logic
+        </li>
+        <li>
+          <span class="file-reference">register.php</span> - Registration form
+          and user creation
+        </li>
+        <li>
+          <span class="file-reference">forgot1.php</span> - Password reset
+          request
+        </li>
+        <li>
+          <span class="file-reference">verification.php</span> - Verification
+          code UI (not functional yet)
+        </li>
+      </ul>
+    </div>
+
+    <div class="page-break"></div>
+
+    <!-- Current System Analysis -->
+    <div class="section">
+      <h1>2. Current System Analysis</h1>
+
+      <h2>Login System (logIn.php)</h2>
+
+      <h3>What Works Well</h3>
+      <ul>
+        <li>Prepared statements prevent SQL injection (line 29)</li>
+        <li>Password verification using password_verify() (line 37)</li>
+        <li>Session management for user authentication</li>
+        <li>Role-based redirection (Admin vs User)</li>
+        <li>Clean validation error handling</li>
+      </ul>
+
+      <h3>Security Issues Found</h3>
+
+      <h4>Issue #1: Account Enumeration</h4>
+      <div class="alert alert-danger">
+        <strong>Location:</strong> Lines 53 and 55<br />
+        <strong>Problem:</strong> Shows "Incorrect Password" for both wrong
+        email and wrong password<br />
+        <strong>Risk:</strong> Attacker can determine valid email addresses
+      </div>
+      <div class="implementation-box">
+        <strong>Recommendation:</strong> Use generic message "Invalid email or
+        password" for both cases
+      </div>
+
+      <h4>Issue #2: Timing Attack Vulnerability</h4>
+      <div class="alert alert-danger">
+        <strong>Problem:</strong> Response time differs when email exists vs
+        doesn't exist<br />
+        <strong>Risk:</strong> Attacker can deduce valid emails by measuring
+        response time
+      </div>
+      <div class="implementation-box">
+        <strong>Solution:</strong> Always perform password_verify() even if user
+        doesn't exist (using dummy hash)
+      </div>
+
+      <h4>Issue #3: No Rate Limiting</h4>
+      <div class="alert alert-danger">
+        <strong>Problem:</strong> Unlimited login attempts allowed<br />
+        <strong>Risk:</strong> Vulnerable to brute force password attacks
+      </div>
+      <div class="implementation-box">
+        <strong>Solution:</strong> Implement login attempt tracking and
+        temporary account lockout
+      </div>
+
+      <h4>Issue #4: Missing CSRF Protection</h4>
+      <div class="alert alert-danger">
+        <strong>Problem:</strong> No CSRF tokens in forms<br />
+        <strong>Risk:</strong> Forms can be submitted from malicious external
+        sites
+      </div>
+
+      <h4>Issue #5: Remember Me Not Functional</h4>
+      <div class="alert alert-warning">
+        <strong>Location:</strong> Line 130<br />
+        <strong>Problem:</strong> Checkbox exists but has no backend
+        implementation
+      </div>
+
+      <h2>Registration System (register.php)</h2>
+
+      <h3>What Works Well</h3>
+      <ul>
+        <li>Duplicate email check before registration (line 45-52)</li>
+        <li>Password hashing before storage (line 63)</li>
+        <li>Prepared statements for INSERT (line 65)</li>
+        <li>Terms and conditions acceptance required</li>
+        <li>Password confirmation validation (line 57)</li>
+      </ul>
+
+      <h3>Security Issues Found</h3>
+
+      <h4>Issue #6: No Email Verification</h4>
+      <div class="alert alert-danger">
+        <strong>Problem:</strong> Users can register with any email, even ones
+        they don't own<br />
+        <strong>Risk:</strong> Spam accounts, impersonation, fake bookings
+      </div>
+
+      <h4>Issue #7: Weak Password Requirements</h4>
+      <div class="alert alert-warning">
+        <strong>Current:</strong> Only mentions "8 characters" in placeholder<br />
+        <strong>Problem:</strong> No enforcement of complexity (uppercase,
+        numbers, symbols)
+      </div>
+
+      <h4>Issue #8: Information Disclosure</h4>
+      <div class="alert alert-warning">
+        <strong>Location:</strong> Line 51<br />
+        <strong>Problem:</strong> Shows "Email is already registered"<br />
+        <strong>Risk:</strong> Attackers can enumerate valid emails
+      </div>
+
+      <h4>Issue #9: Using JavaScript Alerts</h4>
+      <div class="alert alert-warning">
+        <strong>Location:</strong> Lines 71, 76<br />
+        <strong>Problem:</strong> Alerts are intrusive and look unprofessional
+      </div>
+    </div>
+
+    <div class="page-break"></div>
+
+    <!-- UI/UX Improvements -->
+    <div class="section">
+      <h1>3. UI/UX Improvements</h1>
+
+      <h2>A. Login Form Enhancements</h2>
+
+      <h3>Improvement #1: Password Visibility Toggle</h3>
+      <div class="benefit-list">
+        <strong>Benefits:</strong>
+        <ul>
+          <li>Reduces password typos</li>
+          <li>Better mobile UX</li>
+          <li>Industry standard practice</li>
+        </ul>
+      </div>
+      <div class="implementation-box">
+        <strong>How to Implement:</strong>
+        <ul>
+          <li>
+            Add eye icon button (Bootstrap Icons: bi-eye and bi-eye-slash)
+          </li>
+          <li>
+            Use JavaScript to toggle between type="password" and type="text"
+          </li>
+          <li>Position icon absolutely inside input field</li>
+        </ul>
+      </div>
+      <div class="code-block">
+        <code
+          >&lt;div class="position-relative"&gt; &lt;input type="password"
+          id="password" class="form-control"&gt; &lt;i class="bi bi-eye
+          position-absolute" style="right: 10px; top: 50%; cursor: pointer;"
+          onclick="togglePassword()"&gt;&lt;/i&gt; &lt;/div&gt; &lt;script&gt;
+          function togglePassword() { const input =
+          document.getElementById('password'); const icon =
+          document.querySelector('.bi-eye'); if (input.type === 'password') {
+          input.type = 'text'; icon.classList.replace('bi-eye', 'bi-eye-slash');
+          } else { input.type = 'password';
+          icon.classList.replace('bi-eye-slash', 'bi-eye'); } }
+          &lt;/script&gt;</code
+        >
+      </div>
+
+      <h3>Improvement #2: Loading State on Submit</h3>
+      <div class="benefit-list">
+        <strong>Benefits:</strong>
+        <ul>
+          <li>Prevents double submissions</li>
+          <li>Shows user something is happening</li>
+          <li>Reduces perceived wait time</li>
+        </ul>
+      </div>
+      <div class="code-block">
+        <code
+          >&lt;button type="submit" id="loginBtn" class="btn btn-dark w-100"&gt;
+          &lt;span class="btn-text"&gt;Log in&lt;/span&gt; &lt;span
+          class="spinner-border spinner-border-sm d-none"&gt;&lt;/span&gt;
+          &lt;/button&gt; &lt;script&gt;
+          document.querySelector('form').addEventListener('submit', function() {
+          const btn = document.getElementById('loginBtn'); btn.disabled = true;
+          btn.querySelector('.btn-text').classList.add('d-none');
+          btn.querySelector('.spinner-border').classList.remove('d-none'); });
+          &lt;/script&gt;</code
+        >
+      </div>
+
+      <h3>Improvement #3: Real-time Input Validation</h3>
+      <div class="benefit-list">
+        <strong>Benefits:</strong>
+        <ul>
+          <li>Immediate feedback to users</li>
+          <li>Prevents submission errors</li>
+          <li>Better perceived performance</li>
+        </ul>
+      </div>
+      <div class="code-block">
+        <code
+          >&lt;script&gt; const emailInput = document.getElementById('email');
+          emailInput.addEventListener('blur', function() { const emailRegex =
+          /^[^\s@]+@[^\s@]+\.[^\s@]+$/; if (!emailRegex.test(this.value)) {
+          this.classList.add('is-invalid'); // Show error message } else {
+          this.classList.remove('is-invalid'); this.classList.add('is-valid'); }
+          }); &lt;/script&gt;</code
+        >
+      </div>
+
+      <h3>Improvement #4: Toast Notifications Instead of Alerts</h3>
+      <div class="alert alert-warning">
+        <strong>Current Problem:</strong> JavaScript alerts are intrusive and
+        block user interaction
+      </div>
+      <div class="implementation-box">
+        <strong>Solution:</strong> Use Bootstrap 5 Toast component
+      </div>
+      <div class="code-block">
+        <code
+          >&lt;!-- Toast Container --&gt; &lt;div class="toast-container
+          position-fixed top-0 end-0 p-3"&gt; &lt;div class="toast"
+          role="alert"&gt; &lt;div class="toast-header"&gt; &lt;strong
+          class="me-auto"&gt;Success&lt;/strong&gt; &lt;button type="button"
+          class="btn-close" data-bs-dismiss="toast"&gt;&lt;/button&gt;
+          &lt;/div&gt; &lt;div class="toast-body"&gt; Account successfully
+          created! &lt;/div&gt; &lt;/div&gt; &lt;/div&gt; &lt;script&gt; // Show
+          toast instead of alert const toastEl =
+          document.querySelector('.toast'); const toast = new
+          bootstrap.Toast(toastEl); toast.show(); &lt;/script&gt;</code
+        >
+      </div>
+
+      <h2>B. Registration Form Enhancements</h2>
+
+      <h3>Improvement #5: Password Strength Meter</h3>
+      <div class="benefit-list">
+        <strong>Benefits:</strong>
+        <ul>
+          <li>Encourages stronger passwords</li>
+          <li>Reduces weak password registrations</li>
+          <li>Better security education</li>
+        </ul>
+      </div>
+      <div class="implementation-box">
+        <strong>Implementation Components:</strong>
+        <ul>
+          <li>Progress bar showing strength (Red/Yellow/Green)</li>
+          <li>Real-time strength calculation</li>
+          <li>Requirements checklist with checkmarks</li>
+        </ul>
+      </div>
+      <div class="code-block">
+        <code
+          >&lt;div class="password-strength"&gt; &lt;div class="progress"
+          style="height: 5px;"&gt; &lt;div class="progress-bar"
+          id="strengthBar"&gt;&lt;/div&gt; &lt;/div&gt; &lt;ul
+          class="requirements mt-2"&gt; &lt;li id="req-length"&gt;✗ At least 8
+          characters&lt;/li&gt; &lt;li id="req-upper"&gt;✗ Contains uppercase
+          letter&lt;/li&gt; &lt;li id="req-lower"&gt;✗ Contains lowercase
+          letter&lt;/li&gt; &lt;li id="req-number"&gt;✗ Contains
+          number&lt;/li&gt; &lt;li id="req-special"&gt;✗ Contains special
+          character&lt;/li&gt; &lt;/ul&gt; &lt;/div&gt; &lt;script&gt; function
+          checkPasswordStrength(password) { let strength = 0; if
+          (password.length &gt;= 8) { strength++; } if (/[a-z]/.test(password))
+          { strength++; } if (/[A-Z]/.test(password)) { strength++; } if
+          (/[0-9]/.test(password)) { strength++; } if
+          (/[^a-zA-Z0-9]/.test(password)) { strength++; } const bar =
+          document.getElementById('strengthBar'); const percent = (strength / 5)
+          * 100; bar.style.width = percent + '%'; if (strength &lt; 3) {
+          bar.className = 'progress-bar bg-danger'; } else if (strength &lt; 5)
+          { bar.className = 'progress-bar bg-warning'; } else { bar.className =
+          'progress-bar bg-success'; } } &lt;/script&gt;</code
+        >
+      </div>
+
+      <h3>Improvement #6: Password Confirmation Match Indicator</h3>
+      <div class="benefit-list">
+        <strong>Benefits:</strong>
+        <ul>
+          <li>Immediate feedback on password match</li>
+          <li>Prevents form submission errors</li>
+          <li>Reduces user frustration</li>
+        </ul>
+      </div>
+      <div class="code-block">
+        <code
+          >&lt;script&gt; const confirmPassword =
+          document.getElementById('confirmPassword');
+          confirmPassword.addEventListener('input', function() { const password
+          = document.getElementById('password').value; if (this.value ===
+          password && this.value !== '') { this.classList.remove('is-invalid');
+          this.classList.add('is-valid'); } else if (this.value !== '') {
+          this.classList.remove('is-valid'); this.classList.add('is-invalid'); }
+          }); &lt;/script&gt;</code
+        >
+      </div>
+
+      <h3>Improvement #7: Multi-Step Registration (Optional)</h3>
+      <div class="benefit-list">
+        <strong>Benefits:</strong>
+        <ul>
+          <li>Reduces cognitive load</li>
+          <li>Feels faster to complete</li>
+          <li>Higher completion rate</li>
+        </ul>
+      </div>
+      <div class="implementation-box">
+        <strong>Suggested Steps:</strong>
+        <ul>
+          <li><strong>Step 1:</strong> Basic Info (Name, Email)</li>
+          <li>
+            <strong>Step 2:</strong> Security (Password, Confirm Password,
+            Terms)
+          </li>
+        </ul>
+      </div>
+
+      <h2>C. Forgot Password Flow</h2>
+
+      <h3>Improvement #8: Better Email Masking</h3>
+      <div class="alert alert-warning">
+        <strong>Current Issue:</strong> Email masking logic (verification.php
+        lines 6-8) can fail for short emails
+      </div>
+      <div class="implementation-box">
+        <strong>Better Approach:</strong>
+      </div>
+      <div class="code-block">
+        <code
+          >function maskEmail($email) { $parts = explode('@', $email); $name =
+          $parts[0]; $domain = $parts[1]; $nameLength = strlen($name); if
+          ($nameLength &lt;= 3) { $masked = $name[0] . '***'; } else { $masked =
+          $name[0] . str_repeat('*', $nameLength - 2) . $name[$nameLength - 1];
+          } return $masked . '@' . $domain; } // Result:
+          "p***************o@gmail.com"</code
+        >
+      </div>
+
+      <h3>Improvement #9: Add Countdown Timer for Code Expiration</h3>
+      <div class="benefit-list">
+        <strong>Benefits:</strong>
+        <ul>
+          <li>Creates urgency</li>
+          <li>Clear expectation of code validity</li>
+          <li>Better user experience</li>
+        </ul>
+      </div>
+      <div class="code-block">
+        <code
+          >&lt;p&gt;Code expires in &lt;span
+          id="countdown"&gt;10:00&lt;/span&gt;&lt;/p&gt; &lt;script&gt; let
+          timeLeft = 600; // 10 minutes const countdown = setInterval(function()
+          { const minutes = Math.floor(timeLeft / 60); const seconds = timeLeft
+          % 60; document.getElementById('countdown').textContent = minutes + ':'
+          + (seconds &lt; 10 ? '0' : '') + seconds; if (timeLeft &lt;= 0) {
+          clearInterval(countdown); // Disable verify button and show resend
+          option } timeLeft--; }, 1000); &lt;/script&gt;</code
+        >
+      </div>
+    </div>
+
+    <div class="page-break"></div>
+
+    <!-- Security Improvements -->
+    <div class="section">
+      <h1>4. Security Improvements</h1>
+
+      <h2>A. Session Security</h2>
+
+      <h3>Enhancement #1: Secure Session Configuration</h3>
+      <div class="alert alert-danger">
+        <strong>Current Risk:</strong> Basic session configuration vulnerable to
+        session hijacking
+      </div>
+      <div class="implementation-box">
+        <strong>Solution:</strong> Add secure session settings to config.php
+      </div>
+      <div class="code-block">
+        <code
+          >session_start([ 'cookie_lifetime' =&gt; 0, // Session ends when
+          browser closes 'cookie_secure' =&gt; true, // Only transmit over HTTPS
+          'cookie_httponly' =&gt; true, // Prevent JavaScript access
+          'cookie_samesite' =&gt; 'Strict', // CSRF protection 'use_strict_mode'
+          =&gt; true, // Reject uninitialized session IDs 'use_only_cookies'
+          =&gt; true, // Don't use URL parameters ]); // Regenerate session ID
+          after login session_regenerate_id(true);</code
+        >
+      </div>
+
+      <h2>B. CSRF Protection</h2>
+
+      <h3>Enhancement #2: Implement CSRF Tokens</h3>
+      <div class="alert alert-danger">
+        <strong>Current Risk:</strong> Forms can be submitted from malicious
+        external websites
+      </div>
+      <div class="implementation-box">
+        <strong>How to Implement:</strong>
+      </div>
+
+      <h4>Step 1: Generate Token on Page Load</h4>
+      <div class="code-block">
+        <code
+          >// Add to top of each form page (after session_start) if
+          (empty($_SESSION['csrf_token'])) { $_SESSION['csrf_token'] =
+          bin2hex(random_bytes(32)); }</code
+        >
+      </div>
+
+      <h4>Step 2: Add Hidden Field to Forms</h4>
+      <div class="code-block">
+        <code
+          >&lt;form method="POST"&gt; &lt;input type="hidden" name="csrf_token"
+          value="&lt;?php echo $_SESSION['csrf_token']; ?&gt;"&gt; &lt;!-- rest
+          of form fields --&gt; &lt;/form&gt;</code
+        >
+      </div>
+
+      <h4>Step 3: Validate on Form Submission</h4>
+      <div class="code-block">
+        <code
+          >if ($_SERVER['REQUEST_METHOD'] === 'POST') { // Validate CSRF token
+          if (!isset($_POST['csrf_token']) || $_POST['csrf_token'] !==
+          $_SESSION['csrf_token']) { die('CSRF token validation failed'); } //
+          Process form normally... }</code
+        >
+      </div>
+
+      <h2>C. Rate Limiting & Brute Force Protection</h2>
+
+      <h3>Enhancement #3: Login Attempt Tracking</h3>
+      <div class="alert alert-danger">
+        <strong>Critical Risk:</strong> Unlimited login attempts allow brute
+        force attacks
+      </div>
+
+      <h4>Step 1: Create Database Table</h4>
+      <div class="code-block">
+        <code
+          >CREATE TABLE login_attempts ( id INT AUTO_INCREMENT PRIMARY KEY,
+          email VARCHAR(255) NOT NULL, ip_address VARCHAR(45) NOT NULL,
+          attempt_time TIMESTAMP DEFAULT CURRENT_TIMESTAMP, INDEX (email,
+          attempt_time), INDEX (ip_address, attempt_time) );</code
+        >
+      </div>
+
+      <h4>Step 2: Add Tracking to Login Logic</h4>
+      <div class="code-block">
+        <code
+          >// Before processing login $check_attempts = $conn-&gt;prepare("
+          SELECT COUNT(*) as attempts FROM login_attempts WHERE email = ? AND
+          attempt_time &gt; DATE_SUB(NOW(), INTERVAL 15 MINUTE) ");
+          $check_attempts-&gt;bind_param("s", $email);
+          $check_attempts-&gt;execute(); $result =
+          $check_attempts-&gt;get_result()-&gt;fetch_assoc(); if
+          ($result['attempts'] &gt;= 5) { $errors['logIn'] = "Too many failed
+          attempts. Please try again in 15 minutes."; exit; } // After failed
+          login if (!$is_valid_login) { $log_attempt = $conn-&gt;prepare("
+          INSERT INTO login_attempts (email, ip_address) VALUES (?, ?) ");
+          $log_attempt-&gt;bind_param("ss", $email, $_SERVER['REMOTE_ADDR']);
+          $log_attempt-&gt;execute(); } // After successful login
+          $conn-&gt;query("DELETE FROM login_attempts WHERE email =
+          '$email'");</code
+        >
+      </div>
+
+      <h3>Enhancement #4: Account Lockout Mechanism</h3>
+      <div class="implementation-box">
+        <strong>Database Changes:</strong>
+      </div>
+      <div class="code-block">
+        <code
+          >ALTER TABLE users ADD COLUMN failed_attempts INT DEFAULT 0, ADD
+          COLUMN locked_until DATETIME NULL;</code
+        >
+      </div>
+
+      <div class="code-block">
+        <code
+          >// Check if account is locked if ($user['locked_until'] &&
+          strtotime($user['locked_until']) &gt; time()) { $errors['logIn'] =
+          "Account is temporarily locked. Try again later."; exit; } // After
+          failed login $conn-&gt;query("UPDATE users SET failed_attempts =
+          failed_attempts + 1 WHERE userID = {$user['userID']}"); if
+          ($user['failed_attempts'] + 1 &gt;= 5) { $lock_time = date('Y-m-d
+          H:i:s', strtotime('+15 minutes')); $conn-&gt;query("UPDATE users SET
+          locked_until = '$lock_time' WHERE userID = {$user['userID']}"); } //
+          After successful login $conn-&gt;query("UPDATE users SET
+          failed_attempts = 0, locked_until = NULL WHERE userID =
+          {$user['userID']}");</code
+        >
+      </div>
+
+      <h2>D. Timing Attack Prevention</h2>
+
+      <h3>Enhancement #5: Consistent Response Time</h3>
+      <div class="alert alert-warning">
+        <strong>Current Issue:</strong> Different response times reveal if email
+        exists
+      </div>
+      <div class="code-block">
+        <code
+          >// In login.php, replace lines 34-56 with: $user =
+          $result-&gt;fetch_assoc(); $dummy_hash =
+          '$2y$10$dummyhashfortimingattackprevention123456789'; if ($user) {
+          $is_valid = password_verify($password, $user['Password']); } else { //
+          Still verify against dummy hash to maintain timing
+          password_verify($password, $dummy_hash); $is_valid = false; } if
+          ($is_valid && $user) { // Set session and redirect $_SESSION['userId']
+          = $user['userID']; // ... rest of session setup if ($user['Role'] ===
+          'Admin') { header("Location: admin.php"); } else { header("Location:
+          booking.php"); } exit; } else { $errors['logIn'] = "Invalid email or
+          password"; }</code
+        >
+      </div>
+
+      <h2>E. Password Policy Enforcement</h2>
+
+      <h3>Enhancement #6: Strong Password Requirements</h3>
+      <div class="implementation-box">
+        <strong>Add to register.php validation:</strong>
+      </div>
+      <div class="code-block">
+        <code
+          >if (!empty($password)) { $errors_password = []; if (strlen($password)
+          &lt; 12) { $errors_password[] = "at least 12 characters"; } if
+          (!preg_match('/[A-Z]/', $password)) { $errors_password[] = "an
+          uppercase letter"; } if (!preg_match('/[a-z]/', $password)) {
+          $errors_password[] = "a lowercase letter"; } if
+          (!preg_match('/[0-9]/', $password)) { $errors_password[] = "a number";
+          } if (!preg_match('/[^a-zA-Z0-9]/', $password)) { $errors_password[] =
+          "a special character"; } if (!empty($errors_password)) {
+          $errors['password'] = "Password must contain " . implode(', ',
+          $errors_password); } }</code
+        >
+      </div>
+
+      <h2>F. Additional Security Measures</h2>
+
+      <h3>Enhancement #7: Remember Me Implementation (Secure)</h3>
+      <div class="alert alert-warning">
+        <strong>Note:</strong> Remember Me must be implemented securely to avoid
+        vulnerabilities
+      </div>
+      <div class="code-block">
+        <code
+          >// Database table for remember tokens CREATE TABLE remember_tokens (
+          id INT AUTO_INCREMENT PRIMARY KEY, user_id INT NOT NULL, token_hash
+          VARCHAR(64) NOT NULL, expires_at TIMESTAMP NOT NULL, created_at
+          TIMESTAMP DEFAULT CURRENT_TIMESTAMP, FOREIGN KEY (user_id) REFERENCES
+          users(userID) ON DELETE CASCADE, INDEX (token_hash, expires_at) ); //
+          When "Remember Me" is checked if (isset($_POST['remember']) &&
+          $_POST['remember'] === 'on') { $token = bin2hex(random_bytes(32));
+          $token_hash = hash('sha256', $token); $expires = date('Y-m-d H:i:s',
+          strtotime('+30 days')); $stmt = $conn-&gt;prepare("INSERT INTO
+          remember_tokens (user_id, token_hash, expires_at) VALUES (?, ?, ?)");
+          $stmt-&gt;bind_param("iss", $user['userID'], $token_hash, $expires);
+          $stmt-&gt;execute(); // Set httpOnly cookie
+          setcookie('remember_token', $token, [ 'expires' =&gt; strtotime('+30
+          days'), 'path' =&gt; '/', 'secure' =&gt; true, 'httponly' =&gt; true,
+          'samesite' =&gt; 'Strict' ]); } // On page load, check for remember
+          token if (isset($_COOKIE['remember_token']) &&
+          !isset($_SESSION['userId'])) { $token = $_COOKIE['remember_token'];
+          $token_hash = hash('sha256', $token); $stmt = $conn-&gt;prepare("
+          SELECT u.* FROM users u JOIN remember_tokens rt ON u.userID =
+          rt.user_id WHERE rt.token_hash = ? AND rt.expires_at &gt; NOW() ");
+          $stmt-&gt;bind_param("s", $token_hash); $stmt-&gt;execute(); $user =
+          $stmt-&gt;get_result()-&gt;fetch_assoc(); if ($user) { // Auto-login
+          user $_SESSION['userId'] = $user['userID']; // ... set other session
+          variables } }</code
+        >
+      </div>
+    </div>
+
+    <div class="page-break"></div>
+
+    <!-- Email Verification Implementation -->
+    <div class="section">
+      <h1>5. Email Verification Implementation</h1>
+
+      <div class="alert alert-info">
+        <strong>Overview:</strong> This section provides complete step-by-step
+        implementation of email verification for user registration.
+      </div>
+
+      <h2>Step 1: Database Schema</h2>
+
+      <h3>Option A: Add Columns to Users Table</h3>
+      <div class="code-block">
+        <code
+          >ALTER TABLE users ADD COLUMN email_verified TINYINT(1) DEFAULT 0, ADD
+          COLUMN verification_token VARCHAR(64) NULL, ADD COLUMN
+          verification_token_expires DATETIME NULL;</code
+        >
+      </div>
+
+      <h3>Option B: Create Separate Verification Table (Recommended)</h3>
+      <div class="code-block">
+        <code
+          >CREATE TABLE email_verifications ( id INT AUTO_INCREMENT PRIMARY KEY,
+          user_id INT NOT NULL, token VARCHAR(64) NOT NULL UNIQUE, created_at
+          TIMESTAMP DEFAULT CURRENT_TIMESTAMP, expires_at TIMESTAMP NOT NULL,
+          verified_at TIMESTAMP NULL, FOREIGN KEY (user_id) REFERENCES
+          users(userID) ON DELETE CASCADE, INDEX (token, expires_at) );</code
+        >
+      </div>
+
+      <h2>Step 2: Modify Registration Process</h2>
+
+      <h3>Update register.php After User Insert</h3>
+      <div class="code-block">
+        <code
+          >if ($query-&gt;execute()) { $user_id = $conn-&gt;insert_id; //
+          Generate verification token $verification_token =
+          bin2hex(random_bytes(32)); // 64 characters $expires_at = date('Y-m-d
+          H:i:s', strtotime('+24 hours')); // Store token in database
+          $token_query = $conn-&gt;prepare(" INSERT INTO email_verifications
+          (user_id, token, expires_at) VALUES (?, ?, ?) ");
+          $token_query-&gt;bind_param("iss", $user_id, $verification_token,
+          $expires_at); $token_query-&gt;execute(); // Generate verification
+          link $verification_link =
+          "https://yourdomain.com/verify_email.php?token=" .
+          $verification_token; // Send email (function defined in Step 3)
+          $email_sent = send_verification_email($email, $firstName,
+          $verification_link); if ($email_sent) { echo "&lt;script&gt; // Use
+          toast notification instead window.location =
+          'logIn.php?message=verify_email'; &lt;/script&gt;"; } else { echo
+          "&lt;script&gt; alert('Account created but email sending failed.
+          Contact support.'); &lt;/script&gt;"; } $query-&gt;close(); exit;
+          }</code
+        >
+      </div>
+
+      <h2>Step 3: Email Sending with PHPMailer</h2>
+
+      <h3>Install PHPMailer</h3>
+      <div class="code-block">
+        <code>composer require phpmailer/phpmailer</code>
+      </div>
+
+      <h3>Create Email Function</h3>
+      <div class="code-block">
+        <code
+          >use PHPMailer\PHPMailer\PHPMailer; use PHPMailer\PHPMailer\Exception;
+          function send_verification_email($to_email, $first_name,
+          $verification_link) { $mail = new PHPMailer(true); try { // SMTP
+          Configuration $mail-&gt;isSMTP(); $mail-&gt;Host = 'smtp.gmail.com';
+          $mail-&gt;SMTPAuth = true; $mail-&gt;Username =
+          'aperture.eventbookings@gmail.com'; $mail-&gt;Password =
+          'your_app_password'; // Use Gmail App Password $mail-&gt;SMTPSecure =
+          PHPMailer::ENCRYPTION_STARTTLS; $mail-&gt;Port = 587; // Sender and
+          recipient $mail-&gt;setFrom('aperture.eventbookings@gmail.com',
+          'Aperture Studios'); $mail-&gt;addAddress($to_email, $first_name); //
+          Email subject and body $mail-&gt;Subject = 'Verify Your Aperture
+          Account'; $mail-&gt;isHTML(true); $mail-&gt;Body = "&lt;html&gt;
+          &lt;body style='font-family: Arial, sans-serif;'&gt; &lt;div
+          style='max-width: 600px; margin: 0 auto; padding: 20px; border: 1px
+          solid #ddd;'&gt; &lt;h2 style='color: #667eea;'&gt;Welcome to Aperture
+          Studios, {$first_name}!&lt;/h2&gt; &lt;p&gt;Thank you for creating an
+          account. Please verify your email address to complete
+          registration.&lt;/p&gt; &lt;p style='margin: 30px 0;'&gt; &lt;a
+          href='{$verification_link}' style='background: #667eea; color: white;
+          padding: 12px 30px; text-decoration: none; border-radius: 5px;
+          display: inline-block;'&gt; Verify Email Address &lt;/a&gt; &lt;/p&gt;
+          &lt;p&gt;Or copy and paste this link:&lt;/p&gt; &lt;p style='color:
+          #666; word-break: break-all;'&gt;{$verification_link}&lt;/p&gt; &lt;p
+          style='color: #999; font-size: 12px; margin-top: 40px;'&gt; This link
+          expires in 24 hours. If you didn't create an account, ignore this
+          email. &lt;/p&gt; &lt;/div&gt; &lt;/body&gt; &lt;/html&gt;";
+          $mail-&gt;send(); return true; } catch (Exception $e) {
+          error_log("Email failed: {$mail-&gt;ErrorInfo}"); return false; }
+          }</code
+        >
+      </div>
+
+      <h3>Gmail Setup Instructions</h3>
+      <div class="alert alert-warning">
+        <strong>Important:</strong> To use Gmail SMTP, you need an App Password
+      </div>
+      <ol>
+        <li>Go to your Google Account settings</li>
+        <li>Enable 2-Factor Authentication</li>
+        <li>Go to Security → 2-Step Verification → App passwords</li>
+        <li>Generate a new App Password for "Mail"</li>
+        <li>
+          Use that 16-character password (not your regular Gmail password)
+        </li>
+      </ol>
+
+      <h2>Step 4: Create Verification Page</h2>
+
+      <h3>Create verify_email.php</h3>
+      <div class="code-block">
+        <code
+          >&lt;?php require_once './includes/config.php'; $message = '';
+          $message_type = 'danger'; if (isset($_GET['token'])) { $token =
+          $_GET['token']; // Find valid token $query = $conn-&gt;prepare("
+          SELECT ev.id, ev.user_id, u.email, u.FirstName FROM
+          email_verifications ev JOIN users u ON ev.user_id = u.userID WHERE
+          ev.token = ? AND ev.expires_at &gt; NOW() AND ev.verified_at IS NULL
+          "); $query-&gt;bind_param("s", $token); $query-&gt;execute(); $result
+          = $query-&gt;get_result(); if ($result-&gt;num_rows === 1) {
+          $verification = $result-&gt;fetch_assoc(); // Mark as verified
+          $update_verification = $conn-&gt;prepare(" UPDATE email_verifications
+          SET verified_at = NOW() WHERE id = ? ");
+          $update_verification-&gt;bind_param("i", $verification['id']);
+          $update_verification-&gt;execute(); // Update user $update_user =
+          $conn-&gt;prepare(" UPDATE users SET email_verified = 1 WHERE userID =
+          ? "); $update_user-&gt;bind_param("i", $verification['user_id']);
+          $update_user-&gt;execute(); $message = "Email verified successfully!
+          You can now log in."; $message_type = 'success'; } else { $message =
+          "Invalid or expired verification link."; } } else { $message = "No
+          verification token provided."; } ?&gt; &lt;!DOCTYPE html&gt; &lt;html
+          lang="en"&gt; &lt;head&gt; &lt;meta charset="UTF-8"&gt; &lt;link
+          rel="stylesheet"
+          href="../bootstrap-5.3.8-dist/css/bootstrap.min.css"&gt;
+          &lt;title&gt;Email Verification - Aperture&lt;/title&gt; &lt;/head&gt;
+          &lt;body&gt; &lt;section class="min-vh-100 d-flex
+          justify-content-center align-items-center"&gt; &lt;div
+          class="container"&gt; &lt;div class="row justify-content-center"&gt;
+          &lt;div class="col-md-6"&gt; &lt;div class="card shadow text-center
+          p-5"&gt; &lt;h2&gt;&lt;?php echo $message_type === 'success' ? 'Email
+          Verified!' : 'Verification Failed'; ?&gt;&lt;/h2&gt; &lt;p
+          class="alert alert-&lt;?php echo $message_type; ?&gt;"&gt; &lt;?php
+          echo $message; ?&gt; &lt;/p&gt; &lt;?php if ($message_type ===
+          'success'): ?&gt; &lt;a href="logIn.php" class="btn btn-dark
+          btn-lg"&gt;Go to Login&lt;/a&gt; &lt;?php else: ?&gt; &lt;a
+          href="register.php" class="btn btn-dark btn-lg"&gt;Back to
+          Registration&lt;/a&gt; &lt;?php endif; ?&gt; &lt;/div&gt; &lt;/div&gt;
+          &lt;/div&gt; &lt;/div&gt; &lt;/section&gt; &lt;/body&gt;
+          &lt;/html&gt;</code
+        >
+      </div>
+
+      <h2>Step 5: Update Login to Check Verification</h2>
+
+      <h3>Modify logIn.php After Password Verification</h3>
+      <div class="code-block">
+        <code
+          >// In logIn.php, after line 37 (password_verify) if
+          (password_verify($password, $user['Password'])) { // Check if email is
+          verified if ($user['email_verified'] == 0) { $errors['logIn'] =
+          "Please verify your email before logging in. Check your inbox."; }
+          else { // Normal login flow $_SESSION['userId'] = $user['userID'];
+          $_SESSION['firstName'] = $user['FirstName']; $_SESSION['lastName'] =
+          $user['LastName']; $_SESSION['fullName'] = $user['FullName'];
+          $_SESSION['email'] = $user['Email']; $_SESSION['role'] =
+          $user['Role']; if ($user['Role'] === 'Admin') { header("Location:
+          admin.php"); } else { header("Location: booking.php"); } exit; } }
+          else { $errors['logIn'] = "Invalid email or password"; }</code
+        >
+      </div>
+
+      <h2>Step 6: Resend Verification Email</h2>
+
+      <h3>Add Resend Button to Login Page</h3>
+      <div class="code-block">
+        <code
+          >&lt;?php if (isset($errors['logIn']) && strpos($errors['logIn'],
+          'verify') !== false): ?&gt; &lt;div class="alert alert-warning
+          mt-3"&gt; &lt;p&gt;Didn't receive the email?&lt;/p&gt; &lt;form
+          action="resend_verification.php" method="POST" class="d-inline"&gt;
+          &lt;input type="hidden" name="email" value="&lt;?php echo
+          htmlspecialchars($email ?? ''); ?&gt;"&gt; &lt;button type="submit"
+          class="btn btn-sm btn-outline-dark"&gt; Resend Verification Email
+          &lt;/button&gt; &lt;/form&gt; &lt;/div&gt; &lt;?php endif; ?&gt;</code
+        >
+      </div>
+
+      <h3>Create resend_verification.php</h3>
+      <div class="code-block">
+        <code
+          >&lt;?php require_once './includes/config.php'; session_start(); if
+          ($_SERVER['REQUEST_METHOD'] === 'POST') { $email =
+          trim($_POST['email']); // Check if user exists and is not verified
+          $query = $conn-&gt;prepare(" SELECT userID, FirstName, email_verified
+          FROM users WHERE Email = ? "); $query-&gt;bind_param("s", $email);
+          $query-&gt;execute(); $result = $query-&gt;get_result(); if
+          ($result-&gt;num_rows === 1) { $user = $result-&gt;fetch_assoc(); if
+          ($user['email_verified'] == 0) { // Delete old tokens
+          $conn-&gt;query("DELETE FROM email_verifications WHERE user_id =
+          {$user['userID']}"); // Generate new token $verification_token =
+          bin2hex(random_bytes(32)); $expires_at = date('Y-m-d H:i:s',
+          strtotime('+24 hours')); $token_query = $conn-&gt;prepare(" INSERT
+          INTO email_verifications (user_id, token, expires_at) VALUES (?, ?, ?)
+          "); $token_query-&gt;bind_param("iss", $user['userID'],
+          $verification_token, $expires_at); $token_query-&gt;execute(); // Send
+          new email $verification_link =
+          "https://yourdomain.com/verify_email.php?token=" .
+          $verification_token; send_verification_email($email,
+          $user['FirstName'], $verification_link); } } // Always show same
+          message for security echo "&lt;script&gt; alert('If this email is
+          registered and unverified, we have sent a new verification link.');
+          window.location='logIn.php'; &lt;/script&gt;"; exit; } ?&gt;</code
+        >
+      </div>
+
+      <h2>Step 7: Token Cleanup (Maintenance)</h2>
+
+      <h3>Create cleanup_tokens.php</h3>
+      <div class="code-block">
+        <code
+          >&lt;?php require_once './includes/config.php'; // Delete expired,
+          unused tokens older than 48 hours $conn-&gt;query(" DELETE FROM
+          email_verifications WHERE expires_at &lt; NOW() AND verified_at IS
+          NULL "); echo "Token cleanup complete. " . $conn-&gt;affected_rows . "
+          tokens removed."; ?&gt;</code
+        >
+      </div>
+
+      <h3>Setup Cron Job (Linux/Unix)</h3>
+      <div class="code-block">
+        <code
+          ># Run daily at 2 AM 0 2 * * * /usr/bin/php
+          /path/to/cleanup_tokens.php</code
+        >
+      </div>
+
+      <h3>Windows Task Scheduler Alternative</h3>
+      <div class="code-block">
+        <code
+          ># Create batch file: cleanup_tokens.bat @echo off
+          "C:\xampp\php\php.exe"
+          "C:\xampp\htdocs\aperture-master\src\cleanup_tokens.php" # Schedule in
+          Task Scheduler to run daily</code
+        >
+      </div>
+
+      <h2>Security Best Practices for Email Verification</h2>
+
+      <div class="priority-box">
+        <h3>Important Security Considerations</h3>
+        <ul>
+          <li>
+            <strong>Token Generation:</strong> Use cryptographically secure
+            random_bytes(32)
+          </li>
+          <li>
+            <strong>Token Storage:</strong> Store tokens in separate table for
+            better security audit
+          </li>
+          <li>
+            <strong>Token Expiration:</strong> 24 hours is standard, 72 hours
+            maximum
+          </li>
+          <li>
+            <strong>One-Time Use:</strong> Mark token as used (verified_at) to
+            prevent reuse
+          </li>
+          <li>
+            <strong>No Email Enumeration:</strong> Same message whether email
+            exists or not
+          </li>
+          <li>
+            <strong>HTTPS Only:</strong> Verification links must use HTTPS in
+            production
+          </li>
+          <li>
+            <strong>Rate Limiting:</strong> Limit resend requests (max 3 per
+            hour)
+          </li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="page-break"></div>
+
+    <!-- Additional Features -->
+    <div class="section">
+      <h1>6. Additional Features to Consider</h1>
+
+      <h2>A. Two-Factor Authentication (2FA)</h2>
+      <div class="benefit-list">
+        <strong>Benefits:</strong>
+        <ul>
+          <li>Dramatically increases account security</li>
+          <li>Protects against password theft</li>
+          <li>Industry best practice for sensitive accounts</li>
+        </ul>
+      </div>
+      <div class="implementation-box">
+        <strong>Implementation Options:</strong>
+        <ul>
+          <li>
+            <strong>SMS-based:</strong> Send one-time code via SMS (requires
+            Twilio or similar service)
+          </li>
+          <li>
+            <strong>Authenticator App:</strong> Use Google Authenticator, Authy
+            (requires TOTP library)
+          </li>
+          <li>
+            <strong>Backup Codes:</strong> Generate one-time emergency codes
+          </li>
+        </ul>
+      </div>
+      <div class="alert alert-info">
+        <strong>Recommendation:</strong> Implement 2FA for admin accounts first,
+        make it optional for regular users
+      </div>
+
+      <h2>B. Social Login Integration</h2>
+      <div class="benefit-list">
+        <strong>Benefits:</strong>
+        <ul>
+          <li>Faster registration process</li>
+          <li>No password to remember</li>
+          <li>Email pre-verified</li>
+          <li>Higher conversion rate</li>
+        </ul>
+      </div>
+      <div class="implementation-box">
+        <strong>Popular Options:</strong>
+        <ul>
+          <li>
+            <strong>Google OAuth 2.0:</strong> Most common, trusted by users
+          </li>
+          <li><strong>Facebook Login:</strong> Large user base</li>
+          <li>
+            <strong>Apple Sign In:</strong> Required for iOS apps,
+            privacy-focused
+          </li>
+        </ul>
+      </div>
+
+      <h2>C. Login Activity Logging</h2>
+      <div class="benefit-list">
+        <strong>Benefits:</strong>
+        <ul>
+          <li>Security monitoring</li>
+          <li>User awareness of account access</li>
+          <li>Fraud detection</li>
+        </ul>
+      </div>
+      <div class="code-block">
+        <code
+          >CREATE TABLE login_history ( id INT AUTO_INCREMENT PRIMARY KEY,
+          user_id INT NOT NULL, login_time TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+          ip_address VARCHAR(45), user_agent TEXT, browser VARCHAR(100), device
+          VARCHAR(100), location VARCHAR(255), success TINYINT(1) DEFAULT 1,
+          FOREIGN KEY (user_id) REFERENCES users(userID) ON DELETE CASCADE,
+          INDEX (user_id, login_time) ); // After successful login $stmt =
+          $conn-&gt;prepare(" INSERT INTO login_history (user_id, ip_address,
+          user_agent, browser, device) VALUES (?, ?, ?, ?, ?) ");
+          $stmt-&gt;bind_param("issss", $user['userID'],
+          $_SERVER['REMOTE_ADDR'], $_SERVER['HTTP_USER_AGENT'], $browser, //
+          Parse from user agent $device // Parse from user agent );</code
+        >
+      </div>
+
+      <h2>D. Password Reset via Email (Enhanced)</h2>
+      <div class="alert alert-warning">
+        <strong>Current Status:</strong> You have UI (forgot1.php,
+        verification.php) but no backend implementation
+      </div>
+      <div class="implementation-box">
+        <strong>Complete Implementation Steps:</strong>
+      </div>
+
+      <h3>Step 1: Create Password Reset Tokens Table</h3>
+      <div class="code-block">
+        <code
+          >CREATE TABLE password_reset_tokens ( id INT AUTO_INCREMENT PRIMARY
+          KEY, user_id INT NOT NULL, token_hash VARCHAR(64) NOT NULL UNIQUE,
+          code VARCHAR(6) NOT NULL, created_at TIMESTAMP DEFAULT
+          CURRENT_TIMESTAMP, expires_at TIMESTAMP NOT NULL, attempts INT DEFAULT
+          0, used TINYINT(1) DEFAULT 0, FOREIGN KEY (user_id) REFERENCES
+          users(userID) ON DELETE CASCADE, INDEX (token_hash, expires_at)
+          );</code
+        >
+      </div>
+
+      <h3>Step 2: Update forgot1.php Backend</h3>
+      <div class="code-block">
+        <code
+          >&lt;?php if ($_SERVER['REQUEST_METHOD'] === 'POST') { $email =
+          trim($_POST['email']); // Check if user exists $query =
+          $conn-&gt;prepare("SELECT userID, FirstName FROM users WHERE Email =
+          ?"); $query-&gt;bind_param("s", $email); $query-&gt;execute(); $result
+          = $query-&gt;get_result(); if ($result-&gt;num_rows === 1) { $user =
+          $result-&gt;fetch_assoc(); // Generate 6-digit code $code =
+          sprintf("%06d", random_int(0, 999999)); $token =
+          bin2hex(random_bytes(32)); $token_hash = hash('sha256', $token);
+          $expires_at = date('Y-m-d H:i:s', strtotime('+15 minutes')); // Delete
+          old tokens $conn-&gt;query("DELETE FROM password_reset_tokens WHERE
+          user_id = {$user['userID']}"); // Insert new token $stmt =
+          $conn-&gt;prepare(" INSERT INTO password_reset_tokens (user_id,
+          token_hash, code, expires_at) VALUES (?, ?, ?, ?) ");
+          $stmt-&gt;bind_param("isss", $user['userID'], $token_hash, $code,
+          $expires_at); $stmt-&gt;execute(); // Send email with code
+          send_reset_code_email($email, $user['FirstName'], $code); // Redirect
+          to verification page $_SESSION['reset_email'] = $email;
+          $_SESSION['reset_token'] = $token; header("Location:
+          verification.php"); exit; } // Always show same message (security)
+          $_SESSION['reset_email'] = $email; header("Location:
+          verification.php"); exit; } ?&gt;</code
+        >
+      </div>
+
+      <h2>E. Magic Link Login (Passwordless)</h2>
+      <div class="benefit-list">
+        <strong>Benefits:</strong>
+        <ul>
+          <li>No password to remember or steal</li>
+          <li>Better user experience</li>
+          <li>More secure than passwords</li>
+        </ul>
+      </div>
+      <div class="implementation-box">
+        <strong>How It Works:</strong>
+        <ol>
+          <li>User enters email address</li>
+          <li>System sends one-time login link to email</li>
+          <li>User clicks link and is automatically logged in</li>
+          <li>Link expires after 15 minutes or first use</li>
+        </ol>
+      </div>
+
+      <h2>F. Progressive Web App (PWA) Features</h2>
+      <div class="benefit-list">
+        <strong>Benefits:</strong>
+        <ul>
+          <li>Offline functionality</li>
+          <li>Push notifications for bookings</li>
+          <li>App-like experience</li>
+          <li>Faster loading with service workers</li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="page-break"></div>
+
+    <!-- Priority Rankings -->
+    <div class="section">
+      <h1>7. Priority Rankings</h1>
+
+      <div class="priority-box">
+        <h2>MUST IMPLEMENT (Critical - Do First)</h2>
+        <table>
+          <thead>
+            <tr>
+              <th>Feature</th>
+              <th>Impact</th>
+              <th>Effort</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><strong>Email Verification</strong></td>
+              <td><span class="badge badge-danger">Critical</span></td>
+              <td>Medium (2-3 hours)</td>
+            </tr>
+            <tr>
+              <td><strong>CSRF Protection</strong></td>
+              <td><span class="badge badge-danger">Critical</span></td>
+              <td>Low (30 minutes)</td>
+            </tr>
+            <tr>
+              <td><strong>Rate Limiting</strong></td>
+              <td><span class="badge badge-danger">Critical</span></td>
+              <td>Medium (1-2 hours)</td>
+            </tr>
+            <tr>
+              <td><strong>Account Lockout</strong></td>
+              <td><span class="badge badge-danger">Critical</span></td>
+              <td>Low (1 hour)</td>
+            </tr>
+            <tr>
+              <td><strong>Session Security</strong></td>
+              <td><span class="badge badge-danger">Critical</span></td>
+              <td>Low (15 minutes)</td>
+            </tr>
+            <tr>
+              <td><strong>Password Visibility Toggle</strong></td>
+              <td><span class="badge badge-warning">High</span></td>
+              <td>Low (30 minutes)</td>
+            </tr>
+            <tr>
+              <td><strong>Password Strength Meter</strong></td>
+              <td><span class="badge badge-warning">High</span></td>
+              <td>Medium (1-2 hours)</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="priority-box">
+        <h2>SHOULD IMPLEMENT (High Priority - Week 1-2)</h2>
+        <table>
+          <thead>
+            <tr>
+              <th>Feature</th>
+              <th>Impact</th>
+              <th>Effort</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><strong>Timing Attack Prevention</strong></td>
+              <td><span class="badge badge-warning">High</span></td>
+              <td>Low (30 minutes)</td>
+            </tr>
+            <tr>
+              <td><strong>Real-time Validation</strong></td>
+              <td><span class="badge badge-info">Medium</span></td>
+              <td>Medium (2 hours)</td>
+            </tr>
+            <tr>
+              <td><strong>Toast Notifications</strong></td>
+              <td><span class="badge badge-info">Medium</span></td>
+              <td>Low (1 hour)</td>
+            </tr>
+            <tr>
+              <td><strong>Loading States</strong></td>
+              <td><span class="badge badge-info">Medium</span></td>
+              <td>Low (1 hour)</td>
+            </tr>
+            <tr>
+              <td><strong>Better Error Messages</strong></td>
+              <td><span class="badge badge-warning">High</span></td>
+              <td>Low (30 minutes)</td>
+            </tr>
+            <tr>
+              <td><strong>Password Policy Enforcement</strong></td>
+              <td><span class="badge badge-warning">High</span></td>
+              <td>Low (1 hour)</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="priority-box">
+        <h2>NICE TO HAVE (Medium Priority - Week 3-4)</h2>
+        <table>
+          <thead>
+            <tr>
+              <th>Feature</th>
+              <th>Impact</th>
+              <th>Effort</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><strong>Multi-step Registration</strong></td>
+              <td><span class="badge badge-info">Medium</span></td>
+              <td>Medium (3 hours)</td>
+            </tr>
+            <tr>
+              <td><strong>Password Match Indicator</strong></td>
+              <td><span class="badge badge-info">Medium</span></td>
+              <td>Low (30 minutes)</td>
+            </tr>
+            <tr>
+              <td><strong>Login History</strong></td>
+              <td><span class="badge badge-info">Medium</span></td>
+              <td>Medium (2-3 hours)</td>
+            </tr>
+            <tr>
+              <td><strong>2FA for Admin</strong></td>
+              <td><span class="badge badge-warning">High</span></td>
+              <td>High (4-6 hours)</td>
+            </tr>
+            <tr>
+              <td><strong>Better Email Masking</strong></td>
+              <td><span class="badge badge-info">Low</span></td>
+              <td>Low (15 minutes)</td>
+            </tr>
+            <tr>
+              <td><strong>Remember Me</strong></td>
+              <td><span class="badge badge-info">Medium</span></td>
+              <td>Medium (2-3 hours)</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="priority-box">
+        <h2>FUTURE ENHANCEMENTS (Low Priority - Month 2+)</h2>
+        <table>
+          <thead>
+            <tr>
+              <th>Feature</th>
+              <th>Impact</th>
+              <th>Effort</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><strong>Social Login</strong></td>
+              <td><span class="badge badge-info">Medium</span></td>
+              <td>High (6-8 hours)</td>
+            </tr>
+            <tr>
+              <td><strong>Magic Link Login</strong></td>
+              <td><span class="badge badge-info">Medium</span></td>
+              <td>Medium (3-4 hours)</td>
+            </tr>
+            <tr>
+              <td><strong>Password Expiry</strong></td>
+              <td><span class="badge badge-info">Low</span></td>
+              <td>Medium (2-3 hours)</td>
+            </tr>
+            <tr>
+              <td><strong>PWA Features</strong></td>
+              <td><span class="badge badge-info">Medium</span></td>
+              <td>High (8+ hours)</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <div class="page-break"></div>
+
+    <!-- Implementation Roadmap -->
+    <div class="section">
+      <h1>8. Implementation Roadmap</h1>
+
+      <h2>Week 1: Critical Security (Must Have)</h2>
+      <div class="alert alert-danger">
+        <strong>Focus:</strong> Make the system production-ready from a security
+        standpoint
+      </div>
+
+      <h3>Day 1-2: Email Verification</h3>
+      <ul>
+        <li>Create email_verifications table</li>
+        <li>Install and configure PHPMailer</li>
+        <li>Update register.php to generate tokens</li>
+        <li>Create verify_email.php page</li>
+        <li>Update logIn.php to check verification status</li>
+        <li>Create resend_verification.php</li>
+        <li>Test entire flow</li>
+      </ul>
+
+      <h3>Day 3: CSRF Protection</h3>
+      <ul>
+        <li>Add CSRF token generation to all form pages</li>
+        <li>Add hidden token fields to forms</li>
+        <li>Add validation logic to form handlers</li>
+        <li>Test all forms</li>
+      </ul>
+
+      <h3>Day 4: Rate Limiting</h3>
+      <ul>
+        <li>Create login_attempts table</li>
+        <li>Implement attempt tracking in logIn.php</li>
+        <li>Add lockout logic (5 attempts = 15 minute wait)</li>
+        <li>Test with multiple failed logins</li>
+      </ul>
+
+      <h3>Day 5: Additional Security</h3>
+      <ul>
+        <li>Update session configuration</li>
+        <li>Implement timing attack prevention</li>
+        <li>Add password policy enforcement</li>
+        <li>Update error messages for consistency</li>
+      </ul>
+
+      <h2>Week 2: UI/UX Improvements (Should Have)</h2>
+      <div class="alert alert-warning">
+        <strong>Focus:</strong> Improve user experience and interface polish
+      </div>
+
+      <h3>Day 1: Password Features</h3>
+      <ul>
+        <li>Add password visibility toggle</li>
+        <li>Implement password strength meter</li>
+        <li>Add password match indicator</li>
+        <li>Test all password features</li>
+      </ul>
+
+      <h3>Day 2: Form Enhancements</h3>
+      <ul>
+        <li>Replace JavaScript alerts with toast notifications</li>
+        <li>Add loading states to submit buttons</li>
+        <li>Implement real-time email validation</li>
+        <li>Test user flows</li>
+      </ul>
+
+      <h3>Day 3-4: Forgot Password Backend</h3>
+      <ul>
+        <li>Create password_reset_tokens table</li>
+        <li>Implement backend for forgot1.php</li>
+        <li>Implement code verification logic</li>
+        <li>Create forgot2.php (password reset page)</li>
+        <li>Test complete password reset flow</li>
+      </ul>
+
+      <h3>Day 5: Polish and Testing</h3>
+      <ul>
+        <li>Fix any remaining UI issues</li>
+        <li>Test on mobile devices</li>
+        <li>Cross-browser testing</li>
+        <li>User acceptance testing</li>
+      </ul>
+
+      <h2>Week 3-4: Enhanced Features (Nice to Have)</h2>
+      <div class="alert alert-info">
+        <strong>Focus:</strong> Add advanced features for better security and UX
+      </div>
+
+      <h3>Week 3</h3>
+      <ul>
+        <li>Implement Remember Me functionality</li>
+        <li>Add login history tracking</li>
+        <li>Create user dashboard to view login history</li>
+        <li>Implement multi-step registration (if desired)</li>
+      </ul>
+
+      <h3>Week 4</h3>
+      <ul>
+        <li>Implement 2FA for admin accounts</li>
+        <li>Add account settings page</li>
+        <li>Create password change functionality</li>
+        <li>Add email change with verification</li>
+      </ul>
+
+      <h2>Month 2+: Future Enhancements</h2>
+      <div class="alert alert-info">
+        <strong>Focus:</strong> Long-term improvements based on user feedback
+      </div>
+      <ul>
+        <li>Social login integration (Google, Facebook)</li>
+        <li>Magic link login option</li>
+        <li>Progressive Web App features</li>
+        <li>Advanced analytics and monitoring</li>
+        <li>Password expiry policies</li>
+      </ul>
+
+      <h2>Testing Checklist</h2>
+      <div class="priority-box">
+        <h3>Before Deployment</h3>
+        <ul>
+          <li>
+            <input type="checkbox" /> Email verification sends and works
+            correctly
+          </li>
+          <li>
+            <input type="checkbox" /> CSRF tokens prevent unauthorized
+            submissions
+          </li>
+          <li>
+            <input type="checkbox" /> Rate limiting blocks brute force attempts
+          </li>
+          <li>
+            <input type="checkbox" /> Account lockout works after 5 failed
+            attempts
+          </li>
+          <li>
+            <input type="checkbox" /> Session security settings are configured
+          </li>
+          <li>
+            <input type="checkbox" /> Password strength requirements are
+            enforced
+          </li>
+          <li><input type="checkbox" /> All forms have proper validation</li>
+          <li>
+            <input type="checkbox" /> Error messages don't reveal sensitive info
+          </li>
+          <li><input type="checkbox" /> Responsive design works on mobile</li>
+          <li><input type="checkbox" /> Cross-browser compatibility tested</li>
+          <li><input type="checkbox" /> HTTPS enabled in production</li>
+          <li><input type="checkbox" /> Database backups configured</li>
+        </ul>
+      </div>
+
+      <h2>Maintenance Tasks</h2>
+      <div class="alert alert-warning">
+        <strong>Regular Maintenance Required:</strong>
+      </div>
+      <ul>
+        <li>
+          <strong>Daily:</strong> Clean up expired verification tokens (cron
+          job)
+        </li>
+        <li>
+          <strong>Weekly:</strong> Review login attempts for suspicious activity
+        </li>
+        <li>
+          <strong>Monthly:</strong> Audit login history for security issues
+        </li>
+        <li>
+          <strong>Quarterly:</strong> Update dependencies (PHPMailer, Bootstrap)
+        </li>
+        <li><strong>Yearly:</strong> Security audit and penetration testing</li>
+      </ul>
+    </div>
+
+    <div class="page-break"></div>
+
+    <!-- Final Notes -->
+    <div class="section">
+      <h1>Final Notes and Recommendations</h1>
+
+      <div class="alert alert-success">
+        <h3>Summary</h3>
+        <p>
+          Your authentication system has a
+          <strong>solid foundation</strong> with good security practices already
+          in place:
+        </p>
+        <ul>
+          <li>Prepared statements preventing SQL injection</li>
+          <li>Password hashing with password_hash()</li>
+          <li>Basic XSS protection</li>
+          <li>Clean, modern UI design</li>
+        </ul>
+      </div>
+
+      <div class="alert alert-warning">
+        <h3>Key Gaps to Address</h3>
+        <p>The most critical improvements needed are:</p>
+        <ol>
+          <li>
+            <strong>Email Verification:</strong> Prevents spam accounts and
+            ensures valid contact info
+          </li>
+          <li>
+            <strong>Rate Limiting:</strong> Protects against brute force
+            password attacks
+          </li>
+          <li>
+            <strong>CSRF Protection:</strong> Prevents unauthorized form
+            submissions
+          </li>
+          <li>
+            <strong>Session Security:</strong> Protects against session
+            hijacking
+          </li>
+        </ol>
+      </div>
+
+      <h2>Development Best Practices</h2>
+      <ul>
+        <li>
+          <strong>Test in Development:</strong> Never test security features in
+          production
+        </li>
+        <li>
+          <strong>Use Version Control:</strong> Git commit after each working
+          feature
+        </li>
+        <li><strong>Backup Database:</strong> Before making schema changes</li>
+        <li>
+          <strong>Document Changes:</strong> Keep track of what you implement
+        </li>
+        <li>
+          <strong>Progressive Enhancement:</strong> Implement features one at a
+          time
+        </li>
+        <li><strong>User Testing:</strong> Get feedback from real users</li>
+      </ul>
+
+      <h2>Security Resources</h2>
+      <ul>
+        <li>
+          <strong>OWASP Top 10:</strong> https://owasp.org/www-project-top-ten/
+        </li>
+        <li>
+          <strong>PHP Security Guide:</strong>
+          https://phptherightway.com/#security
+        </li>
+        <li>
+          <strong>PHPMailer Docs:</strong>
+          https://github.com/PHPMailer/PHPMailer
+        </li>
+        <li>
+          <strong>Bootstrap Docs:</strong> https://getbootstrap.com/docs/5.3/
+        </li>
+      </ul>
+
+      <h2>Getting Help</h2>
+      <p>If you encounter issues during implementation:</p>
+      <ul>
+        <li>Check error logs (PHP error log, Apache/Nginx logs)</li>
+        <li>Use var_dump() and print_r() for debugging</li>
+        <li>Test email sending with a service like Mailtrap first</li>
+        <li>Use browser DevTools to debug JavaScript issues</li>
+        <li>Search Stack Overflow for specific error messages</li>
+      </ul>
+
+      <div class="alert alert-info">
+        <h3>Estimated Timeline</h3>
+        <p>For a developer with intermediate PHP/JavaScript skills:</p>
+        <ul>
+          <li><strong>Week 1 (Critical Security):</strong> 20-25 hours</li>
+          <li><strong>Week 2 (UI/UX Improvements):</strong> 15-20 hours</li>
+          <li><strong>Week 3-4 (Enhanced Features):</strong> 20-30 hours</li>
+          <li>
+            <strong>Total for Production-Ready System:</strong> 55-75 hours
+          </li>
+        </ul>
+      </div>
+
+      <h2>Success Metrics</h2>
+      <p>After implementation, track these metrics:</p>
+      <ul>
+        <li>Email verification completion rate (target: 80%+)</li>
+        <li>Registration completion rate (target: 70%+)</li>
+        <li>Failed login attempts per account (monitor for attacks)</li>
+        <li>Password reset requests (should decrease with better UX)</li>
+        <li>User complaints about authentication (target: minimize)</li>
+      </ul>
+
+      <div class="priority-box">
+        <h2>Next Steps</h2>
+        <ol>
+          <li><strong>Review this document thoroughly</strong></li>
+          <li>
+            <strong>Set up development environment</strong> (separate from
+            production)
+          </li>
+          <li><strong>Create database backups</strong></li>
+          <li>
+            <strong>Start with email verification</strong> (most requested
+            feature)
+          </li>
+          <li>
+            <strong>Test each feature completely</strong> before moving to next
+          </li>
+          <li><strong>Document your progress</strong></li>
+          <li>
+            <strong>Deploy to production</strong> only after thorough testing
+          </li>
+        </ol>
+      </div>
+
+      <div
+        style="
+          text-align: center;
+          margin-top: 60px;
+          padding: 40px;
+          background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+          color: white;
+          border-radius: 10px;
+        "
+      >
+        <h2 style="color: white">Good luck with your implementation!</h2>
+        <p style="font-size: 18px; margin-top: 20px">
+          This comprehensive guide should give you everything you need to create
+          a secure, user-friendly authentication system for Aperture Studios.
+        </p>
+      </div>
+    </div>
+  </body>
+</html>

@@ -356,10 +356,6 @@ hr {
   );
 }
 
-#faq {
-  background-color: var(--light);
-}
-
 .priceRow .card:first-child,
 .priceRow .card:last-child {
   max-width: 25rem;
@@ -379,6 +375,10 @@ hr {
   position: absolute;
   bottom: 20px;
   padding: 0.5rem;
+}
+
+#faq {
+  background-color: var(--light);
 }
 
 .accordion-body {
@@ -621,8 +621,8 @@ select:focus {
   border: 1px solid #d4af37 !important;
 }
 
-option:hover{
-background-color: var(--gold) !important;
+option:hover {
+  background-color: var(--gold) !important;
 }
 
 .input-group img {
@@ -753,21 +753,80 @@ li {
   font-size: 0.9rem;
 }
 
-fieldset {
-  position: relative;
-}
 
-fieldset #legend {
-  display: inline-block !important;
-  position: absolute;
-  top: -0.9rem;
-  background-color: white;
-  font-size: 1.5rem;
-}
 
-#bookingForm{
+#bookingFormSection {
   background-image: url(./assets/lux.jpg);
   background-position: center;
   background-size: cover;
   background-repeat: no-repeat;
+  background-attachment: fixed;
+}
+
+.blur {
+  background-color: #f8f9fa6b !important;
+  backdrop-filter: blur(10px) !important;
+}
+
+.progress-bar {
+  background-color: var(--gold) !important;
+}
+
+#bookingForm fieldset{
+  display: none ;
+  position: relative;
+  opacity: 0;
+  transition: .5s ease;
+}
+
+#bookingForm fieldset.active{
+  display: block;
+  opacity: 1;
+}
+
+
+fieldset #legend {
+  display: inline-block !important;
+  position: absolute;
+  top: -.9rem;
+  background-color: white;
+  font-size: 1.5rem;
+  padding: 0 1rem;
+}
+
+#submitForm{
+  background-color: var(--gold);
+}
+
+
+.radioContainer label{
+  font-size: 2rem;
+  cursor: pointer;
+  transition: all .5s ease;
+}
+
+.radioContainer input{
+  position: absolute;
+  top: 1rem;
+  right: 1rem;
+  display: none;
+}
+
+.radioContainer input:checked + label{
+  border: 1px solid #d4af3770 !important;
+  box-shadow: 0px 0px 5px 0 var(--gold);
+  background-color: #fbf6e6;
+}
+
+.addons{
+  display:flex;
+  align-items: start;
+  justify-content: start;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.form-check-input,
+.form-check-label{
+  font-size: 1.3rem !important;
 }

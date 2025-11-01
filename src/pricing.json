@@ -7,6 +7,8 @@
       "id": 1,
       "name": "Essential Package",
       "price": 7500,
+      "coverage_hours": 2,
+      "extra_hour_rate": 1000,
       "description": "Perfect for small celebrations or short events that need professional documentation.",
       "inclusions": [
         "1 Photographer or Videographer",
@@ -29,6 +31,8 @@
       "id": 2,
       "name": "Premium Package",
       "price": 15000,
+      "coverage_hours": 4,
+      "extra_hour_rate": 1200,
       "description": "A balanced package for most events — professional coverage, storytelling, and cinematic editing.",
       "inclusions": [
         "1 Videographer + 1 Photographer",
@@ -54,6 +58,8 @@
       "id": 3,
       "name": "Elite Package",
       "price": 25000,
+      "coverage_hours": 8,
+      "extra_hour_rate": 1500,
       "description": "For clients who want a full cinematic experience and top-tier service.",
       "inclusions": [
         "2 Videographers + 2 Photographers",

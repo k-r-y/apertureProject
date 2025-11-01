@@ -18,7 +18,7 @@ for($i = 1; $i < strlen($emailSent)-10; $i++){
     <link rel="stylesheet" href="../bootstrap-5.3.8-dist/css/bootstrap.min.css">
     <link rel="stylesheet" href="style.css">
     <link rel="icon" href="./assets/camera.png" type="image/x-icon">
-    <title>Aperture</title>
+    <title>Forgot Password - Aperture</title>
 </head>
 
 <body>

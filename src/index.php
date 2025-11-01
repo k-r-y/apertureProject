@@ -7,6 +7,7 @@
   <link rel="stylesheet" href="../bootstrap-5.3.8-dist/css/bootstrap.min.css">
   <link rel="stylesheet" href="style.css">
   <link rel="icon" href="./assets/camera.png" type="image/x-icon">
+  <link rel="stylesheet" href="../bootstrap-5.3.8-dist/font/bootstrap-icons.css">
   <title>Aperture</title>
 </head>
 
@@ -344,12 +345,12 @@
           </div>
 
           <div class="card-body mb-5 p-0">
-            <ul class="text-start">
-              <li class="text-start">3 Hours of Coverage</li>
-              <li class="text-start">40+ Professionally Edited Photos</li>
-              <li class="text-start">1–2 Minute Highlight Video</li>
-              <li class="text-start">Basic Color Grading & Audio Sync</li>
-              <li class="text-start">Online Gallery Access (1 Month)</li>
+            <ul class=" list-unstyled">
+              <li> <i class="bi bi-check-lg"></i> 3 Hours of Coverage</li>
+              <li> <i class="bi bi-check-lg"></i> 40+ Professionally Edited Photos</li>
+              <li> <i class="bi bi-check-lg"></i> 1–2 Minute Highlight Video</li>
+              <li> <i class="bi bi-check-lg"></i> Basic Color Grading & Audio Sync</li>
+              <li> <i class="bi bi-check-lg"></i> Online Gallery Access (1 Month)</li>
             </ul>
           </div>
 
@@ -367,15 +368,15 @@
           </div>
 
           <div class="card-body mb-5 p-0">
-            <ul>
-              <li class="text-start">4 Hours of Coverage</li>
-              <li class="text-start">100+ Professionally Edited Photos</li>
-              <li class="text-start">3–5 Minute Highlight Film</li>
-              <li class="text-start">Full Event Video (10–15 minutes)</li>
-              <li class="text-start">Drone Coverage (optional, add-on)</li>
-              <li class="text-start">Audio Recording for Speeches or Vows</li>
-              <li class="text-start">On-Site Lighting Setup</li>
-              <li class="text-start">Online Gallery Access (3 Months)</li>
+            <ul class=" list-unstyled">
+              <li> <i class="bi bi-check-lg"></i> 4 Hours of Coverage</li>
+              <li> <i class="bi bi-check-lg"></i> 100+ Professionally Edited Photos</li>
+              <li> <i class="bi bi-check-lg"></i> 3–5 Minute Highlight Film</li>
+              <li> <i class="bi bi-check-lg"></i> Full Event Video (10–15 minutes)</li>
+              <li> <i class="bi bi-check-lg"></i> Drone Coverage (optional, add-on)</li>
+              <li> <i class="bi bi-check-lg"></i> Audio Recording for Speeches or Vows</li>
+              <li> <i class="bi bi-check-lg"></i> On-Site Lighting Setup</li>
+              <li> <i class="bi bi-check-lg"></i> Online Gallery Access (3 Months)</li>
             </ul>
 
 
@@ -395,17 +396,17 @@
           </div>
 
           <div class="card-body mb-5 p-0">
-            <ul>
-              <li class="text-start">8 Hours of Coverage</li>
-              <li class="text-start">Unlimited Raw Photos + 200 Edited Photos</li>
-              <li class="text-start">7–10 Minute Cinematic Highlight Film (Full HD)</li>
-              <li class="text-start">Full Event Film (20+ minutes)</li>
-              <li class="text-start">Drone Coverage Included</li>
-              <li class="text-start">Same-Day Edit (SDE) Included</li>
-              <li class="text-start">Audio Mixing & Cinematic Color Grading</li>
-              <li class="text-start">Personalized Online Gallery (1 Year Access)</li>
-              <li class="text-start">1 Premium USB Copy with Case</li>
-              <li class="text-start">1 Printed Photo Album (40 Pages)</li>
+            <ul class="list-unstyled">
+              <li> <i class="bi bi-check-lg"></i> 8 Hours of Coverage</li>
+              <li> <i class="bi bi-check-lg"></i> Unlimited Raw Photos + 200 Edited Photos</li>
+              <li> <i class="bi bi-check-lg"></i> 7–10 Minute Cinematic Highlight Film (Full HD)</li>
+              <li> <i class="bi bi-check-lg"></i> Full Event Film (20+ minutes)</li>
+              <li> <i class="bi bi-check-lg"></i> Drone Coverage Included</li>
+              <li> <i class="bi bi-check-lg"></i> Same-Day Edit (SDE) Included</li>
+              <li> <i class="bi bi-check-lg"></i> Audio Mixing & Cinematic Color Grading</li>
+              <li> <i class="bi bi-check-lg"></i> Personalized Online Gallery (1 Year Access)</li>
+              <li> <i class="bi bi-check-lg"></i> 1 Premium USB Copy with Case</li>
+              <li> <i class="bi bi-check-lg"></i> 1 Printed Photo Album (40 Pages)</li>
             </ul>
           </div>
 
