@@ -15,10 +15,18 @@ if (isset($_SESSION["userId"]) and isset($_SESSION["role"]) and  $_SESSION["role
     exit;
 }
 
+if(isset($_SESSION['csrfError'])){
+    $errors['csrf'] = $_SESSION['csrfError'];
+    unset($_SESSION['csrfError']);
+}
 
 $errors = [];
 
 if ($_SERVER["REQUEST_METHOD"] === 'POST') {
+
+    if(!validateCSRFToken($_POST['csrfToken'] ?? '')){
+        handleCSRFFailure('logIn.php');
+    }
 
     // Getting the user input
     $email = trim($_POST['email']);

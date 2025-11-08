@@ -16,14 +16,18 @@ if(isset($_SESSION["userId"]) and isset($_SESSION["role"]) and  $_SESSION["role"
     exit;
 }
 
-
-
-
 $errors = [];
+
+if(isset($_SESSION['csrfError'])){
+    $errors['csrf'] = $_SESSION['csrfError'];
+    unset($_SESSION['csrfError']);
+}
  
 if ($_SERVER["REQUEST_METHOD"] === "POST") {
 
-    if(validateCSRFToken($_POST[]))
+    if(!validateCSRFToken($_POST['csrfToken'] ?? '')){
+        handleCSRFFailure('register.php');
+    }
 
     // Getting the user input
     $email = trim($_POST['email']);
@@ -174,15 +178,12 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
 
                 <div class="col ">
                     <form action="" method="POST" class="p-2">
-
-                        <input type="hidden" name="csrfToken" value="<?= htmlspecialchars($csrfToken) ?>">
+                        <?php csrfField() ?>
 
                         <div class="text-center mb-3">
                             <h1 class=" display-1 m-0 serif">Sign up</h1>
                             <small>Join Aperture today and enjoy seamless booking, transparent pricing, and trusted pros at your fingertips.</small>
                         </div>
-
-
 
                         <!-- Email  -->
 
@@ -191,7 +192,6 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
                             <input type="email" name="email" id="email" value="<?=  (isset($errors['email']) ? htmlspecialchars($email) : (isset($errors['password']) ? htmlspecialchars($email) : (isset($errors['ConfirmPassword']) ? htmlspecialchars($email) : ''))) ?>" class="form-control <?= (!isset($errors['email']) ? '' : 'is-invalid')  ?> " required>
                  
                                 <p class="text-danger"><?= (isset($errors['email'])) ? htmlspecialchars($errors['email']) : '' ?></p>
-                         
                         </div>
 
                         <!-- Password -->

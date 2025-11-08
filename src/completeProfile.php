@@ -2,11 +2,11 @@
 require_once './includes/functions/config.php';
 require_once './includes/functions/auth.php';
 require_once './includes/functions/function.php';
+require_once './includes/functions/csrf.php';
 
 if (session_status() === PHP_SESSION_NONE) {
     session_start();
 }
-
 
 
 if (!isset($_SESSION['userId'])) {
@@ -22,12 +22,22 @@ if (!isset($_SESSION['userId'])) {
         header("Location: booking.php");
         exit;
     }
-}
+    }
 }  
 
 $errors = [];
 
+if(isset($_SESSION['csrfError'])){
+    $errors['csrf'] = $_SESSION['csrfError'];
+    unset($_SESSION['csrfError']);
+}
+
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+
+    if(!validateCSRFToken($_POST['csrfToken'] ?? '')){
+        handleCSRFFailure("completeProfile.php");
+    }
+
     $firstName = trim($_POST['fname']);
     $lastName = trim($_POST['lname']);
     $contact = trim($_POST['contactInput']);
@@ -97,6 +107,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
 
                     <form action="" method="POST" class="p-4">
+                        <?php csrfField(); ?>
 
                         <div class="text-center mb-3">
                             <h1 class=" display-5 m-0 serif">Complete your profile</h1>
