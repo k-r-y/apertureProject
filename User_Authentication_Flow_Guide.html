@@ -1,0 +1,2597 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>User Authentication Flow - Aperture Implementation Guide</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Poppins:wght@400;500;600;700&family=Old+Standard+TT:wght@400;700&display=swap" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --gold: #d4af37;
+            --dark: #212529;
+            --light: #f8f9fa;
+            --white: #ffffff;
+            --text-secondary: #6c757d;
+            --border-color: #dee2e6;
+            --shadow-color: rgba(0, 0, 0, 0.1);
+            --gold-light: #f2e9be;
+            --gold-gradient: linear-gradient(135deg, rgba(212, 175, 55, 0.3) 0%, rgba(239, 226, 137, 0.25) 50%, rgba(237, 221, 83, 0) 100%);
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background: var(--light);
+            color: var(--dark);
+            line-height: 1.8;
+            overflow-x: hidden;
+        }
+
+        .poppins {
+            font-family: 'Poppins', sans-serif;
+        }
+
+        .serif {
+            font-family: 'Old Standard TT', serif;
+        }
+
+        /* Hero Section */
+        .hero {
+            background: linear-gradient(135deg, #212529 0%, #343a40 100%);
+            color: var(--white);
+            padding: 80px 20px;
+            text-align: center;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .hero::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: var(--gold-gradient);
+            opacity: 0.3;
+        }
+
+        .hero-content {
+            position: relative;
+            z-index: 1;
+            max-width: 900px;
+            margin: 0 auto;
+        }
+
+        .hero h1 {
+            font-family: 'Old Standard TT', serif;
+            font-size: 3.5em;
+            font-weight: 700;
+            margin-bottom: 20px;
+            color: var(--gold);
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+        }
+
+        .hero p {
+            font-size: 1.2em;
+            opacity: 0.9;
+            max-width: 700px;
+            margin: 0 auto;
+        }
+
+        /* Navigation Sidebar */
+        .sidebar {
+            position: fixed;
+            left: 0;
+            top: 0;
+            width: 300px;
+            height: 100vh;
+            background: var(--white);
+            padding: 30px 20px;
+            overflow-y: auto;
+            box-shadow: 2px 0 20px var(--shadow-color);
+            z-index: 1000;
+            transition: transform 0.3s ease;
+            border-right: 3px solid var(--gold);
+        }
+
+        .sidebar.hidden {
+            transform: translateX(-300px);
+        }
+
+        .sidebar-logo {
+            font-family: 'Old Standard TT', serif;
+            font-size: 1.8em;
+            color: var(--gold);
+            margin-bottom: 30px;
+            text-align: center;
+            font-weight: 700;
+        }
+
+        .sidebar h3 {
+            font-family: 'Poppins', sans-serif;
+            font-size: 0.85em;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            color: var(--text-secondary);
+            margin-bottom: 15px;
+            padding-bottom: 10px;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .sidebar ul {
+            list-style: none;
+            padding: 0;
+        }
+
+        .sidebar ul li {
+            margin: 5px 0;
+        }
+
+        .sidebar ul li a {
+            color: var(--dark);
+            text-decoration: none;
+            display: block;
+            padding: 10px 15px;
+            border-radius: 8px;
+            transition: all 0.3s ease;
+            font-size: 0.95em;
+            font-weight: 500;
+        }
+
+        .sidebar ul li a:hover {
+            background: var(--gold-light);
+            color: var(--dark);
+            transform: translateX(5px);
+            border-left: 3px solid var(--gold);
+        }
+
+        .sidebar ul li a.active {
+            background: var(--gold);
+            color: var(--white);
+            font-weight: 600;
+        }
+
+        /* Toggle Buttons */
+        .sidebar-toggle {
+            position: fixed;
+            top: 20px;
+            left: 20px;
+            z-index: 1001;
+            background: var(--gold);
+            color: var(--dark);
+            border: none;
+            padding: 12px 20px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-family: 'Poppins', sans-serif;
+            font-weight: 600;
+            box-shadow: 0 4px 15px rgba(212, 175, 55, 0.3);
+            transition: all 0.3s ease;
+        }
+
+        .sidebar-toggle:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(212, 175, 55, 0.4);
+        }
+
+        .scroll-top {
+            position: fixed;
+            bottom: 30px;
+            right: 30px;
+            background: var(--gold);
+            color: var(--dark);
+            border: none;
+            width: 55px;
+            height: 55px;
+            border-radius: 50%;
+            cursor: pointer;
+            font-size: 24px;
+            box-shadow: 0 4px 15px rgba(212, 175, 55, 0.3);
+            opacity: 0;
+            visibility: hidden;
+            transition: all 0.3s ease;
+            z-index: 999;
+            font-weight: bold;
+        }
+
+        .scroll-top.visible {
+            opacity: 1;
+            visibility: visible;
+        }
+
+        .scroll-top:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 6px 20px rgba(212, 175, 55, 0.5);
+        }
+
+        /* Progress Bar */
+        .progress-bar {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 0%;
+            height: 4px;
+            background: linear-gradient(90deg, var(--gold) 0%, var(--gold-light) 100%);
+            z-index: 1002;
+            transition: width 0.1s ease;
+        }
+
+        /* Main Container */
+        .container {
+            max-width: 1200px;
+            margin: 0 auto 0 300px;
+            background: var(--white);
+            padding: 60px;
+            min-height: 100vh;
+            transition: margin 0.3s ease;
+        }
+
+        .container.full-width {
+            margin-left: 0;
+        }
+
+        /* Section Styling */
+        section {
+            margin-bottom: 80px;
+            animation: fadeInUp 0.6s ease;
+        }
+
+        h2 {
+            font-family: 'Old Standard TT', serif;
+            color: var(--gold);
+            font-size: 2.5em;
+            margin-bottom: 30px;
+            padding-bottom: 15px;
+            border-bottom: 3px solid var(--gold);
+            position: relative;
+        }
+
+        h2::after {
+            content: '';
+            position: absolute;
+            bottom: -3px;
+            left: 0;
+            width: 100px;
+            height: 3px;
+            background: var(--dark);
+        }
+
+        h3 {
+            font-family: 'Poppins', sans-serif;
+            color: var(--dark);
+            font-size: 1.8em;
+            margin: 40px 0 20px;
+            font-weight: 600;
+        }
+
+        h4 {
+            font-family: 'Poppins', sans-serif;
+            color: var(--text-secondary);
+            font-size: 1.3em;
+            margin: 30px 0 15px;
+            font-weight: 600;
+        }
+
+        p {
+            margin-bottom: 20px;
+            color: var(--dark);
+            opacity: 0.85;
+            line-height: 1.9;
+        }
+
+        /* Flow Diagram */
+        .flow-diagram {
+            background: linear-gradient(135deg, #212529 0%, #343a40 100%);
+            color: var(--white);
+            padding: 40px;
+            border-radius: 15px;
+            margin: 30px 0;
+            font-family: 'Courier New', monospace;
+            line-height: 2.2;
+            position: relative;
+            overflow: hidden;
+            box-shadow: 0 10px 30px var(--shadow-color);
+        }
+
+        .flow-diagram::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: var(--gold-gradient);
+            opacity: 0.15;
+        }
+
+        .flow-diagram strong {
+            color: var(--gold);
+            position: relative;
+            z-index: 1;
+        }
+
+        /* Table */
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 30px 0;
+            box-shadow: 0 5px 20px var(--shadow-color);
+            border-radius: 12px;
+            overflow: hidden;
+        }
+
+        table th {
+            background: var(--gold);
+            color: var(--dark);
+            padding: 18px;
+            text-align: left;
+            font-family: 'Poppins', sans-serif;
+            font-weight: 600;
+            text-transform: uppercase;
+            font-size: 0.9em;
+            letter-spacing: 0.5px;
+        }
+
+        table td {
+            padding: 16px 18px;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        table tr:nth-child(even) {
+            background: var(--light);
+        }
+
+        table tr:hover {
+            background: var(--gold-light);
+            transition: 0.3s ease;
+        }
+
+        /* Code Blocks */
+        .code-wrapper {
+            position: relative;
+            margin: 25px 0;
+            border-radius: 12px;
+            overflow: hidden;
+            box-shadow: 0 5px 25px var(--shadow-color);
+            transition: transform 0.3s ease;
+        }
+
+        .code-wrapper:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 8px 30px rgba(212, 175, 55, 0.2);
+        }
+
+        .code-header {
+            background: linear-gradient(135deg, #1a1d20 0%, #212529 100%);
+            padding: 15px 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 2px solid var(--gold);
+        }
+
+        .code-title {
+            font-family: 'Poppins', sans-serif;
+            color: var(--gold);
+            font-weight: 600;
+            font-size: 0.95em;
+        }
+
+        .copy-btn {
+            background: var(--gold);
+            color: var(--dark);
+            border: none;
+            padding: 8px 18px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-family: 'Poppins', sans-serif;
+            font-weight: 600;
+            font-size: 0.85em;
+            transition: all 0.3s ease;
+        }
+
+        .copy-btn:hover {
+            background: var(--gold-light);
+            transform: scale(1.05);
+        }
+
+        .copy-btn.copied {
+            background: #28a745;
+            color: white;
+        }
+
+        pre {
+            background: #1e1e1e;
+            color: #abb2bf;
+            padding: 25px;
+            margin: 0;
+            overflow-x: auto;
+            font-size: 0.9em;
+            line-height: 1.7;
+            font-family: 'Consolas', 'Monaco', 'Courier New', monospace;
+        }
+
+        code {
+            font-family: 'Consolas', 'Monaco', 'Courier New', monospace;
+            background: rgba(212, 175, 55, 0.1);
+            padding: 3px 8px;
+            border-radius: 4px;
+            font-size: 0.9em;
+            color: var(--gold);
+            border: 1px solid rgba(212, 175, 55, 0.2);
+        }
+
+        pre code {
+            background: transparent;
+            padding: 0;
+            border: none;
+        }
+
+        /* Syntax Highlighting */
+        .keyword { color: #c678dd; font-weight: 600; }
+        .string { color: #98c379; }
+        .comment { color: #5c6370; font-style: italic; }
+        .function { color: #61afef; }
+        .variable { color: #e06c75; }
+        .number { color: #d19a66; }
+
+        /* Line Explanation Box */
+        .explanation-box {
+            background: var(--gold-light);
+            border-left: 4px solid var(--gold);
+            padding: 20px;
+            margin: 20px 0;
+            border-radius: 8px;
+            font-size: 0.95em;
+        }
+
+        .explanation-box h5 {
+            font-family: 'Poppins', sans-serif;
+            color: var(--dark);
+            font-weight: 600;
+            margin-bottom: 15px;
+            font-size: 1.1em;
+        }
+
+        .explanation-box .line {
+            margin: 12px 0;
+            padding: 10px 0;
+            border-bottom: 1px solid rgba(212, 175, 55, 0.3);
+        }
+
+        .explanation-box .line:last-child {
+            border-bottom: none;
+        }
+
+        .explanation-box .line-number {
+            display: inline-block;
+            background: var(--gold);
+            color: var(--dark);
+            padding: 2px 10px;
+            border-radius: 4px;
+            font-weight: 700;
+            font-family: 'Courier New', monospace;
+            font-size: 0.85em;
+            margin-right: 10px;
+        }
+
+        .explanation-box .line-code {
+            font-family: 'Courier New', monospace;
+            background: rgba(33, 37, 41, 0.05);
+            padding: 8px 12px;
+            border-radius: 6px;
+            display: block;
+            margin: 8px 0;
+            color: var(--dark);
+            font-size: 0.9em;
+        }
+
+        .explanation-box .line-desc {
+            color: var(--dark);
+            opacity: 0.9;
+            line-height: 1.7;
+        }
+
+        /* Alert Boxes */
+        .alert {
+            padding: 20px 25px;
+            margin: 25px 0;
+            border-radius: 10px;
+            border-left: 5px solid;
+            animation: slideInLeft 0.5s ease;
+        }
+
+        .alert-warning {
+            background: #fff3cd;
+            border-color: #ffc107;
+            color: #856404;
+        }
+
+        .alert-success {
+            background: #d4edda;
+            border-color: #28a745;
+            color: #155724;
+        }
+
+        .alert-info {
+            background: #d1ecf1;
+            border-color: #17a2b8;
+            color: #0c5460;
+        }
+
+        .alert strong {
+            font-family: 'Poppins', sans-serif;
+            font-weight: 700;
+            display: block;
+            margin-bottom: 10px;
+            font-size: 1.1em;
+        }
+
+        /* Collapsible Function Sections */
+        .function-card {
+            background: var(--white);
+            border: 2px solid var(--border-color);
+            border-radius: 12px;
+            margin: 25px 0;
+            overflow: hidden;
+            transition: all 0.3s ease;
+            box-shadow: 0 3px 15px var(--shadow-color);
+        }
+
+        .function-card:hover {
+            border-color: var(--gold);
+            box-shadow: 0 5px 25px rgba(212, 175, 55, 0.2);
+        }
+
+        .function-header {
+            background: linear-gradient(135deg, var(--dark) 0%, #343a40 100%);
+            padding: 20px 25px;
+            cursor: pointer;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            transition: all 0.3s ease;
+        }
+
+        .function-header:hover {
+            background: linear-gradient(135deg, #343a40 0%, var(--dark) 100%);
+        }
+
+        .function-header h4 {
+            color: var(--gold);
+            margin: 0;
+            font-family: 'Poppins', sans-serif;
+            font-weight: 600;
+            font-size: 1.2em;
+        }
+
+        .function-header .toggle-icon {
+            color: var(--gold);
+            font-size: 1.5em;
+            transition: transform 0.3s ease;
+            font-weight: bold;
+        }
+
+        .function-card.active .toggle-icon {
+            transform: rotate(180deg);
+        }
+
+        .function-content {
+            max-height: 0;
+            overflow: hidden;
+            transition: max-height 0.4s ease;
+        }
+
+        .function-card.active .function-content {
+            max-height: 8000px;
+        }
+
+        .function-body {
+            padding: 30px;
+        }
+
+        /* Badge */
+        .badge {
+            display: inline-block;
+            background: var(--gold);
+            color: var(--dark);
+            padding: 6px 16px;
+            border-radius: 20px;
+            font-family: 'Poppins', sans-serif;
+            font-weight: 600;
+            font-size: 0.85em;
+            margin-left: 10px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        /* File Structure */
+        .file-tree {
+            background: var(--light);
+            border: 2px solid var(--border-color);
+            border-radius: 12px;
+            padding: 25px;
+            margin: 25px 0;
+            font-family: 'Courier New', monospace;
+        }
+
+        .file-tree ul {
+            list-style: none;
+            padding-left: 25px;
+        }
+
+        .file-tree li {
+            padding: 8px 0;
+            color: var(--dark);
+        }
+
+        .file-tree li::before {
+            content: "📁 ";
+            margin-right: 8px;
+        }
+
+        .file-tree li.file::before {
+            content: "📄 ";
+        }
+
+        .file-tree .file-desc {
+            color: var(--text-secondary);
+            font-size: 0.9em;
+        }
+
+        /* Animations */
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        @keyframes slideInLeft {
+            from {
+                opacity: 0;
+                transform: translateX(-30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateX(0);
+            }
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .sidebar {
+                transform: translateX(-300px);
+            }
+
+            .container {
+                margin-left: 0;
+                padding: 30px 20px;
+            }
+
+            .hero h1 {
+                font-size: 2.2em;
+            }
+
+            h2 {
+                font-size: 2em;
+            }
+
+            .sidebar-toggle {
+                top: 10px;
+                left: 10px;
+                padding: 10px 15px;
+            }
+        }
+
+        /* Print Styles */
+        @media print {
+            .sidebar, .sidebar-toggle, .scroll-top, .progress-bar, .copy-btn {
+                display: none;
+            }
+
+            .container {
+                margin: 0;
+                padding: 20px;
+            }
+
+            .function-content {
+                max-height: none !important;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Progress Bar -->
+    <div class="progress-bar" id="progressBar"></div>
+
+    <!-- Sidebar Toggle -->
+    <button class="sidebar-toggle" id="sidebarToggle" onclick="toggleSidebar()">☰ Navigation</button>
+
+    <!-- Scroll to Top -->
+    <button class="scroll-top" id="scrollTop" onclick="scrollToTop()">↑</button>
+
+    <!-- Sidebar Navigation -->
+    <aside class="sidebar" id="sidebar">
+        <div class="sidebar-logo">Aperture</div>
+        <h3>Table of Contents</h3>
+        <ul>
+            <li><a href="#overview" class="nav-link">User Flow Overview</a></li>
+            <li><a href="#overview" class="nav-link" style="padding-left: 30px; font-size: 0.9em;">↳ Visual Flowchart</a></li>
+            <li><a href="#overview" class="nav-link" style="padding-left: 30px; font-size: 0.9em;">↳ Algorithm</a></li>
+            <li><a href="#database" class="nav-link">Database Setup</a></li>
+            <li><a href="#registration" class="nav-link">Registration Flow</a></li>
+            <li><a href="#verification" class="nav-link">Email Verification</a></li>
+            <li><a href="#verification" class="nav-link" style="padding-left: 30px; font-size: 0.9em;">↳ Expired Token Handling</a></li>
+            <li><a href="#login" class="nav-link">Login & Auto Re-verification</a></li>
+            <li><a href="#profile" class="nav-link">Profile Completion</a></li>
+            <li><a href="#protection" class="nav-link">Page Protection</a></li>
+            <li><a href="#file-structure" class="nav-link">File Structure</a></li>
+        </ul>
+    </aside>
+
+    <!-- Hero Section -->
+    <div class="hero">
+        <div class="hero-content">
+            <h1>User Authentication Flow</h1>
+            <p>Complete implementation guide for email verification, profile completion, and session management in the Aperture event photography booking system.</p>
+        </div>
+    </div>
+
+    <!-- Main Container -->
+    <div class="container" id="mainContainer">
+
+        <!-- Overview Section -->
+        <section id="overview">
+            <h2>Complete User Flow Overview</h2>
+            <p>This authentication system ensures users verify their email and complete their profile before accessing the booking system. The flow persists across sessions using database flags.</p>
+
+            <div class="flow-diagram">
+<strong>1. REGISTRATION (register.php)</strong>
+   ↓ User submits email + password
+   ↓ System creates account (isVerified = 0, profileCompleted = 0)
+   ↓ Sends verification email with token
+
+<strong>2. EMAIL VERIFICATION (verify.php)</strong>
+   ↓ User clicks link from email
+   ↓ System validates token & expiry
+   ↓ Updates: isVerified = 1
+   ↓ Checks if profile is complete
+
+<strong>3. FIRST LOGIN (index.php)</strong>
+   ↓ User enters credentials
+   ↓ System validates email & password
+   ↓ Checks: Is profile completed?
+
+<strong>4. CONDITIONAL REDIRECT</strong>
+   ├─→ Profile NOT complete → completeProfile.php
+   └─→ Profile IS complete → booking.php
+
+<strong>5. PROFILE COMPLETION (completeProfile.php)</strong>
+   ↓ User fills: firstName, lastName, phone, address
+   ↓ System updates: profileCompleted = 1
+   ↓ Redirect to booking.php
+
+<strong>6. ONGOING ACCESS</strong>
+   ↓ All protected pages check profile status
+   ↓ System maintains session across visits
+            </div>
+
+            <div class="alert alert-info">
+                <strong>Key Concept:</strong> Database flags (<code>isVerified</code>, <code>profileCompleted</code>) persist across all sessions and devices. Users cannot bypass the profile completion requirement.
+            </div>
+
+            <h3>Visual Flowchart <span class="badge" style="background: #17a2b8;">WITH AUTO RE-VERIFICATION</span></h3>
+            <p>Below is an interactive visual representation of the complete authentication flow including automatic re-verification when unverified users attempt to login:</p>
+
+            <div style="background: white; padding: 40px; border-radius: 15px; box-shadow: 0 5px 25px var(--shadow-color); margin: 30px 0;">
+                <svg viewBox="0 0 900 1500" style="width: 100%; max-width: 900px; margin: 0 auto; display: block;">
+                    <!-- Start -->
+                    <ellipse cx="450" cy="30" rx="80" ry="30" fill="#d4af37" stroke="#212529" stroke-width="2"/>
+                    <text x="450" y="40" text-anchor="middle" font-family="Poppins, sans-serif" font-size="16" font-weight="600" fill="#212529">START</text>
+
+                    <!-- Arrow 1 -->
+                    <line x1="450" y1="60" x2="450" y2="100" stroke="#212529" stroke-width="2" marker-end="url(#arrowhead)"/>
+
+                    <!-- Registration -->
+                    <rect x="350" y="100" width="200" height="80" rx="10" fill="#f8f9fa" stroke="#d4af37" stroke-width="3"/>
+                    <text x="450" y="130" text-anchor="middle" font-family="Poppins, sans-serif" font-size="14" font-weight="600" fill="#212529">REGISTRATION</text>
+                    <text x="450" y="150" text-anchor="middle" font-family="Inter, sans-serif" font-size="12" fill="#6c757d">register.php</text>
+                    <text x="450" y="168" text-anchor="middle" font-family="Inter, sans-serif" font-size="11" fill="#6c757d">isVerified = 0</text>
+
+                    <!-- Arrow 2 -->
+                    <line x1="450" y1="180" x2="450" y2="220" stroke="#212529" stroke-width="2" marker-end="url(#arrowhead)"/>
+
+                    <!-- Send Email -->
+                    <rect x="350" y="220" width="200" height="80" rx="10" fill="#fff3cd" stroke="#ffc107" stroke-width="3"/>
+                    <text x="450" y="250" text-anchor="middle" font-family="Poppins, sans-serif" font-size="14" font-weight="600" fill="#856404">SEND VERIFICATION</text>
+                    <text x="450" y="270" text-anchor="middle" font-family="Inter, sans-serif" font-size="12" fill="#856404">sendVerificationEmail()</text>
+                    <text x="450" y="288" text-anchor="middle" font-family="Inter, sans-serif" font-size="11" fill="#856404">Token expires: 5 min</text>
+
+                    <!-- Arrow 3 - Split for two paths -->
+                    <line x1="450" y1="300" x2="450" y2="340" stroke="#212529" stroke-width="2" marker-end="url(#arrowhead)"/>
+
+                    <!-- Decision: User verifies or tries to login? -->
+                    <polygon points="450,340 550,390 450,440 350,390" fill="#d1ecf1" stroke="#17a2b8" stroke-width="3"/>
+                    <text x="450" y="385" text-anchor="middle" font-family="Poppins, sans-serif" font-size="12" font-weight="600" fill="#0c5460">User Action?</text>
+                    <text x="450" y="403" text-anchor="middle" font-family="Inter, sans-serif" font-size="10" fill="#0c5460">Verify or Login</text>
+
+                    <!-- Path A: User clicks verification link -->
+                    <line x1="550" y1="390" x2="650" y2="390" stroke="#28a745" stroke-width="2" marker-end="url(#arrowhead-green)"/>
+                    <text x="600" y="380" text-anchor="middle" font-family="Poppins, sans-serif" font-size="11" font-weight="600" fill="#28a745">VERIFY</text>
+
+                    <!-- Token Valid Check -->
+                    <polygon points="650,360 720,390 650,420 580,390" fill="#d1ecf1" stroke="#17a2b8" stroke-width="3"/>
+                    <text x="650" y="390" text-anchor="middle" font-family="Poppins, sans-serif" font-size="10" font-weight="600" fill="#0c5460">Valid?</text>
+                    <text x="650" y="403" text-anchor="middle" font-family="Inter, sans-serif" font-size="9" fill="#0c5460">verify.php</text>
+
+                    <!-- Token expired -->
+                    <line x1="720" y1="390" x2="790" y2="390" stroke="#dc3545" stroke-width="2" marker-end="url(#arrowhead-red)"/>
+                    <text x="755" y="380" text-anchor="middle" font-family="Poppins, sans-serif" font-size="10" font-weight="600" fill="#dc3545">NO</text>
+                    <rect x="740" y="360" width="100" height="60" rx="8" fill="#f8d7da" stroke="#dc3545" stroke-width="2"/>
+                    <text x="790" y="385" text-anchor="middle" font-family="Inter, sans-serif" font-size="10" fill="#721c24">Expired</text>
+                    <text x="790" y="402" text-anchor="middle" font-family="Inter, sans-serif" font-size="10" font-weight="600" fill="#721c24">Try Login</text>
+
+                    <!-- Token valid - mark as verified -->
+                    <line x1="650" y1="420" x2="650" y2="460" stroke="#28a745" stroke-width="2" marker-end="url(#arrowhead-green)"/>
+                    <text x="670" y="445" text-anchor="start" font-family="Poppins, sans-serif" font-size="10" font-weight="600" fill="#28a745">YES</text>
+                    <rect x="580" y="460" width="140" height="70" rx="10" fill="#d4edda" stroke="#28a745" stroke-width="3"/>
+                    <text x="650" y="485" text-anchor="middle" font-family="Poppins, sans-serif" font-size="12" font-weight="600" fill="#155724">VERIFIED</text>
+                    <text x="650" y="503" text-anchor="middle" font-family="Inter, sans-serif" font-size="10" fill="#155724">isVerified = 1</text>
+                    <text x="650" y="518" text-anchor="middle" font-family="Inter, sans-serif" font-size="9" fill="#155724">verifyEmail()</text>
+
+                    <!-- Arrow from verified to profile check -->
+                    <line x1="650" y1="530" x2="650" y2="600" stroke="#28a745" stroke-width="2"/>
+                    <line x1="650" y1="600" x2="550" y2="600" stroke="#28a745" stroke-width="2" marker-end="url(#arrowhead-green)"/>
+
+                    <!-- Path B: User tries to login (unverified) -->
+                    <line x1="350" y1="390" x2="250" y2="390" stroke="#ffc107" stroke-width="2" marker-end="url(#arrowhead)"/>
+                    <text x="300" y="380" text-anchor="middle" font-family="Poppins, sans-serif" font-size="11" font-weight="600" fill="#856404">LOGIN</text>
+
+                    <!-- Login Attempt Box -->
+                    <rect x="150" y="360" width="140" height="70" rx="10" fill="#fff3cd" stroke="#ffc107" stroke-width="3"/>
+                    <text x="220" y="385" text-anchor="middle" font-family="Poppins, sans-serif" font-size="12" font-weight="600" fill="#856404">LOGIN ATTEMPT</text>
+                    <text x="220" y="403" text-anchor="middle" font-family="Inter, sans-serif" font-size="10" fill="#856404">logInUser()</text>
+                    <text x="220" y="418" text-anchor="middle" font-family="Inter, sans-serif" font-size="9" fill="#856404">index.php</text>
+
+                    <!-- Arrow down to verification check -->
+                    <line x1="220" y1="430" x2="220" y2="470" stroke="#ffc107" stroke-width="2" marker-end="url(#arrowhead)"/>
+
+                    <!-- Check if verified -->
+                    <polygon points="220,470 290,500 220,530 150,500" fill="#d1ecf1" stroke="#17a2b8" stroke-width="3"/>
+                    <text x="220" y="500" text-anchor="middle" font-family="Poppins, sans-serif" font-size="10" font-weight="600" fill="#0c5460">Verified?</text>
+                    <text x="220" y="513" text-anchor="middle" font-family="Inter, sans-serif" font-size="9" fill="#0c5460">isVerified</text>
+
+                    <!-- NO - Auto resend verification -->
+                    <line x1="150" y1="500" x2="80" y2="500" stroke="#dc3545" stroke-width="2" marker-end="url(#arrowhead-red)"/>
+                    <text x="115" y="490" text-anchor="middle" font-family="Poppins, sans-serif" font-size="10" font-weight="600" fill="#dc3545">NO</text>
+
+                    <!-- Auto Resend Box (NEW FEATURE) -->
+                    <rect x="10" y="470" width="140" height="90" rx="10" fill="#f8d7da" stroke="#dc3545" stroke-width="3"/>
+                    <text x="80" y="495" text-anchor="middle" font-family="Poppins, sans-serif" font-size="11" font-weight="600" fill="#721c24">AUTO-RESEND</text>
+                    <text x="80" y="513" text-anchor="middle" font-family="Inter, sans-serif" font-size="9" fill="#721c24">resendVerification</text>
+                    <text x="80" y="528" text-anchor="middle" font-family="Inter, sans-serif" font-size="9" fill="#721c24">Token()</text>
+                    <text x="80" y="543" text-anchor="middle" font-family="Inter, sans-serif" font-size="8" fill="#721c24">New token sent!</text>
+                    <text x="80" y="555" text-anchor="middle" font-family="Inter, sans-serif" font-size="8" fill="#721c24" font-weight="700">✨ NEW</text>
+
+                    <!-- Arrow from auto-resend back to verify path -->
+                    <line x1="80" y1="470" x2="80" y2="280" stroke="#ffc107" stroke-width="2" stroke-dasharray="5,5"/>
+                    <line x1="80" y1="280" x2="350" y2="280" stroke="#ffc107" stroke-width="2" stroke-dasharray="5,5"/>
+                    <line x1="350" y1="280" x2="350" y2="390" stroke="#ffc107" stroke-width="2" stroke-dasharray="5,5" marker-end="url(#arrowhead)"/>
+                    <text x="200" y="270" text-anchor="middle" font-family="Poppins, sans-serif" font-size="9" fill="#856404">User checks email again</text>
+
+                    <!-- YES - Continue to profile check -->
+                    <line x1="290" y1="500" x2="350" y2="500" stroke="#28a745" stroke-width="2"/>
+                    <text x="320" y="490" text-anchor="middle" font-family="Poppins, sans-serif" font-size="10" font-weight="600" fill="#28a745">YES</text>
+                    <line x1="350" y1="500" x2="350" y2="600" stroke="#28a745" stroke-width="2"/>
+                    <line x1="350" y1="600" x2="450" y2="600" stroke="#28a745" stroke-width="2" marker-end="url(#arrowhead-green)"/>
+
+                    <!-- Profile Check Decision (both paths converge here) -->
+                    <polygon points="450,570 550,620 450,670 350,620" fill="#f2e9be" stroke="#d4af37" stroke-width="3"/>
+                    <text x="450" y="620" text-anchor="middle" font-family="Poppins, sans-serif" font-size="13" font-weight="600" fill="#212529">Profile</text>
+                    <text x="450" y="635" text-anchor="middle" font-family="Poppins, sans-serif" font-size="13" font-weight="600" fill="#212529">Complete?</text>
+                    <text x="450" y="653" text-anchor="middle" font-family="Inter, sans-serif" font-size="10" fill="#212529">needsProfile</text>
+                    <text x="450" y="665" text-anchor="middle" font-family="Inter, sans-serif" font-size="10" fill="#212529">Completion()</text>
+
+                    <!-- No - Complete Profile -->
+                    <line x1="350" y1="620" x2="250" y2="620" stroke="#212529" stroke-width="2" marker-end="url(#arrowhead)"/>
+                    <text x="300" y="610" text-anchor="middle" font-family="Poppins, sans-serif" font-size="12" font-weight="600" fill="#212529">NO</text>
+                    <rect x="150" y="580" width="100" height="80" rx="8" fill="#fff3cd" stroke="#ffc107" stroke-width="3"/>
+                    <text x="200" y="610" text-anchor="middle" font-family="Poppins, sans-serif" font-size="12" font-weight="600" fill="#856404">COMPLETE</text>
+                    <text x="200" y="626" text-anchor="middle" font-family="Poppins, sans-serif" font-size="12" font-weight="600" fill="#856404">PROFILE</text>
+                    <text x="200" y="648" text-anchor="middle" font-family="Inter, sans-serif" font-size="10" fill="#856404">complete</text>
+                    <text x="200" y="660" text-anchor="middle" font-family="Inter, sans-serif" font-size="10" fill="#856404">Profile.php</text>
+
+                    <!-- Profile completion arrow -->
+                    <line x1="200" y1="660" x2="200" y2="730" stroke="#212529" stroke-width="2"/>
+                    <line x1="200" y1="730" x2="350" y2="730" stroke="#212529" stroke-width="2" marker-end="url(#arrowhead)"/>
+
+                    <!-- Save Profile -->
+                    <rect x="350" y="690" width="200" height="80" rx="10" fill="#f2e9be" stroke="#d4af37" stroke-width="3"/>
+                    <text x="450" y="720" text-anchor="middle" font-family="Poppins, sans-serif" font-size="14" font-weight="600" fill="#212529">SAVE PROFILE</text>
+                    <text x="450" y="740" text-anchor="middle" font-family="Inter, sans-serif" font-size="12" fill="#212529">saveUserProfile()</text>
+                    <text x="450" y="758" text-anchor="middle" font-family="Inter, sans-serif" font-size="11" fill="#212529">profileCompleted = 1</text>
+
+                    <!-- Yes - Direct to Booking -->
+                    <line x1="550" y1="620" x2="650" y2="620" stroke="#28a745" stroke-width="2"/>
+                    <text x="600" y="610" text-anchor="middle" font-family="Poppins, sans-serif" font-size="12" font-weight="600" fill="#28a745">YES</text>
+                    <line x1="650" y1="620" x2="650" y2="870" stroke="#28a745" stroke-width="2"/>
+                    <line x1="650" y1="870" x2="550" y2="870" stroke="#28a745" stroke-width="2" marker-end="url(#arrowhead-green)"/>
+
+                    <!-- Arrow after save profile -->
+                    <line x1="450" y1="770" x2="450" y2="830" stroke="#212529" stroke-width="2" marker-end="url(#arrowhead)"/>
+
+                    <!-- Booking System -->
+                    <rect x="350" y="830" width="200" height="80" rx="10" fill="#d4edda" stroke="#28a745" stroke-width="3"/>
+                    <text x="450" y="860" text-anchor="middle" font-family="Poppins, sans-serif" font-size="14" font-weight="600" fill="#155724">BOOKING SYSTEM</text>
+                    <text x="450" y="880" text-anchor="middle" font-family="Inter, sans-serif" font-size="12" fill="#155724">booking.php</text>
+                    <text x="450" y="898" text-anchor="middle" font-family="Inter, sans-serif" font-size="11" fill="#155724">Full Access ✓</text>
+
+                    <!-- Arrow to Session -->
+                    <line x1="450" y1="910" x2="450" y2="950" stroke="#212529" stroke-width="2" marker-end="url(#arrowhead)"/>
+
+                    <!-- Session Maintained -->
+                    <rect x="350" y="950" width="200" height="80" rx="10" fill="#f8f9fa" stroke="#6c757d" stroke-width="3"/>
+                    <text x="450" y="980" text-anchor="middle" font-family="Poppins, sans-serif" font-size="14" font-weight="600" fill="#212529">SESSION ACTIVE</text>
+                    <text x="450" y="1000" text-anchor="middle" font-family="Inter, sans-serif" font-size="12" fill="#6c757d">User logged in</text>
+                    <text x="450" y="1018" text-anchor="middle" font-family="Inter, sans-serif" font-size="11" fill="#6c757d">Until logout</text>
+
+                    <!-- Arrow to End -->
+                    <line x1="450" y1="1030" x2="450" y2="1070" stroke="#212529" stroke-width="2" marker-end="url(#arrowhead)"/>
+
+                    <!-- End -->
+                    <ellipse cx="450" cy="1100" rx="80" ry="30" fill="#d4af37" stroke="#212529" stroke-width="2"/>
+                    <text x="450" y="1110" text-anchor="middle" font-family="Poppins, sans-serif" font-size="16" font-weight="600" fill="#212529">END</text>
+
+                    <!-- Arrow markers -->
+                    <defs>
+                        <marker id="arrowhead" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto">
+                            <polygon points="0 0, 10 3, 0 6" fill="#212529" />
+                        </marker>
+                        <marker id="arrowhead-green" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto">
+                            <polygon points="0 0, 10 3, 0 6" fill="#28a745" />
+                        </marker>
+                        <marker id="arrowhead-red" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto">
+                            <polygon points="0 0, 10 3, 0 6" fill="#dc3545" />
+                        </marker>
+                    </defs>
+                </svg>
+            </div>
+
+            <h3>Algorithm Pseudocode</h3>
+            <p>Here's the step-by-step algorithm for the complete authentication flow:</p>
+
+            <div class="code-wrapper">
+                <div class="code-header">
+                    <span class="code-title">Pseudocode - Complete Authentication Algorithm</span>
+                    <button class="copy-btn" onclick="copyCode(this)">Copy Code</button>
+                </div>
+                <pre><code><span class="comment">// ========================================</span>
+<span class="comment">//  REGISTRATION ALGORITHM</span>
+<span class="comment">// ========================================</span>
+
+<span class="keyword">ALGORITHM</span> <span class="function">RegisterUser</span>(<span class="variable">email</span>, <span class="variable">password</span>)
+<span class="keyword">BEGIN</span>
+    <span class="comment">// Step 1: Validate Input</span>
+    <span class="keyword">IF</span> email <span class="keyword">IS</span> empty <span class="keyword">OR</span> password <span class="keyword">IS</span> empty <span class="keyword">THEN</span>
+        <span class="keyword">RETURN</span> error <span class="string">"All fields required"</span>
+    <span class="keyword">END IF</span>
+
+    <span class="comment">// Step 2: Check Email Existence</span>
+    <span class="keyword">IF</span> <span class="function">isEmailExists</span>(email) <span class="keyword">THEN</span>
+        <span class="keyword">RETURN</span> error <span class="string">"Email already registered"</span>
+    <span class="keyword">END IF</span>
+
+    <span class="comment">// Step 3: Hash Password</span>
+    hashedPassword ← <span class="function">BCryptHash</span>(password)
+
+    <span class="comment">// Step 4: Generate Verification Token</span>
+    token ← <span class="function">GenerateSecureToken</span>(<span class="number">32</span> bytes)
+    tokenExpiry ← CurrentTime + <span class="number">5</span> minutes
+
+    <span class="comment">// Step 5: Insert User Record</span>
+    <span class="keyword">INSERT INTO</span> users (
+        Email: email,
+        Password: hashedPassword,
+        verificationToken: token,
+        tokenExpires_at: tokenExpiry,
+        isVerified: <span class="keyword">FALSE</span>,
+        profileCompleted: <span class="keyword">FALSE</span>
+    )
+
+    <span class="comment">// Step 6: Send Verification Email</span>
+    verificationLink ← APP_URL + <span class="string">"/verify.php?token="</span> + token
+    <span class="function">SendEmail</span>(email, verificationLink)
+
+    <span class="keyword">RETURN</span> success <span class="string">"Registration complete, check email"</span>
+<span class="keyword">END</span>
+
+
+<span class="comment">// ========================================</span>
+<span class="comment">//  EMAIL VERIFICATION ALGORITHM</span>
+<span class="comment">// ========================================</span>
+
+<span class="keyword">ALGORITHM</span> <span class="function">VerifyEmail</span>(<span class="variable">token</span>)
+<span class="keyword">BEGIN</span>
+    <span class="comment">// Step 1: Find User by Token</span>
+    user ← <span class="keyword">SELECT</span> userID <span class="keyword">FROM</span> users
+           <span class="keyword">WHERE</span> verificationToken = token
+           <span class="keyword">AND</span> tokenExpires_at > CurrentTime
+
+    <span class="comment">// Step 2: Validate Token</span>
+    <span class="keyword">IF</span> user <span class="keyword">NOT FOUND</span> <span class="keyword">THEN</span>
+        <span class="keyword">RETURN</span> error <span class="string">"Invalid or expired token"</span>
+    <span class="keyword">END IF</span>
+
+    <span class="comment">// Step 3: Mark as Verified</span>
+    <span class="keyword">UPDATE</span> users
+    <span class="keyword">SET</span> isVerified = <span class="keyword">TRUE</span>,
+        verificationToken = <span class="keyword">NULL</span>
+    <span class="keyword">WHERE</span> userID = user.userID
+
+    <span class="comment">// Step 4: Check Profile Completion</span>
+    isProfileComplete ← <span class="function">needsProfileCompletion</span>(user.userID)
+
+    <span class="comment">// Step 5: Set Session</span>
+    SESSION['userId'] ← user.userID
+
+    <span class="comment">// Step 6: Redirect User</span>
+    <span class="keyword">IF</span> isProfileComplete <span class="keyword">THEN</span>
+        <span class="keyword">REDIRECT TO</span> <span class="string">"booking.php"</span>
+    <span class="keyword">ELSE</span>
+        <span class="keyword">REDIRECT TO</span> <span class="string">"completeProfile.php"</span>
+    <span class="keyword">END IF</span>
+<span class="keyword">END</span>
+
+
+<span class="comment">// ========================================</span>
+<span class="comment">//  RESEND VERIFICATION TOKEN ALGORITHM</span>
+<span class="comment">//  ✨ NEW - Auto-Resend Feature</span>
+<span class="comment">// ========================================</span>
+
+<span class="keyword">ALGORITHM</span> <span class="function">ResendVerificationToken</span>(<span class="variable">email</span>)
+<span class="keyword">BEGIN</span>
+    <span class="comment">// Step 1: Find User</span>
+    user ← <span class="keyword">SELECT</span> userID, isVerified <span class="keyword">FROM</span> users
+           <span class="keyword">WHERE</span> Email = email
+
+    <span class="comment">// Step 2: Check User Exists</span>
+    <span class="keyword">IF</span> user <span class="keyword">NOT FOUND</span> <span class="keyword">THEN</span>
+        <span class="keyword">RETURN</span> error <span class="string">"Email not found"</span>
+    <span class="keyword">END IF</span>
+
+    <span class="comment">// Step 3: Check Already Verified</span>
+    <span class="keyword">IF</span> user.isVerified = <span class="keyword">TRUE</span> <span class="keyword">THEN</span>
+        <span class="keyword">RETURN</span> error <span class="string">"Already verified"</span>
+    <span class="keyword">END IF</span>
+
+    <span class="comment">// Step 4: Generate New Token</span>
+    newToken ← <span class="function">GenerateSecureToken</span>(<span class="number">32</span> bytes)
+    newExpiry ← CurrentTime + <span class="number">5</span> minutes
+
+    <span class="comment">// Step 5: Update Database</span>
+    <span class="keyword">UPDATE</span> users
+    <span class="keyword">SET</span> verificationToken = newToken,
+        tokenExpires_at = newExpiry
+    <span class="keyword">WHERE</span> userID = user.userID
+
+    <span class="comment">// Step 6: Send New Email</span>
+    verificationLink ← APP_URL + <span class="string">"/verify.php?token="</span> + newToken
+    <span class="function">SendEmail</span>(email, verificationLink)
+
+    <span class="keyword">RETURN</span> success <span class="string">"New verification email sent"</span>
+<span class="keyword">END</span>
+
+
+<span class="comment">// ========================================</span>
+<span class="comment">//  LOGIN ALGORITHM (WITH AUTO-RESEND)</span>
+<span class="comment">//  ✨ ENHANCED - Includes automatic re-verification</span>
+<span class="comment">// ========================================</span>
+
+<span class="keyword">ALGORITHM</span> <span class="function">LoginUser</span>(<span class="variable">email</span>, <span class="variable">password</span>)
+<span class="keyword">BEGIN</span>
+    <span class="comment">// Step 1: Find User by Email</span>
+    user ← <span class="keyword">SELECT</span> * <span class="keyword">FROM</span> users <span class="keyword">WHERE</span> Email = email
+
+    <span class="comment">// Step 2: Validate User Exists</span>
+    <span class="keyword">IF</span> user <span class="keyword">NOT FOUND</span> <span class="keyword">THEN</span>
+        <span class="keyword">RETURN</span> error <span class="string">"Invalid credentials"</span>
+    <span class="keyword">END IF</span>
+
+    <span class="comment">// Step 3: Verify Password</span>
+    <span class="keyword">IF NOT</span> <span class="function">VerifyBCrypt</span>(password, user.Password) <span class="keyword">THEN</span>
+        <span class="keyword">RETURN</span> error <span class="string">"Invalid credentials"</span>
+    <span class="keyword">END IF</span>
+
+    <span class="comment">// Step 4: Check Email Verification - AUTO-RESEND IF UNVERIFIED ✨</span>
+    <span class="keyword">IF</span> user.isVerified = <span class="keyword">FALSE</span> <span class="keyword">THEN</span>
+        <span class="comment">// ✨ NEW BEHAVIOR: Automatically resend verification email</span>
+        <span class="function">ResendVerificationToken</span>(email)
+
+        <span class="keyword">RETURN</span> {
+            success: <span class="keyword">FALSE</span>,
+            error: <span class="string">"unverified"</span>,
+            message: <span class="string">"Your email is not verified. We have sent a new verification link to your email."</span>
+        }
+    <span class="keyword">END IF</span>
+
+    <span class="comment">// Step 5: Set Session Variables</span>
+    SESSION['userId'] ← user.userID
+    SESSION['email'] ← user.Email
+    SESSION['role'] ← user.Role
+
+    <span class="comment">// Step 6: Check Profile Status</span>
+    <span class="keyword">IF</span> user.profileCompleted = <span class="keyword">FALSE</span> <span class="keyword">THEN</span>
+        <span class="keyword">REDIRECT TO</span> <span class="string">"completeProfile.php"</span>
+    <span class="keyword">ELSE</span>
+        <span class="keyword">REDIRECT TO</span> <span class="string">"booking.php"</span>
+    <span class="keyword">END IF</span>
+<span class="keyword">END</span>
+
+
+<span class="comment">// ========================================</span>
+<span class="comment">//  PROFILE COMPLETION ALGORITHM</span>
+<span class="comment">// ========================================</span>
+
+<span class="keyword">ALGORITHM</span> <span class="function">SaveUserProfile</span>(<span class="variable">userId</span>, <span class="variable">profileData</span>)
+<span class="keyword">BEGIN</span>
+    <span class="comment">// Step 1: Validate Input</span>
+    <span class="keyword">IF</span> firstName <span class="keyword">IS</span> empty <span class="keyword">OR</span> lastName <span class="keyword">IS</span> empty <span class="keyword">THEN</span>
+        <span class="keyword">RETURN</span> error <span class="string">"Required fields missing"</span>
+    <span class="keyword">END IF</span>
+
+    <span class="comment">// Step 2: Update User Record</span>
+    <span class="keyword">UPDATE</span> users
+    <span class="keyword">SET</span> FirstName = profileData.firstName,
+        LastName = profileData.lastName,
+        Phone = profileData.phone,
+        Address = profileData.address,
+        profileCompleted = <span class="keyword">TRUE</span>
+    <span class="keyword">WHERE</span> userID = userId
+
+    <span class="comment">// Step 3: Redirect to Booking</span>
+    <span class="keyword">REDIRECT TO</span> <span class="string">"booking.php"</span>
+<span class="keyword">END</span>
+
+
+<span class="comment">// ========================================</span>
+<span class="comment">//  PAGE PROTECTION ALGORITHM</span>
+<span class="comment">// ========================================</span>
+
+<span class="keyword">ALGORITHM</span> <span class="function">ProtectPage</span>()
+<span class="keyword">BEGIN</span>
+    <span class="comment">// Step 1: Check Session</span>
+    <span class="keyword">IF NOT</span> <span class="function">isset</span>(SESSION['userId']) <span class="keyword">THEN</span>
+        <span class="keyword">REDIRECT TO</span> <span class="string">"index.php"</span> <span class="comment">// Login page</span>
+        <span class="keyword">EXIT</span>
+    <span class="keyword">END IF</span>
+
+    <span class="comment">// Step 2: Check Profile Completion</span>
+    isComplete ← <span class="function">needsProfileCompletion</span>(SESSION['userId'])
+
+    <span class="keyword">IF NOT</span> isComplete <span class="keyword">THEN</span>
+        <span class="keyword">REDIRECT TO</span> <span class="string">"completeProfile.php"</span>
+        <span class="keyword">EXIT</span>
+    <span class="keyword">END IF</span>
+
+    <span class="comment">// Step 3: Allow Access</span>
+    <span class="comment">// User is authenticated and profile is complete</span>
+    <span class="keyword">CONTINUE</span> to page content
+<span class="keyword">END</span>
+
+
+<span class="comment">// ========================================</span>
+<span class="comment">//  DATABASE STATE MACHINE</span>
+<span class="comment">// ========================================</span>
+
+<span class="keyword">STATE DIAGRAM:</span>
+
+State <span class="number">1</span>: <span class="string">"REGISTERED"</span>
+    → isVerified = <span class="keyword">FALSE</span>
+    → profileCompleted = <span class="keyword">FALSE</span>
+    → <span class="keyword">CANNOT</span> login
+    → <span class="keyword">MUST</span> verify email
+
+State <span class="number">2</span>: <span class="string">"VERIFIED"</span>
+    → isVerified = <span class="keyword">TRUE</span>
+    → profileCompleted = <span class="keyword">FALSE</span>
+    → <span class="keyword">CAN</span> login
+    → <span class="keyword">MUST</span> complete profile
+
+State <span class="number">3</span>: <span class="string">"ACTIVE"</span>
+    → isVerified = <span class="keyword">TRUE</span>
+    → profileCompleted = <span class="keyword">TRUE</span>
+    → <span class="keyword">FULL ACCESS</span> to system
+
+<span class="comment">// Transitions:</span>
+State <span class="number">1</span> → State <span class="number">2</span>: <span class="function">verifyEmail</span>(token)
+State <span class="number">2</span> → State <span class="number">3</span>: <span class="function">saveUserProfile</span>(userId, data)</code></pre>
+            </div>
+
+            <div class="alert alert-info">
+                <strong>Time Complexity Analysis:</strong>
+                <ul style="margin-top: 10px;">
+                    <li><strong>Registration:</strong> O(1) - Single database insert + email send</li>
+                    <li><strong>Email Verification:</strong> O(1) - Token lookup + single update</li>
+                    <li><strong>Login:</strong> O(1) - Email lookup + password verification</li>
+                    <li><strong>Profile Completion:</strong> O(1) - Single update query</li>
+                    <li><strong>Page Protection:</strong> O(1) - Session check + single query</li>
+                </ul>
+            </div>
+        </section>
+
+        <!-- Database Section -->
+        <section id="database">
+            <h2>Database Structure</h2>
+            <p>Your <code>users</code> table tracks three critical states using boolean flags:</p>
+
+            <table>
+                <thead>
+                    <tr>
+                        <th>User State</th>
+                        <th>isVerified</th>
+                        <th>profileCompleted</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>Just Registered</td>
+                        <td>0 (false)</td>
+                        <td>0 (false)</td>
+                    </tr>
+                    <tr>
+                        <td>Email Verified, Not Logged In</td>
+                        <td>1 (true)</td>
+                        <td>0 (false)</td>
+                    </tr>
+                    <tr>
+                        <td>First Login, Profile Incomplete</td>
+                        <td>1 (true)</td>
+                        <td>0 (false)</td>
+                    </tr>
+                    <tr style="background: var(--gold-light); font-weight: 600;">
+                        <td>Fully Active User</td>
+                        <td>1 (true)</td>
+                        <td>1 (true)</td>
+                    </tr>
+                </tbody>
+            </table>
+
+            <h3>Required Database Columns</h3>
+            <p>Ensure your <code>users</code> table has these columns:</p>
+
+            <div class="code-wrapper">
+                <div class="code-header">
+                    <span class="code-title">SQL - Database Schema</span>
+                    <button class="copy-btn" onclick="copyCode(this)">Copy Code</button>
+                </div>
+                <pre><code>ALTER TABLE users
+ADD COLUMN isVerified TINYINT(1) DEFAULT 0,
+ADD COLUMN profileCompleted TINYINT(1) DEFAULT 0,
+ADD COLUMN verificationToken VARCHAR(64) NULL,
+ADD COLUMN tokenExpires_at DATETIME NULL;</code></pre>
+            </div>
+        </section>
+
+        <!-- Registration Section -->
+        <section id="registration">
+            <h2>Step 1: Registration Flow</h2>
+            <p>The registration process validates user input, checks for duplicate emails, creates the account, and sends a verification email.</p>
+
+            <!-- isEmailExists Function -->
+            <div class="function-card">
+                <div class="function-header" onclick="toggleFunction(this)">
+                    <h4>📧 isEmailExists($email)</h4>
+                    <span class="toggle-icon">▼</span>
+                </div>
+                <div class="function-content">
+                    <div class="function-body">
+                        <p><strong>Purpose:</strong> Check if an email address is already registered in the database.</p>
+                        <p><strong>Location:</strong> <code>src/includes/functions/auth.php</code></p>
+
+                        <div class="code-wrapper">
+                            <div class="code-header">
+                                <span class="code-title">PHP - isEmailExists() Function</span>
+                                <button class="copy-btn" onclick="copyCode(this)">Copy Code</button>
+                            </div>
+                            <pre><code><span class="keyword">function</span> <span class="function">isEmailExists</span>(<span class="variable">$email</span>){
+    <span class="keyword">global</span> <span class="variable">$conn</span>;
+
+    <span class="variable">$stmt</span> = <span class="variable">$conn</span>-><span class="function">prepare</span>(<span class="string">"SELECT * FROM users WHERE Email = ?"</span>);
+    <span class="variable">$stmt</span>-><span class="function">bind_param</span>(<span class="string">'s'</span>, <span class="variable">$email</span>);
+    <span class="variable">$stmt</span>-><span class="function">execute</span>();
+
+    <span class="keyword">if</span>(<span class="variable">$stmt</span>-><span class="function">get_result</span>()->num_rows > <span class="number">0</span>){
+        <span class="keyword">return</span> [<span class="string">'success'</span> => <span class="keyword">false</span>, <span class="string">'error'</span> => <span class="string">'Email already exist'</span>];
+    } <span class="keyword">else</span> {
+        <span class="keyword">return</span> [<span class="string">'success'</span> => <span class="keyword">true</span>];
+    }
+}</code></pre>
+                        </div>
+
+                        <div class="explanation-box">
+                            <h5>📖 Line-by-Line Explanation</h5>
+
+                            <div class="line">
+                                <span class="line-number">Line 1</span>
+                                <div class="line-code">function isEmailExists($email)</div>
+                                <div class="line-desc">Declares the function that accepts an email address as a parameter. This function will return an array indicating success or failure.</div>
+                            </div>
+
+                            <div class="line">
+                                <span class="line-number">Line 2</span>
+                                <div class="line-code">global $conn;</div>
+                                <div class="line-desc">Imports the global database connection variable <code>$conn</code> (defined in config.php) so we can execute queries within this function scope.</div>
+                            </div>
+
+                            <div class="line">
+                                <span class="line-number">Line 4</span>
+                                <div class="line-code">$stmt = $conn->prepare("SELECT * FROM users WHERE Email = ?");</div>
+                                <div class="line-desc">Creates a prepared statement to query the users table. The <code>?</code> is a placeholder that will be safely replaced with the email parameter, preventing SQL injection attacks.</div>
+                            </div>
+
+                            <div class="line">
+                                <span class="line-number">Line 5</span>
+                                <div class="line-code">$stmt->bind_param('s', $email);</div>
+                                <div class="line-desc">Binds the <code>$email</code> parameter to the placeholder in the prepared statement. The <code>'s'</code> indicates the parameter is a string type. This sanitizes the input.</div>
+                            </div>
+
+                            <div class="line">
+                                <span class="line-number">Line 6</span>
+                                <div class="line-code">$stmt->execute();</div>
+                                <div class="line-desc">Executes the prepared SQL query against the database. At this point, the database searches for any user records with the provided email address.</div>
+                            </div>
+
+                            <div class="line">
+                                <span class="line-number">Line 8</span>
+                                <div class="line-code">if($stmt->get_result()->num_rows > 0)</div>
+                                <div class="line-desc">Retrieves the query results and checks if any rows were returned. If <code>num_rows > 0</code>, it means the email already exists in the database.</div>
+                            </div>
+
+                            <div class="line">
+                                <span class="line-number">Line 9</span>
+                                <div class="line-code">return ['success' => false, 'error' => 'Email already exist'];</div>
+                                <div class="line-desc">Returns an associative array with <code>success = false</code> to indicate the email is already registered, and includes an error message to display to the user.</div>
+                            </div>
+
+                            <div class="line">
+                                <span class="line-number">Line 11</span>
+                                <div class="line-code">return ['success' => true];</div>
+                                <div class="line-desc">If no rows were found (email doesn't exist), returns <code>success = true</code> to indicate the email is available for registration.</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- registerUser Function -->
+            <div class="function-card">
+                <div class="function-header" onclick="toggleFunction(this)">
+                    <h4>🔐 registerUser($email, $password)</h4>
+                    <span class="toggle-icon">▼</span>
+                </div>
+                <div class="function-content">
+                    <div class="function-body">
+                        <p><strong>Purpose:</strong> Create a new user account with hashed password and generate email verification token.</p>
+                        <p><strong>Location:</strong> <code>src/includes/functions/auth.php</code></p>
+
+                        <div class="code-wrapper">
+                            <div class="code-header">
+                                <span class="code-title">PHP - registerUser() Function</span>
+                                <button class="copy-btn" onclick="copyCode(this)">Copy Code</button>
+                            </div>
+                            <pre><code><span class="keyword">function</span> <span class="function">registerUser</span>(<span class="variable">$email</span>, <span class="variable">$password</span>){
+    <span class="keyword">global</span> <span class="variable">$conn</span>;
+
+    <span class="variable">$hashedPassword</span> = <span class="function">password_hash</span>(<span class="variable">$password</span>, PASSWORD_DEFAULT);
+
+    <span class="variable">$token</span> = <span class="function">bin2hex</span>(<span class="function">random_bytes</span>(<span class="number">32</span>));
+    <span class="variable">$tokenExpiry</span> = <span class="function">date</span>(<span class="string">'Y-m-d H:i:s'</span>, <span class="function">strtotime</span>(<span class="string">'+24 hours'</span>));
+
+    <span class="variable">$query</span> = <span class="variable">$conn</span>-><span class="function">prepare</span>(<span class="string">"INSERT INTO users (Email, Password, verificationToken, tokenExpires_at) values(?,?,?,?)"</span>);
+    <span class="variable">$query</span>-><span class="function">bind_param</span>(<span class="string">'ssss'</span>, <span class="variable">$email</span>, <span class="variable">$hashedPassword</span>, <span class="variable">$token</span>, <span class="variable">$tokenExpiry</span>);
+
+    <span class="keyword">if</span>(<span class="variable">$query</span>-><span class="function">execute</span>()){
+        <span class="function">sendVerificationEmail</span>(<span class="variable">$email</span>, <span class="variable">$token</span>);
+        <span class="keyword">return</span> [<span class="string">'success'</span> => <span class="keyword">true</span>];
+    } <span class="keyword">else</span> {
+        <span class="keyword">return</span> [<span class="string">'success'</span> => <span class="keyword">false</span>, <span class="string">'error'</span> => <span class="string">'Registration failed'</span>];
+    }
+}</code></pre>
+                        </div>
+
+                        <div class="explanation-box">
+                            <h5>📖 Line-by-Line Explanation</h5>
+
+                            <div class="line">
+                                <span class="line-number">Line 1</span>
+                                <div class="line-code">function registerUser($email, $password)</div>
+                                <div class="line-desc">Declares the registration function that accepts email and plaintext password. This function will hash the password, generate a verification token, and insert the new user.</div>
+                            </div>
+
+                            <div class="line">
+                                <span class="line-number">Line 2</span>
+                                <div class="line-code">global $conn;</div>
+                                <div class="line-desc">Imports the database connection variable to execute queries within this function.</div>
+                            </div>
+
+                            <div class="line">
+                                <span class="line-number">Line 4</span>
+                                <div class="line-code">$hashedPassword = password_hash($password, PASSWORD_DEFAULT);</div>
+                                <div class="line-desc">Uses PHP's built-in <code>password_hash()</code> function with the bcrypt algorithm (PASSWORD_DEFAULT) to securely hash the password. This is a one-way encryption - the original password cannot be recovered. Bcrypt automatically adds salt for extra security.</div>
+                            </div>
+
+                            <div class="line">
+                                <span class="line-number">Line 6</span>
+                                <div class="line-code">$token = bin2hex(random_bytes(32));</div>
+                                <div class="line-desc">Generates a cryptographically secure random token (32 bytes = 64 hex characters). This token will be sent via email for account verification. <code>random_bytes()</code> uses the system's CSPRNG (Cryptographically Secure Pseudo-Random Number Generator).</div>
+                            </div>
+
+                            <div class="line">
+                                <span class="line-number">Line 7</span>
+                                <div class="line-code">$tokenExpiry = date('Y-m-d H:i:s', strtotime('+24 hours'));</div>
+                                <div class="line-desc">Creates a timestamp for 24 hours from now in MySQL DATETIME format. The verification link will expire after this time for security. <code>strtotime('+24 hours')</code> calculates the future timestamp.</div>
+                            </div>
+
+                            <div class="line">
+                                <span class="line-number">Line 9</span>
+                                <div class="line-code">$query = $conn->prepare("INSERT INTO users (Email, Password, verificationToken, tokenExpires_at) values(?,?,?,?)");</div>
+                                <div class="line-desc">Prepares an INSERT statement to create a new user record. The four <code>?</code> placeholders will be replaced with: email, hashed password, verification token, and token expiry. Note: <code>isVerified</code> and <code>profileCompleted</code> default to 0.</div>
+                            </div>
+
+                            <div class="line">
+                                <span class="line-number">Line 10</span>
+                                <div class="line-code">$query->bind_param('ssss', $email, $hashedPassword, $token, $tokenExpiry);</div>
+                                <div class="line-desc">Binds all four parameters to the prepared statement. The <code>'ssss'</code> indicates all four are strings. This prevents SQL injection by properly escaping the values.</div>
+                            </div>
+
+                            <div class="line">
+                                <span class="line-number">Line 12</span>
+                                <div class="line-code">if($query->execute())</div>
+                                <div class="line-desc">Executes the INSERT query. Returns true if the user was successfully created in the database, false otherwise (e.g., database error).</div>
+                            </div>
+
+                            <div class="line">
+                                <span class="line-number">Line 13</span>
+                                <div class="line-code">sendVerificationEmail($email, $token);</div>
+                                <div class="line-desc">Calls the email sending function (located in function.php) to send a verification link to the user's email address. The token is included in the link so we can identify which account to verify.</div>
+                            </div>
+
+                            <div class="line">
+                                <span class="line-number">Line 14</span>
+                                <div class="line-code">return ['success' => true];</div>
+                                <div class="line-desc">Returns success to the calling code (register.php), indicating the user was created and email was sent. The page can now show a success message.</div>
+                            </div>
+
+                            <div class="line">
+                                <span class="line-number">Line 16</span>
+                                <div class="line-code">return ['success' => false, 'error' => 'Registration failed'];</div>
+                                <div class="line-desc">If the database insert failed, returns an error message. This could happen due to database connection issues or constraint violations.</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Verification Section -->
+        <section id="verification">
+            <h2>Step 2: Email Verification</h2>
+
+            <div class="alert alert-warning">
+                <strong>⚠️ Important Behavior:</strong> If a user registers but doesn't verify their email:
+                <ul style="margin-top: 10px;">
+                    <li>They <strong>CANNOT login</strong> - the system checks <code>isVerified</code> flag</li>
+                    <li>They <strong>CANNOT register again</strong> - same email is blocked by <code>isEmailExists()</code></li>
+                    <li>They must find their verification email or request a new token</li>
+                </ul>
+            </div>
+
+            <!-- sendVerificationEmail Function -->
+            <div class="function-card">
+                <div class="function-header" onclick="toggleFunction(this)">
+                    <h4>📨 sendVerificationEmail($email, $token)</h4>
+                    <span class="toggle-icon">▼</span>
+                </div>
+                <div class="function-content">
+                    <div class="function-body">
+                        <p><strong>Purpose:</strong> Send a verification email using PHPMailer with SMTP configuration from environment variables.</p>
+                        <p><strong>Location:</strong> <code>src/includes/functions/function.php</code></p>
+
+                        <div class="code-wrapper">
+                            <div class="code-header">
+                                <span class="code-title">PHP - sendVerificationEmail() Function</span>
+                                <button class="copy-btn" onclick="copyCode(this)">Copy Code</button>
+                            </div>
+                            <pre><code><span class="keyword">function</span> <span class="function">sendVerificationEmail</span>(<span class="variable">$email</span>, <span class="variable">$token</span>){
+    <span class="variable">$mail</span> = <span class="keyword">new</span> <span class="function">PHPMailer</span>(<span class="keyword">true</span>);
+
+    <span class="keyword">try</span> {
+        <span class="variable">$mail</span>->isSMTP();
+        <span class="variable">$mail</span>->Host       = <span class="variable">$_ENV</span>[<span class="string">'SMTP_HOST'</span>];
+        <span class="variable">$mail</span>->SMTPAuth   = <span class="keyword">true</span>;
+        <span class="variable">$mail</span>->Username   = <span class="variable">$_ENV</span>[<span class="string">'SMTP_USERNAME'</span>];
+        <span class="variable">$mail</span>->Password   = <span class="variable">$_ENV</span>[<span class="string">'SMTP_PASSWORD'</span>];
+        <span class="variable">$mail</span>->SMTPSecure = PHPMailer::ENCRYPTION_STARTTLS;
+        <span class="variable">$mail</span>->Port       = <span class="variable">$_ENV</span>[<span class="string">'SMTP_PORT'</span>];
+
+        <span class="variable">$mail</span>-><span class="function">setFrom</span>(<span class="variable">$_ENV</span>[<span class="string">'SMTP_USERNAME'</span>], <span class="string">'Aperture'</span>);
+        <span class="variable">$mail</span>-><span class="function">addAddress</span>(<span class="variable">$email</span>);
+
+        <span class="variable">$verificationLink</span> = <span class="variable">$_ENV</span>[<span class="string">'APP_URL'</span>] . <span class="string">"/src/verify.php?token="</span> . <span class="variable">$token</span>;
+
+        <span class="variable">$mail</span>-><span class="function">isHTML</span>(<span class="keyword">true</span>);
+        <span class="variable">$mail</span>->Subject = <span class="string">'Verify Your Email - Aperture'</span>;
+        <span class="variable">$mail</span>->Body    = <span class="string">"&lt;div&gt;...HTML email template...&lt;/div&gt;"</span>;
+
+        <span class="variable">$mail</span>-><span class="function">send</span>();
+        <span class="keyword">return</span> <span class="keyword">true</span>;
+    } <span class="keyword">catch</span>(Exception <span class="variable">$e</span>) {
+        <span class="function">error_log</span>(<span class="string">"Email could not be sent. Error: {</span><span class="variable">$mail</span>->ErrorInfo<span class="string">}"</span>);
+        <span class="keyword">return</span> <span class="keyword">false</span>;
+    }
+}</code></pre>
+                        </div>
+
+                        <div class="explanation-box">
+                            <h5>📖 Line-by-Line Explanation</h5>
+
+                            <div class="line">
+                                <span class="line-number">Line 2</span>
+                                <div class="line-code">$mail = new PHPMailer(true);</div>
+                                <div class="line-desc">Creates a new PHPMailer instance. The <code>true</code> parameter enables exceptions, so errors will throw exceptions instead of returning false (better for debugging).</div>
+                            </div>
+
+                            <div class="line">
+                                <span class="line-number">Line 4</span>
+                                <div class="line-code">try {</div>
+                                <div class="line-desc">Starts a try-catch block to handle any exceptions that might be thrown during email configuration or sending. This prevents the script from crashing if email fails.</div>
+                            </div>
+
+                            <div class="line">
+                                <span class="line-number">Line 5</span>
+                                <div class="line-code">$mail->isSMTP();</div>
+                                <div class="line-desc">Tells PHPMailer to use SMTP (Simple Mail Transfer Protocol) instead of PHP's default mail() function. SMTP is more reliable and allows us to use Gmail's servers.</div>
+                            </div>
+
+                            <div class="line">
+                                <span class="line-number">Line 6</span>
+                                <div class="line-code">$mail->Host = $_ENV['SMTP_HOST'];</div>
+                                <div class="line-desc">Sets the SMTP server address from the .env file (e.g., "smtp.gmail.com"). Environment variables keep sensitive config out of your code.</div>
+                            </div>
+
+                            <div class="line">
+                                <span class="line-number">Line 7</span>
+                                <div class="line-code">$mail->SMTPAuth = true;</div>
+                                <div class="line-desc">Enables SMTP authentication. This means we need to provide a username and password to the mail server (required by Gmail and most SMTP servers for security).</div>
+                            </div>
+
+                            <div class="line">
+                                <span class="line-number">Line 8-9</span>
+                                <div class="line-code">$mail->Username = $_ENV['SMTP_USERNAME'];<br>$mail->Password = $_ENV['SMTP_PASSWORD'];</div>
+                                <div class="line-desc">Sets the SMTP credentials from environment variables. For Gmail, this is your email address and an app-specific password (not your regular Gmail password).</div>
+                            </div>
+
+                            <div class="line">
+                                <span class="line-number">Line 10</span>
+                                <div class="line-code">$mail->SMTPSecure = PHPMailer::ENCRYPTION_STARTTLS;</div>
+                                <div class="line-desc">Enables TLS encryption for the SMTP connection. STARTTLS encrypts the connection after the initial connection is established, protecting your credentials and email content from interception.</div>
+                            </div>
+
+                            <div class="line">
+                                <span class="line-number">Line 11</span>
+                                <div class="line-code">$mail->Port = $_ENV['SMTP_PORT'];</div>
+                                <div class="line-desc">Sets the SMTP port number from environment (587 for TLS, 465 for SSL). Gmail uses port 587 for STARTTLS.</div>
+                            </div>
+
+                            <div class="line">
+                                <span class="line-number">Line 13</span>
+                                <div class="line-code">$mail->setFrom($_ENV['SMTP_USERNAME'], 'Aperture');</div>
+                                <div class="line-desc">Sets the "From" address and name that will appear in the recipient's inbox. The email comes from your SMTP username with the display name "Aperture".</div>
+                            </div>
+
+                            <div class="line">
+                                <span class="line-number">Line 14</span>
+                                <div class="line-code">$mail->addAddress($email);</div>
+                                <div class="line-desc">Adds the recipient's email address (the user who just registered). This is where the verification email will be sent.</div>
+                            </div>
+
+                            <div class="line">
+                                <span class="line-number">Line 16</span>
+                                <div class="line-code">$verificationLink = $_ENV['APP_URL'] . "/src/verify.php?token=" . $token;</div>
+                                <div class="line-desc">Constructs the verification URL by combining your app's base URL (e.g., "http://localhost/aperture-master") with the verify.php endpoint and the unique token as a query parameter.</div>
+                            </div>
+
+                            <div class="line">
+                                <span class="line-number">Line 18</span>
+                                <div class="line-code">$mail->isHTML(true);</div>
+                                <div class="line-desc">Enables HTML email format, allowing us to use styled HTML in the email body instead of plain text. This makes the email more professional and clickable.</div>
+                            </div>
+
+                            <div class="line">
+                                <span class="line-number">Line 19</span>
+                                <div class="line-code">$mail->Subject = 'Verify Your Email - Aperture';</div>
+                                <div class="line-desc">Sets the email subject line that appears in the user's inbox.</div>
+                            </div>
+
+                            <div class="line">
+                                <span class="line-number">Line 20</span>
+                                <div class="line-code">$mail->Body = "...HTML template...";</div>
+                                <div class="line-desc">Sets the HTML email body with a professional template including the verification button/link, branding, and instructions. The <code>$verificationLink</code> variable is embedded in the HTML.</div>
+                            </div>
+
+                            <div class="line">
+                                <span class="line-number">Line 22</span>
+                                <div class="line-code">$mail->send();</div>
+                                <div class="line-desc">Attempts to send the email. If successful, returns true. If it fails (network issue, SMTP error, etc.), throws an exception that's caught by the catch block.</div>
+                            </div>
+
+                            <div class="line">
+                                <span class="line-number">Line 23</span>
+                                <div class="line-code">return true;</div>
+                                <div class="line-desc">Returns true to indicate the email was sent successfully. The calling function (registerUser) can then proceed knowing the verification email is on its way.</div>
+                            </div>
+
+                            <div class="line">
+                                <span class="line-number">Line 24-25</span>
+                                <div class="line-code">catch(Exception $e) {<br>&nbsp;&nbsp;error_log("Email could not be sent...");</div>
+                                <div class="line-desc">Catches any exceptions thrown during email sending. Logs the error to PHP's error log file (useful for debugging) without exposing technical details to the user.</div>
+                            </div>
+
+                            <div class="line">
+                                <span class="line-number">Line 26</span>
+                                <div class="line-code">return false;</div>
+                                <div class="line-desc">Returns false to indicate email sending failed. The registration still succeeded (user is in database), but they won't receive the verification email.</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- verifyEmail Function -->
+            <div class="function-card">
+                <div class="function-header" onclick="toggleFunction(this)">
+                    <h4>✅ verifyEmail($token)</h4>
+                    <span class="toggle-icon">▼</span>
+                </div>
+                <div class="function-content">
+                    <div class="function-body">
+                        <p><strong>Purpose:</strong> Validate the verification token and mark the user's email as verified.</p>
+                        <p><strong>Location:</strong> <code>src/includes/functions/auth.php</code></p>
+
+                        <div class="code-wrapper">
+                            <div class="code-header">
+                                <span class="code-title">PHP - verifyEmail() Function</span>
+                                <button class="copy-btn" onclick="copyCode(this)">Copy Code</button>
+                            </div>
+                            <pre><code><span class="keyword">function</span> <span class="function">verifyEmail</span>(<span class="variable">$token</span>){
+    <span class="keyword">global</span> <span class="variable">$conn</span>;
+
+    <span class="variable">$query</span> = <span class="variable">$conn</span>-><span class="function">prepare</span>(<span class="string">"SELECT userID FROM users WHERE verificationToken = ? AND tokenExpires_at > NOW()"</span>);
+    <span class="variable">$query</span>-><span class="function">bind_param</span>(<span class="string">'s'</span>, <span class="variable">$token</span>);
+    <span class="variable">$query</span>-><span class="function">execute</span>();
+    <span class="variable">$result</span> = <span class="variable">$query</span>-><span class="function">get_result</span>();
+
+    <span class="keyword">if</span>(<span class="variable">$result</span>->num_rows > <span class="number">0</span>){
+        <span class="variable">$user</span> = <span class="variable">$result</span>-><span class="function">fetch_assoc</span>();
+
+        <span class="variable">$stmt</span> = <span class="variable">$conn</span>-><span class="function">prepare</span>(<span class="string">"UPDATE users SET isVerified = true, verificationToken = NULL WHERE userID = ?"</span>);
+        <span class="variable">$stmt</span>-><span class="function">bind_param</span>(<span class="string">'s'</span>, <span class="variable">$user</span>[<span class="string">'userID'</span>]);
+        <span class="variable">$stmt</span>-><span class="function">execute</span>();
+
+        <span class="keyword">return</span> [
+            <span class="string">'success'</span> => <span class="keyword">true</span>,
+            <span class="string">'userId'</span> => <span class="variable">$user</span>[<span class="string">'userID'</span>]
+        ];
+    }
+
+    <span class="keyword">return</span> [<span class="string">'success'</span> => <span class="keyword">false</span>];
+}</code></pre>
+                        </div>
+
+                        <div class="explanation-box">
+                            <h5>📖 Line-by-Line Explanation</h5>
+
+                            <div class="line">
+                                <span class="line-number">Line 1</span>
+                                <div class="line-code">function verifyEmail($token)</div>
+                                <div class="line-desc">Declares the function that accepts the verification token (from the URL query parameter). This function validates the token and updates the user's verification status.</div>
+                            </div>
+
+                            <div class="line">
+                                <span class="line-number">Line 2</span>
+                                <div class="line-code">global $conn;</div>
+                                <div class="line-desc">Imports the database connection to execute queries.</div>
+                            </div>
+
+                            <div class="line">
+                                <span class="line-number">Line 4</span>
+                                <div class="line-code">$query = $conn->prepare("SELECT userID FROM users WHERE verificationToken = ? AND tokenExpires_at > NOW()");</div>
+                                <div class="line-desc">Prepares a query to find a user with the matching token that hasn't expired. <code>NOW()</code> is a MySQL function that returns the current datetime. If <code>tokenExpires_at > NOW()</code>, the token is still valid (within 24 hours).</div>
+                            </div>
+
+                            <div class="line">
+                                <span class="line-number">Line 5</span>
+                                <div class="line-code">$query->bind_param('s', $token);</div>
+                                <div class="line-desc">Safely binds the token parameter to prevent SQL injection. The token from the URL is untrusted user input, so we must sanitize it.</div>
+                            </div>
+
+                            <div class="line">
+                                <span class="line-number">Line 6-7</span>
+                                <div class="line-code">$query->execute();<br>$result = $query->get_result();</div>
+                                <div class="line-desc">Executes the query and retrieves the result set. This searches the database for a matching, non-expired token.</div>
+                            </div>
+
+                            <div class="line">
+                                <span class="line-number">Line 9</span>
+                                <div class="line-code">if($result->num_rows > 0)</div>
+                                <div class="line-desc">Checks if a user was found with this valid token. If <code>num_rows = 0</code>, either the token doesn't exist or it has expired.</div>
+                            </div>
+
+                            <div class="line">
+                                <span class="line-number">Line 10</span>
+                                <div class="line-code">$user = $result->fetch_assoc();</div>
+                                <div class="line-desc">Retrieves the user record as an associative array. We need the <code>userID</code> to update the correct user in the next step.</div>
+                            </div>
+
+                            <div class="line">
+                                <span class="line-number">Line 12</span>
+                                <div class="line-code">$stmt = $conn->prepare("UPDATE users SET isVerified = true, verificationToken = NULL WHERE userID = ?");</div>
+                                <div class="line-desc">Prepares an UPDATE query to mark the user as verified and clear the token. Setting <code>verificationToken = NULL</code> prevents the same token from being used again (security measure).</div>
+                            </div>
+
+                            <div class="line">
+                                <span class="line-number">Line 13</span>
+                                <div class="line-code">$stmt->bind_param('s', $user['userID']);</div>
+                                <div class="line-desc">Binds the userID to identify which user to update. Your database uses VARCHAR for userID, so 's' (string) type is used.</div>
+                            </div>
+
+                            <div class="line">
+                                <span class="line-number">Line 14</span>
+                                <div class="line-code">$stmt->execute();</div>
+                                <div class="line-desc">Executes the UPDATE query, permanently marking the user as verified in the database. From this point, they can login.</div>
+                            </div>
+
+                            <div class="line">
+                                <span class="line-number">Line 16-19</span>
+                                <div class="line-code">return ['success' => true, 'userId' => $user['userID']];</div>
+                                <div class="line-desc">Returns success with the userID. The calling code (verify.php) uses this to check if profile completion is needed and to set the session.</div>
+                            </div>
+
+                            <div class="line">
+                                <span class="line-number">Line 22</span>
+                                <div class="line-code">return ['success' => false];</div>
+                                <div class="line-desc">Returns failure if no matching token was found or if the token expired. The user will see an "Invalid or expired token" message.</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <h3>Enhanced: Handling Expired Tokens</h3>
+            <p>When a verification token expires (after 5 minutes), users face a critical problem. Here's the complete solution:</p>
+
+            <div class="alert alert-warning">
+                <strong>⚠️ The Expired Token Problem:</strong>
+                <ul style="margin-top: 10px;">
+                    <li><strong>Token expires after 5 minutes</strong> (configurable in auth.php line 24)</li>
+                    <li>User cannot verify their email</li>
+                    <li>User cannot register again (email already exists)</li>
+                    <li>User cannot login (isVerified = false)</li>
+                    <li><strong>Solution:</strong> Automatically resend verification email when unverified user attempts login</li>
+                </ul>
+            </div>
+
+            <!-- resendVerificationToken Function -->
+            <div class="function-card">
+                <div class="function-header" onclick="toggleFunction(this)">
+                    <h4>🔄 resendVerificationToken($email) <span class="badge" style="background: #17a2b8;">NEW</span></h4>
+                    <span class="toggle-icon">▼</span>
+                </div>
+                <div class="function-content">
+                    <div class="function-body">
+                        <p><strong>Purpose:</strong> Generate a new verification token and resend the verification email to an unverified user.</p>
+                        <p><strong>Location:</strong> <code>src/includes/functions/auth.php</code> (to be added)</p>
+
+                        <div class="code-wrapper">
+                            <div class="code-header">
+                                <span class="code-title">PHP - resendVerificationToken() Function</span>
+                                <button class="copy-btn" onclick="copyCode(this)">Copy Code</button>
+                            </div>
+                            <pre><code><span class="comment">// Add this to src/includes/functions/auth.php</span>
+
+<span class="keyword">function</span> <span class="function">resendVerificationToken</span>(<span class="variable">$email</span>){
+    <span class="keyword">global</span> <span class="variable">$conn</span>;
+
+    <span class="comment">// Step 1: Check if user exists and is unverified</span>
+    <span class="variable">$query</span> = <span class="variable">$conn</span>-><span class="function">prepare</span>(<span class="string">"SELECT userID, isVerified FROM users WHERE Email = ?"</span>);
+    <span class="variable">$query</span>-><span class="function">bind_param</span>(<span class="string">'s'</span>, <span class="variable">$email</span>);
+    <span class="variable">$query</span>-><span class="function">execute</span>();
+    <span class="variable">$result</span> = <span class="variable">$query</span>-><span class="function">get_result</span>();
+
+    <span class="keyword">if</span>(<span class="variable">$result</span>->num_rows === <span class="number">0</span>){
+        <span class="keyword">return</span> [<span class="string">'success'</span> => <span class="keyword">false</span>, <span class="string">'error'</span> => <span class="string">'Email not found'</span>];
+    }
+
+    <span class="variable">$user</span> = <span class="variable">$result</span>-><span class="function">fetch_assoc</span>();
+
+    <span class="comment">// Step 2: Check if already verified</span>
+    <span class="keyword">if</span>(<span class="variable">$user</span>[<span class="string">'isVerified'</span>]){
+        <span class="keyword">return</span> [<span class="string">'success'</span> => <span class="keyword">false</span>, <span class="string">'error'</span> => <span class="string">'Email already verified'</span>];
+    }
+
+    <span class="comment">// Step 3: Generate new token</span>
+    <span class="variable">$newToken</span> = <span class="function">bin2hex</span>(<span class="function">random_bytes</span>(<span class="number">32</span>));
+    <span class="variable">$newExpiry</span> = <span class="function">date</span>(<span class="string">'Y-m-d H:i:s'</span>, <span class="function">strtotime</span>(<span class="string">'+5 minutes'</span>));
+
+    <span class="comment">// Step 4: Update user with new token</span>
+    <span class="variable">$updateStmt</span> = <span class="variable">$conn</span>-><span class="function">prepare</span>(<span class="string">"UPDATE users SET verificationToken = ?, tokenExpires_at = ? WHERE userID = ?"</span>);
+    <span class="variable">$updateStmt</span>-><span class="function">bind_param</span>(<span class="string">'sss'</span>, <span class="variable">$newToken</span>, <span class="variable">$newExpiry</span>, <span class="variable">$user</span>[<span class="string">'userID'</span>]);
+    <span class="variable">$updateStmt</span>-><span class="function">execute</span>();
+
+    <span class="comment">// Step 5: Send new verification email</span>
+    <span class="keyword">if</span>(<span class="function">sendVerificationEmail</span>(<span class="variable">$email</span>, <span class="variable">$newToken</span>)){
+        <span class="keyword">return</span> [<span class="string">'success'</span> => <span class="keyword">true</span>, <span class="string">'message'</span> => <span class="string">'Verification email resent'</span>];
+    }
+
+    <span class="keyword">return</span> [<span class="string">'success'</span> => <span class="keyword">false</span>, <span class="string">'error'</span> => <span class="string">'Failed to send email'</span>];
+}</code></pre>
+                        </div>
+
+                        <div class="explanation-box">
+                            <h5>📖 Line-by-Line Explanation</h5>
+
+                            <div class="line">
+                                <span class="line-number">Line 4-7</span>
+                                <div class="line-code">SELECT userID, isVerified FROM users WHERE Email = ?</div>
+                                <div class="line-desc">Queries the database to find the user by email and retrieve their verification status. We need both the userID (to update the record) and isVerified flag (to prevent resending to already verified users).</div>
+                            </div>
+
+                            <div class="line">
+                                <span class="line-number">Line 9-11</span>
+                                <div class="line-code">if($result->num_rows === 0)</div>
+                                <div class="line-desc">Checks if the email exists in the database. If not found, returns an error. This prevents the system from revealing whether an email is registered (security consideration).</div>
+                            </div>
+
+                            <div class="line">
+                                <span class="line-number">Line 15-17</span>
+                                <div class="line-code">if($user['isVerified'])</div>
+                                <div class="line-desc">Checks if the user is already verified. If yes, there's no need to resend a verification email. Returns an error to inform that verification is not needed.</div>
+                            </div>
+
+                            <div class="line">
+                                <span class="line-number">Line 20-21</span>
+                                <div class="line-code">$newToken = bin2hex(random_bytes(32));<br>$newExpiry = date('Y-m-d H:i:s', strtotime('+5 minutes'));</div>
+                                <div class="line-desc">Generates a brand new cryptographically secure token (64 hex characters) and sets a fresh expiry time 5 minutes from now. This invalidates the old expired token.</div>
+                            </div>
+
+                            <div class="line">
+                                <span class="line-number">Line 24-26</span>
+                                <div class="line-code">UPDATE users SET verificationToken = ?, tokenExpires_at = ? WHERE userID = ?</div>
+                                <div class="line-desc">Updates the user's record with the new token and expiry time. This replaces the old expired token, ensuring only the newest token will work for verification.</div>
+                            </div>
+
+                            <div class="line">
+                                <span class="line-number">Line 29-31</span>
+                                <div class="line-code">if(sendVerificationEmail($email, $newToken))</div>
+                                <div class="line-desc">Sends the new verification email with the fresh token. If successful, returns success with a message. If email sending fails, returns an error.</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Login Section -->
+        <section id="login">
+            <h2>Step 3: Login with Automatic Re-verification <span class="badge">Enhanced</span></h2>
+            <p>The enhanced login process validates credentials, checks email verification status, and <strong>automatically resends verification email</strong> if the user is unverified.</p>
+
+            <h3>Enhanced Login Flow</h3>
+            <div class="flow-diagram">
+<strong>1. USER ATTEMPTS LOGIN</strong>
+   ↓ Enters email + password
+   ↓ System validates credentials
+
+<strong>2. PASSWORD CHECK</strong>
+   ↓ Verify password matches hashed password
+   ├─→ Invalid → Return error "Invalid credentials"
+   └─→ Valid → Continue
+
+<strong>3. VERIFICATION STATUS CHECK</strong>
+   ↓ Check if isVerified = true
+   ├─→ Verified → Login successful → Check profile
+   └─→ NOT Verified → Auto-resend verification email
+
+<strong>4. AUTO-RESEND VERIFICATION</strong>
+   ↓ Generate new token (5 min expiry)
+   ↓ Update database with new token
+   ↓ Send verification email
+   ↓ Show message: "Please verify your email"
+
+<strong>5. USER CLICKS NEW VERIFICATION LINK</strong>
+   ↓ Token validated → isVerified = true
+   ↓ Check profile completion
+   ├─→ Profile incomplete → completeProfile.php
+   └─→ Profile complete → booking.php
+            </div>
+
+            <div class="alert alert-success">
+                <strong>✓ Benefits of Auto-Resend:</strong>
+                <ul style="margin-top: 10px;">
+                    <li><strong>No Dead Ends:</strong> Users never get stuck with expired tokens</li>
+                    <li><strong>Seamless UX:</strong> Users don't need to know about token expiry</li>
+                    <li><strong>Self-Service:</strong> No need for admin intervention or support tickets</li>
+                    <li><strong>Security:</strong> Each attempt generates a fresh token, old tokens become invalid</li>
+                </ul>
+            </div>
+
+            <!-- Enhanced logInUser Function -->
+            <div class="function-card">
+                <div class="function-header" onclick="toggleFunction(this)">
+                    <h4>🔐 Enhanced logInUser($email, $password) <span class="badge" style="background: #17a2b8;">UPDATED</span></h4>
+                    <span class="toggle-icon">▼</span>
+                </div>
+                <div class="function-content">
+                    <div class="function-body">
+                        <p><strong>Purpose:</strong> Authenticate user and automatically resend verification email if unverified.</p>
+                        <p><strong>Location:</strong> <code>src/includes/functions/auth.php</code></p>
+
+                        <div class="code-wrapper">
+                            <div class="code-header">
+                                <span class="code-title">PHP - Enhanced logInUser() Function</span>
+                                <button class="copy-btn" onclick="copyCode(this)">Copy Code</button>
+                            </div>
+                            <pre><code><span class="comment">// Replace existing logInUser() in auth.php with this enhanced version</span>
+
+<span class="keyword">function</span> <span class="function">logInUser</span>(<span class="variable">$email</span>, <span class="variable">$password</span>){
+    <span class="keyword">global</span> <span class="variable">$conn</span>;
+
+    <span class="comment">// Step 1: Find user by email</span>
+    <span class="variable">$query</span> = <span class="variable">$conn</span>-><span class="function">prepare</span>(<span class="string">"SELECT userID, Email, Password, isVerified, Role FROM users WHERE Email = ?"</span>);
+    <span class="variable">$query</span>-><span class="function">bind_param</span>(<span class="string">'s'</span>, <span class="variable">$email</span>);
+    <span class="variable">$query</span>-><span class="function">execute</span>();
+    <span class="variable">$result</span> = <span class="variable">$query</span>-><span class="function">get_result</span>();
+
+    <span class="comment">// Step 2: Check if user exists</span>
+    <span class="keyword">if</span>(<span class="variable">$result</span>->num_rows === <span class="number">0</span>){
+        <span class="keyword">return</span> [<span class="string">'success'</span> => <span class="keyword">false</span>, <span class="string">'error'</span> => <span class="string">'Invalid email or password'</span>];
+    }
+
+    <span class="variable">$user</span> = <span class="variable">$result</span>-><span class="function">fetch_assoc</span>();
+
+    <span class="comment">// Step 3: Verify password</span>
+    <span class="keyword">if</span>(!<span class="function">password_verify</span>(<span class="variable">$password</span>, <span class="variable">$user</span>[<span class="string">'Password'</span>])){
+        <span class="keyword">return</span> [<span class="string">'success'</span> => <span class="keyword">false</span>, <span class="string">'error'</span> => <span class="string">'Invalid email or password'</span>];
+    }
+
+    <span class="comment">// Step 4: Check email verification - AUTO-RESEND if not verified</span>
+    <span class="keyword">if</span>(!<span class="variable">$user</span>[<span class="string">'isVerified'</span>]){
+        <span class="comment">// Automatically generate new token and resend email</span>
+        <span class="variable">$resendResult</span> = <span class="function">resendVerificationToken</span>(<span class="variable">$email</span>);
+
+        <span class="keyword">return</span> [
+            <span class="string">'success'</span> => <span class="keyword">false</span>,
+            <span class="string">'error'</span> => <span class="string">'unverified'</span>,
+            <span class="string">'message'</span> => <span class="string">'Your email is not verified. We have sent a new verification link to your email. Please check your inbox.'</span>
+        ];
+    }
+
+    <span class="comment">// Step 5: Set session variables</span>
+    <span class="variable">$_SESSION</span>[<span class="string">'userId'</span>] = <span class="variable">$user</span>[<span class="string">'userID'</span>];
+    <span class="variable">$_SESSION</span>[<span class="string">'email'</span>] = <span class="variable">$user</span>[<span class="string">'Email'</span>];
+    <span class="variable">$_SESSION</span>[<span class="string">'role'</span>] = <span class="variable">$user</span>[<span class="string">'Role'</span>];
+
+    <span class="comment">// Step 6: Return success</span>
+    <span class="keyword">return</span> [<span class="string">'success'</span> => <span class="keyword">true</span>];
+}</code></pre>
+                        </div>
+
+                        <div class="explanation-box">
+                            <h5>📖 Key Changes from Original</h5>
+
+                            <div class="line">
+                                <span class="line-number">Line 23-33</span>
+                                <div class="line-code">if(!$user['isVerified']){ resendVerificationToken($email); }</div>
+                                <div class="line-desc"><strong>NEW BEHAVIOR:</strong> Instead of just returning an error when email is unverified, the system automatically calls <code>resendVerificationToken()</code> to generate a fresh token and send a new verification email. The user receives a helpful message explaining what happened.</div>
+                            </div>
+
+                            <div class="line">
+                                <span class="line-number">Error Code</span>
+                                <div class="line-code">'error' => 'unverified'</div>
+                                <div class="line-desc">Special error code that allows the login page to show a specific UI/message for unverified users. This can trigger a SweetAlert or custom notification explaining that a new verification email was sent.</div>
+                            </div>
+
+                            <div class="line">
+                                <span class="line-number">User Message</span>
+                                <div class="line-code">We have sent a new verification link to your email</div>
+                                <div class="line-desc">Clear, actionable message that informs the user what just happened and what they need to do next. No technical jargon about "expired tokens" - just a simple instruction to check their email.</div>
+                            </div>
+                        </div>
+
+                        <h4 style="margin-top: 30px;">Complete User Experience Flow</h4>
+                        <div style="background: var(--light); padding: 20px; border-radius: 8px; border-left: 4px solid var(--gold);">
+                            <p><strong>Scenario: User registered 10 minutes ago but didn't verify</strong></p>
+                            <ol style="line-height: 2;">
+                                <li>👤 User goes to login page, enters email + password</li>
+                                <li>🔍 System validates password → ✓ Correct</li>
+                                <li>⚠️ System checks isVerified → ✗ False (not verified)</li>
+                                <li>🔄 System automatically generates new token (expires in 5 min)</li>
+                                <li>📧 System sends new verification email</li>
+                                <li>💬 User sees message: "Your email is not verified. We have sent a new verification link to your email."</li>
+                                <li>📬 User checks inbox, clicks new verification link</li>
+                                <li>✅ Token validated, isVerified → True</li>
+                                <li>🔐 User is logged in automatically (session set in verify.php)</li>
+                                <li>🔀 System checks profile completion and redirects accordingly</li>
+                            </ol>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <h3 style="margin-top: 50px;">Implementation in Login Page (index.php)</h3>
+            <div class="code-wrapper">
+                <div class="code-header">
+                    <span class="code-title">PHP - index.php with SweetAlert for Unverified Users</span>
+                    <button class="copy-btn" onclick="copyCode(this)">Copy Code</button>
+                </div>
+                <pre><code><span class="comment">// In your login form handler (index.php)</span>
+
+<span class="keyword">if</span>(<span class="variable">$_SERVER</span>[<span class="string">'REQUEST_METHOD'</span>] === <span class="string">'POST'</span>){
+    <span class="variable">$email</span> = <span class="variable">$_POST</span>[<span class="string">'email'</span>];
+    <span class="variable">$password</span> = <span class="variable">$_POST</span>[<span class="string">'password'</span>];
+
+    <span class="variable">$result</span> = <span class="function">logInUser</span>(<span class="variable">$email</span>, <span class="variable">$password</span>);
+
+    <span class="keyword">if</span>(<span class="variable">$result</span>[<span class="string">'success'</span>]){
+        <span class="comment">// Login successful - redirect based on profile completion</span>
+        <span class="variable">$isProfileComplete</span> = <span class="function">needsProfileCompletion</span>(<span class="variable">$_SESSION</span>[<span class="string">'userId'</span>]);
+
+        <span class="keyword">if</span>(<span class="variable">$isProfileComplete</span>){
+            <span class="function">header</span>(<span class="string">'Location: booking.php'</span>);
+        } <span class="keyword">else</span> {
+            <span class="function">header</span>(<span class="string">'Location: completeProfile.php'</span>);
+        }
+        <span class="keyword">exit</span>;
+    } <span class="keyword">else</span> {
+        <span class="comment">// Check if error is due to unverified email</span>
+        <span class="keyword">if</span>(<span class="function">isset</span>(<span class="variable">$result</span>[<span class="string">'error'</span>]) && <span class="variable">$result</span>[<span class="string">'error'</span>] === <span class="string">'unverified'</span>){
+            <span class="comment">// Set session variable to show SweetAlert</span>
+            <span class="variable">$_SESSION</span>[<span class="string">'verification_resent'</span>] = <span class="variable">$result</span>[<span class="string">'message'</span>];
+        } <span class="keyword">else</span> {
+            <span class="comment">// Generic error</span>
+            <span class="variable">$errors</span>[<span class="string">'login'</span>] = <span class="variable">$result</span>[<span class="string">'error'</span>];
+        }
+    }
+}
+</code></pre>
+            </div>
+
+            <div class="code-wrapper" style="margin-top: 20px;">
+                <div class="code-header">
+                    <span class="code-title">JavaScript - SweetAlert for Re-verification Message</span>
+                    <button class="copy-btn" onclick="copyCode(this)">Copy Code</button>
+                </div>
+                <pre><code><span class="comment">&lt;!-- Add before closing &lt;/body&gt; tag in index.php --&gt;</span>
+
+<span class="keyword">&lt;?php if</span>(<span class="function">isset</span>(<span class="variable">$_SESSION</span>[<span class="string">'verification_resent'</span>]))<span class="keyword">: ?&gt;</span>
+&lt;script&gt;
+    Swal.fire({
+        icon: <span class="string">'info'</span>,
+        title: <span class="string">'Email Not Verified'</span>,
+        html: <span class="string">'&lt;p&gt;&lt;?php echo $_SESSION["verification_resent"]; ?&gt;&lt;/p&gt;&lt;p class="text-muted" style="margin-top: 15px;"&gt;The verification link will expire in 5 minutes.&lt;/p&gt;'</span>,
+        confirmButtonText: <span class="string">'Check Email'</span>,
+        confirmButtonColor: <span class="string">'#d4af37'</span>,
+        allowOutsideClick: <span class="keyword">false</span>
+    });
+&lt;/script&gt;
+<span class="keyword">&lt;?php</span>
+    <span class="function">unset</span>(<span class="variable">$_SESSION</span>[<span class="string">'verification_resent'</span>]);
+<span class="keyword">endif; ?&gt;</span></code></pre>
+            </div>
+
+            <!-- needsProfileCompletion Function -->
+            <div class="function-card" style="margin-top: 40px;">
+                <div class="function-header" onclick="toggleFunction(this)">
+                    <h4>🔍 needsProfileCompletion($userId)</h4>
+                    <span class="toggle-icon">▼</span>
+                </div>
+                <div class="function-content">
+                    <div class="function-body">
+                        <p><strong>Purpose:</strong> Check if a user has completed their profile information.</p>
+                        <p><strong>Location:</strong> <code>src/includes/functions/auth.php</code></p>
+
+                        <div class="code-wrapper">
+                            <div class="code-header">
+                                <span class="code-title">PHP - needsProfileCompletion() Function</span>
+                                <button class="copy-btn" onclick="copyCode(this)">Copy Code</button>
+                            </div>
+                            <pre><code><span class="keyword">function</span> <span class="function">needsProfileCompletion</span>(<span class="variable">$userId</span>){
+    <span class="keyword">global</span> <span class="variable">$conn</span>;
+
+    <span class="variable">$query</span> = <span class="variable">$conn</span>-><span class="function">prepare</span>(<span class="string">"SELECT * FROM users WHERE userID = ? AND profileCompleted = true"</span>);
+    <span class="variable">$query</span>-><span class="function">bind_param</span>(<span class="string">'s'</span>, <span class="variable">$userId</span>);
+    <span class="variable">$query</span>-><span class="function">execute</span>();
+    <span class="variable">$result</span> = <span class="variable">$query</span>-><span class="function">get_result</span>();
+
+    <span class="keyword">if</span>(<span class="variable">$result</span>->num_rows > <span class="number">0</span>){
+        <span class="variable">$user</span> = <span class="variable">$result</span>-><span class="function">fetch_assoc</span>();
+        <span class="keyword">return</span> <span class="keyword">true</span>;
+    }
+
+    <span class="keyword">return</span> <span class="keyword">false</span>;
+}</code></pre>
+                        </div>
+
+                        <div class="explanation-box">
+                            <h5>📖 Line-by-Line Explanation</h5>
+
+                            <div class="line">
+                                <span class="line-number">Line 1</span>
+                                <div class="line-code">function needsProfileCompletion($userId)</div>
+                                <div class="line-desc">Declares the function that checks profile completion status. Returns true if profile is complete, false if it needs completion.</div>
+                            </div>
+
+                            <div class="line">
+                                <span class="line-number">Line 2</span>
+                                <div class="line-code">global $conn;</div>
+                                <div class="line-desc">Imports database connection for query execution.</div>
+                            </div>
+
+                            <div class="line">
+                                <span class="line-number">Line 4</span>
+                                <div class="line-code">$query = $conn->prepare("SELECT * FROM users WHERE userID = ? AND profileCompleted = true");</div>
+                                <div class="line-desc">Prepares a query to check if this specific user has <code>profileCompleted = true</code>. If the user exists with this flag set, their profile is complete.</div>
+                            </div>
+
+                            <div class="line">
+                                <span class="line-number">Line 5</span>
+                                <div class="line-code">$query->bind_param('s', $userId);</div>
+                                <div class="line-desc">Binds the userID parameter safely. The 's' indicates string type (your userID is VARCHAR).</div>
+                            </div>
+
+                            <div class="line">
+                                <span class="line-number">Line 6-7</span>
+                                <div class="line-code">$query->execute();<br>$result = $query->get_result();</div>
+                                <div class="line-desc">Executes the query and retrieves results. This checks the database for a user with completed profile.</div>
+                            </div>
+
+                            <div class="line">
+                                <span class="line-number">Line 9</span>
+                                <div class="line-code">if($result->num_rows > 0)</div>
+                                <div class="line-desc">If a row was found, it means the user has <code>profileCompleted = true</code>. If <code>num_rows = 0</code>, the profile is not complete.</div>
+                            </div>
+
+                            <div class="line">
+                                <span class="line-number">Line 11</span>
+                                <div class="line-code">return true;</div>
+                                <div class="line-desc">Returns true indicating the profile IS completed. The login system will redirect them to booking.php (normal flow).</div>
+                            </div>
+
+                            <div class="line">
+                                <span class="line-number">Line 14</span>
+                                <div class="line-code">return false;</div>
+                                <div class="line-desc">Returns false indicating the profile is NOT completed. The user will be redirected to completeProfile.php to fill out their information.</div>
+                            </div>
+                        </div>
+
+                        <div class="alert alert-info">
+                            <strong>Note on Logic:</strong> Your current implementation returns <code>true</code> when profile IS complete. In verify.php, you check <code>if(!$isCompletedProfile)</code> to redirect to completeProfile.php, which correctly handles users with incomplete profiles.
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Profile Completion Section -->
+        <section id="profile">
+            <h2>Step 4: Profile Completion</h2>
+            <p>After email verification, users must complete their profile before accessing the booking system.</p>
+
+            <!-- saveUserProfile Function -->
+            <div class="function-card">
+                <div class="function-header" onclick="toggleFunction(this)">
+                    <h4>💾 saveUserProfile($userId, $data)</h4>
+                    <span class="toggle-icon">▼</span>
+                </div>
+                <div class="function-content">
+                    <div class="function-body">
+                        <p><strong>Purpose:</strong> Save user profile information and mark profile as completed.</p>
+                        <p><strong>Location:</strong> <code>src/includes/functions/function.php</code></p>
+                        <p><strong>Status:</strong> <span style="color: var(--text-secondary);">Currently empty - needs implementation</span></p>
+
+                        <div class="code-wrapper">
+                            <div class="code-header">
+                                <span class="code-title">PHP - saveUserProfile() Implementation</span>
+                                <button class="copy-btn" onclick="copyCode(this)">Copy Code</button>
+                            </div>
+                            <pre><code><span class="keyword">function</span> <span class="function">saveUserProfile</span>(<span class="variable">$userId</span>, <span class="variable">$data</span>){
+    <span class="keyword">global</span> <span class="variable">$conn</span>;
+
+    <span class="variable">$stmt</span> = <span class="variable">$conn</span>-><span class="function">prepare</span>(<span class="string">"UPDATE users SET FirstName = ?, LastName = ?, Phone = ?, Address = ?, profileCompleted = true WHERE userID = ?"</span>);
+    <span class="variable">$stmt</span>-><span class="function">bind_param</span>(<span class="string">'sssss'</span>,
+        <span class="variable">$data</span>[<span class="string">'firstName'</span>],
+        <span class="variable">$data</span>[<span class="string">'lastName'</span>],
+        <span class="variable">$data</span>[<span class="string">'phone'</span>],
+        <span class="variable">$data</span>[<span class="string">'address'</span>],
+        <span class="variable">$userId</span>
+    );
+
+    <span class="keyword">if</span>(<span class="variable">$stmt</span>-><span class="function">execute</span>()){
+        <span class="keyword">return</span> [<span class="string">'success'</span> => <span class="keyword">true</span>];
+    }
+
+    <span class="keyword">return</span> [<span class="string">'success'</span> => <span class="keyword">false</span>];
+}</code></pre>
+                        </div>
+
+                        <div class="explanation-box">
+                            <h5>📖 Line-by-Line Explanation</h5>
+
+                            <div class="line">
+                                <span class="line-number">Line 1</span>
+                                <div class="line-code">function saveUserProfile($userId, $data)</div>
+                                <div class="line-desc">Declares the function that accepts a userID and an associative array of profile data (firstName, lastName, phone, address).</div>
+                            </div>
+
+                            <div class="line">
+                                <span class="line-number">Line 2</span>
+                                <div class="line-code">global $conn;</div>
+                                <div class="line-desc">Imports the database connection variable.</div>
+                            </div>
+
+                            <div class="line">
+                                <span class="line-number">Line 4</span>
+                                <div class="line-code">$stmt = $conn->prepare("UPDATE users SET FirstName = ?, LastName = ?, Phone = ?, Address = ?, profileCompleted = true WHERE userID = ?");</div>
+                                <div class="line-desc">Prepares an UPDATE statement to save all profile fields AND set <code>profileCompleted = true</code>. The five <code>?</code> placeholders will be replaced with: firstName, lastName, phone, address, and userID.</div>
+                            </div>
+
+                            <div class="line">
+                                <span class="line-number">Line 5-11</span>
+                                <div class="line-code">$stmt->bind_param('sssss', ...);</div>
+                                <div class="line-desc">Binds all five parameters to the prepared statement. The <code>'sssss'</code> indicates all five are strings. The data array keys must match: <code>$data['firstName']</code>, <code>$data['lastName']</code>, <code>$data['phone']</code>, <code>$data['address']</code>.</div>
+                            </div>
+
+                            <div class="line">
+                                <span class="line-number">Line 13</span>
+                                <div class="line-code">if($stmt->execute())</div>
+                                <div class="line-desc">Executes the UPDATE query. Returns true if successful (profile saved and <code>profileCompleted</code> set to true in database).</div>
+                            </div>
+
+                            <div class="line">
+                                <span class="line-number">Line 14</span>
+                                <div class="line-code">return ['success' => true];</div>
+                                <div class="line-desc">Returns success to completeProfile.php. The page will then redirect the user to booking.php since their profile is now complete.</div>
+                            </div>
+
+                            <div class="line">
+                                <span class="line-number">Line 17</span>
+                                <div class="line-code">return ['success' => false];</div>
+                                <div class="line-desc">Returns failure if the database update failed. The user will remain on the profile completion page with an error.</div>
+                            </div>
+                        </div>
+
+                        <div class="alert alert-warning">
+                            <strong>⚠️ Action Required:</strong> This function is currently empty in your codebase. Copy the implementation above into <code>src/includes/functions/function.php</code> to enable profile completion.
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Protection Section -->
+        <section id="protection">
+            <h2>Step 5: Page Protection</h2>
+            <p>Add this code to the top of <strong>booking.php</strong>, <strong>admin.php</strong>, and any other protected pages:</p>
+
+            <div class="code-wrapper">
+                <div class="code-header">
+                    <span class="code-title">PHP - Page Protection Code</span>
+                    <button class="copy-btn" onclick="copyCode(this)">Copy Code</button>
+                </div>
+                <pre><code><span class="keyword">&lt;?php</span>
+<span class="function">session_start</span>();
+<span class="keyword">require_once</span> <span class="string">'./includes/config.php'</span>;
+<span class="keyword">require_once</span> <span class="string">'./includes/functions/auth.php'</span>;
+
+<span class="comment">// Must be logged in</span>
+<span class="keyword">if</span>(!<span class="function">isset</span>(<span class="variable">$_SESSION</span>[<span class="string">'userId'</span>])){
+    <span class="function">header</span>(<span class="string">"Location: index.php"</span>);
+    <span class="keyword">exit</span>;
+}
+
+<span class="comment">// Must have completed profile</span>
+<span class="variable">$isCompleted</span> = <span class="function">needsProfileCompletion</span>(<span class="variable">$_SESSION</span>[<span class="string">'userId'</span>]);
+<span class="keyword">if</span>(!<span class="variable">$isCompleted</span>){
+    <span class="function">header</span>(<span class="string">"Location: completeProfile.php"</span>);
+    <span class="keyword">exit</span>;
+}
+
+<span class="comment">// User is logged in AND profile is complete - show page content</span>
+<span class="keyword">?&gt;</span></code></pre>
+            </div>
+
+            <div class="explanation-box">
+                <h5>📖 How Page Protection Works</h5>
+
+                <div class="line">
+                    <span class="line-number">Line 2</span>
+                    <div class="line-code">session_start();</div>
+                    <div class="line-desc">Initializes or resumes the PHP session. This is required to access <code>$_SESSION</code> variables that store the logged-in user's ID.</div>
+                </div>
+
+                <div class="line">
+                    <span class="line-number">Line 3-4</span>
+                    <div class="line-code">require_once './includes/config.php';<br>require_once './includes/functions/auth.php';</div>
+                    <div class="line-desc">Includes the database connection and authentication functions. We need these to check the user's profile status.</div>
+                </div>
+
+                <div class="line">
+                    <span class="line-number">Line 7</span>
+                    <div class="line-code">if(!isset($_SESSION['userId']))</div>
+                    <div class="line-desc">Checks if the user is logged in by verifying the session contains a userId. If not set, the user hasn't logged in.</div>
+                </div>
+
+                <div class="line">
+                    <span class="line-number">Line 8-9</span>
+                    <div class="line-code">header("Location: index.php");<br>exit;</div>
+                    <div class="line-desc">Redirects non-logged-in users to the login page (index.php). The <code>exit</code> prevents any further code execution, ensuring the page content isn't shown.</div>
+                </div>
+
+                <div class="line">
+                    <span class="line-number">Line 13</span>
+                    <div class="line-code">$isCompleted = needsProfileCompletion($_SESSION['userId']);</div>
+                    <div class="line-desc">Calls the function to check if this user's profile is complete. Returns true if complete, false if not.</div>
+                </div>
+
+                <div class="line">
+                    <span class="line-number">Line 14-16</span>
+                    <div class="line-code">if(!$isCompleted){ header("Location: completeProfile.php"); }</div>
+                    <div class="line-desc">If profile is NOT complete, redirects to the profile completion page. The user cannot access this page until they fill out their profile.</div>
+                </div>
+
+                <div class="line">
+                    <span class="line-number">Line 19</span>
+                    <div class="line-code">// User passed all checks - show page</div>
+                    <div class="line-desc">If execution reaches this point, the user is both logged in AND has a complete profile. The protected page content can safely be displayed.</div>
+                </div>
+            </div>
+
+            <div class="alert alert-success">
+                <strong>✓ Security Benefits:</strong>
+                <ul style="margin-top: 10px;">
+                    <li>Prevents unauthorized access to protected pages</li>
+                    <li>Ensures all users complete required profile information</li>
+                    <li>Works across browser sessions (database-backed, not cookie-dependent)</li>
+                    <li>Automatic enforcement - no manual checks required</li>
+                </ul>
+            </div>
+        </section>
+
+        <!-- File Structure Section -->
+        <section id="file-structure">
+            <h2>Complete File Structure</h2>
+            <p>Here's how your authentication system files are organized:</p>
+
+            <div class="file-tree">
+                <ul>
+                    <li>src/
+                        <ul>
+                            <li>includes/
+                                <ul>
+                                    <li class="file">config.php <span class="file-desc">- Database connection & environment loading</span></li>
+                                    <li>functions/
+                                        <ul>
+                                            <li class="file">auth.php <span class="file-desc">- isEmailExists(), registerUser(), verifyEmail(), needsProfileCompletion()</span></li>
+                                            <li class="file">function.php <span class="file-desc">- sendVerificationEmail(), saveUserProfile(), getPackageDetails()</span></li>
+                                        </ul>
+                                    </li>
+                                </ul>
+                            </li>
+                            <li class="file">register.php <span class="file-desc">- Registration form with SweetAlert notifications</span></li>
+                            <li class="file">verify.php <span class="file-desc">- Email verification handler (processes token)</span></li>
+                            <li class="file">index.php <span class="file-desc">- Login page</span></li>
+                            <li class="file">completeProfile.php <span class="file-desc">- Profile completion form</span></li>
+                            <li class="file">booking.php <span class="file-desc">- Protected booking system</span></li>
+                            <li class="file">admin.php <span class="file-desc">- Protected admin panel</span></li>
+                        </ul>
+                    </li>
+                    <li class="file">.env <span class="file-desc">- SMTP credentials & app configuration</span></li>
+                </ul>
+            </div>
+
+            <h3>Environment Variables (.env)</h3>
+            <p>Your <code>.env</code> file contains sensitive configuration:</p>
+
+            <div class="code-wrapper">
+                <div class="code-header">
+                    <span class="code-title">.env Configuration</span>
+                    <button class="copy-btn" onclick="copyCode(this)">Copy Code</button>
+                </div>
+                <pre><code>DB_HOST=localhost
+DB_NAME=aperture
+DB_USER=root
+DB_PASS=
+
+SMTP_HOST=smtp.gmail.com
+SMTP_PORT=587
+SMTP_USERNAME=aperture.eventbookings@gmail.com
+SMTP_PASSWORD=puljcvvohepmzeob
+
+APP_ENV=development
+APP_DEBUG=true
+APP_URL=http://localhost/aperture-master</code></pre>
+            </div>
+        </section>
+
+        <!-- Summary Section -->
+        <section>
+            <h2>Implementation Summary</h2>
+
+            <div class="alert alert-success">
+                <strong>✓ What This System Achieves:</strong>
+                <ul style="margin-top: 10px;">
+                    <li><strong>Secure Authentication:</strong> Passwords hashed with bcrypt, SQL injection prevention via prepared statements</li>
+                    <li><strong>Email Verification:</strong> Prevents spam registrations, ensures valid contact information</li>
+                    <li><strong>Profile Enforcement:</strong> Database flags persist across sessions - users cannot bypass completion</li>
+                    <li><strong>Session Management:</strong> Proper login/logout flow with page protection</li>
+                    <li><strong>Professional UX:</strong> SweetAlert notifications, clear user guidance throughout the flow</li>
+                </ul>
+            </div>
+
+            <h3>Key Takeaways</h3>
+            <p><strong>Database Flags Are Everything:</strong> The <code>isVerified</code> and <code>profileCompleted</code> flags control the entire user flow. These persist in the database, so users can't bypass requirements by closing the browser or clearing cookies.</p>
+
+            <p><strong>Every Login Checks Status:</strong> When a user logs in (or visits any protected page), the system checks their verification and profile completion status. They're automatically redirected to the appropriate page.</p>
+
+            <p><strong>Security First:</strong> All user input is sanitized with prepared statements. Passwords are hashed, tokens expire after 24 hours, and verification tokens are single-use.</p>
+
+            <p><strong>Seamless Experience:</strong> Users only see what they need to see. Unverified users can't login. Users with incomplete profiles are guided to complete them. Fully set up users go straight to booking.</p>
+        </section>
+
+    </div>
+
+    <script>
+        // Sidebar Toggle
+        function toggleSidebar() {
+            const sidebar = document.getElementById('sidebar');
+            const container = document.getElementById('mainContainer');
+
+            sidebar.classList.toggle('hidden');
+            container.classList.toggle('full-width');
+        }
+
+        // Scroll to Top
+        function scrollToTop() {
+            window.scrollTo({
+                top: 0,
+                behavior: 'smooth'
+            });
+        }
+
+        // Copy Code
+        function copyCode(button) {
+            const codeBlock = button.parentElement.nextElementSibling.querySelector('code');
+            const code = codeBlock.textContent;
+
+            navigator.clipboard.writeText(code).then(() => {
+                const originalText = button.textContent;
+                button.textContent = 'Copied!';
+                button.classList.add('copied');
+
+                setTimeout(() => {
+                    button.textContent = originalText;
+                    button.classList.remove('copied');
+                }, 2000);
+            });
+        }
+
+        // Toggle Function Cards
+        function toggleFunction(header) {
+            const card = header.parentElement;
+            card.classList.toggle('active');
+        }
+
+        // Scroll Progress Bar
+        window.addEventListener('scroll', () => {
+            const winScroll = document.body.scrollTop || document.documentElement.scrollTop;
+            const height = document.documentElement.scrollHeight - document.documentElement.clientHeight;
+            const scrolled = (winScroll / height) * 100;
+            document.getElementById('progressBar').style.width = scrolled + '%';
+
+            // Show/hide scroll to top button
+            const scrollTopBtn = document.getElementById('scrollTop');
+            if (winScroll > 300) {
+                scrollTopBtn.classList.add('visible');
+            } else {
+                scrollTopBtn.classList.remove('visible');
+            }
+        });
+
+        // Smooth Scrolling for Navigation Links
+        document.querySelectorAll('.nav-link').forEach(link => {
+            link.addEventListener('click', (e) => {
+                e.preventDefault();
+                const targetId = link.getAttribute('href');
+                const targetElement = document.querySelector(targetId);
+
+                if (targetElement) {
+                    targetElement.scrollIntoView({
+                        behavior: 'smooth',
+                        block: 'start'
+                    });
+
+                    // Update active link
+                    document.querySelectorAll('.nav-link').forEach(l => l.classList.remove('active'));
+                    link.classList.add('active');
+                }
+            });
+        });
+
+        // Highlight active section in sidebar
+        const observerOptions = {
+            root: null,
+            rootMargin: '0px',
+            threshold: 0.3
+        };
+
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    const id = entry.target.getAttribute('id');
+                    document.querySelectorAll('.nav-link').forEach(link => {
+                        link.classList.remove('active');
+                        if (link.getAttribute('href') === `#${id}`) {
+                            link.classList.add('active');
+                        }
+                    });
+                }
+            });
+        }, observerOptions);
+
+        // Observe all sections
+        document.querySelectorAll('section[id]').forEach(section => {
+            observer.observe(section);
+        });
+
+        // Responsive sidebar
+        if (window.innerWidth <= 768) {
+            document.getElementById('sidebar').classList.add('hidden');
+            document.getElementById('mainContainer').classList.add('full-width');
+        }
+
+        // Add animation on scroll
+        const animateOnScroll = () => {
+            const elements = document.querySelectorAll('.function-card, .alert, .code-wrapper');
+            elements.forEach(el => {
+                const rect = el.getBoundingClientRect();
+                const isVisible = rect.top < window.innerHeight - 100;
+                if (isVisible && !el.classList.contains('animated')) {
+                    el.style.animation = 'fadeInUp 0.6s ease forwards';
+                    el.classList.add('animated');
+                }
+            });
+        };
+
+        window.addEventListener('scroll', animateOnScroll);
+        animateOnScroll(); // Run on load
+    </script>
+</body>
+</html>

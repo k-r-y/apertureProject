@@ -1,0 +1,1227 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="bootstrap-5.3.8-dist/css/bootstrap.min.css">
+    <link rel="stylesheet" href="src/style.css">
+    <link rel="icon" href="src/assets/camera.png" type="image/x-icon">
+    <link rel="stylesheet" href="bootstrap-5.3.8-dist/font/bootstrap-icons.css">
+    <title>Aperture - Project Status Report</title>
+    <style>
+        .status-badge {
+            display: inline-block;
+            padding: 0.35em 0.65em;
+            font-size: 0.85em;
+            font-weight: 600;
+            border-radius: 0.375rem;
+        }
+
+        .status-completed {
+            background-color: #d1e7dd;
+            color: #0f5132;
+        }
+
+        .status-partial {
+            background-color: #fff3cd;
+            color: #664d03;
+        }
+
+        .status-critical {
+            background-color: #f8d7da;
+            color: #842029;
+        }
+
+        .status-missing {
+            background-color: #e2e3e5;
+            color: #41464b;
+        }
+
+        .progress-card {
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+
+        .progress-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15) !important;
+        }
+
+        .timeline-item {
+            position: relative;
+            padding-left: 2rem;
+            border-left: 2px solid #dee2e6;
+        }
+
+        .timeline-item::before {
+            content: '';
+            position: absolute;
+            left: -6px;
+            top: 0.5rem;
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            background-color: #d4af37;
+        }
+
+        .timeline-item:last-child {
+            border-left: 2px solid transparent;
+        }
+
+        .feature-list li {
+            padding: 0.5rem 0;
+            border-bottom: 1px solid #f8f9fa;
+        }
+
+        .feature-list li:last-child {
+            border-bottom: none;
+        }
+
+        .metric-number {
+            font-size: 3rem;
+            font-weight: 700;
+            color: #d4af37;
+        }
+
+        .section-header {
+            position: relative;
+            padding-bottom: 1rem;
+            margin-bottom: 2rem;
+        }
+
+        .section-header::after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            width: 60px;
+            height: 3px;
+            background-color: #d4af37;
+        }
+
+        .accordion-button:not(.collapsed) {
+            background-color: rgba(212, 175, 55, 0.1);
+            color: #212529;
+        }
+
+        .code-block {
+            background-color: #f8f9fa;
+            border-left: 4px solid #d4af37;
+            padding: 1rem;
+            border-radius: 0.375rem;
+            font-family: 'Courier New', monospace;
+            font-size: 0.875rem;
+            overflow-x: auto;
+        }
+
+        .priority-high {
+            border-left: 4px solid #dc3545;
+        }
+
+        .priority-medium {
+            border-left: 4px solid #ffc107;
+        }
+
+        .priority-low {
+            border-left: 4px solid #198754;
+        }
+
+        /* Task checkbox styles */
+        .task-item {
+            transition: all 0.3s ease;
+            cursor: pointer;
+            padding: 0.5rem;
+            border-radius: 0.375rem;
+        }
+
+        .task-item:hover {
+            background-color: #f8f9fa;
+        }
+
+        .task-item.completed {
+            opacity: 0.6;
+            text-decoration: line-through;
+        }
+
+        .task-checkbox {
+            width: 20px;
+            height: 20px;
+            cursor: pointer;
+        }
+
+        /* Notes section */
+        .notes-section {
+            position: sticky;
+            top: 20px;
+        }
+
+        .note-item {
+            background-color: #fff;
+            border-left: 4px solid #d4af37;
+            padding: 1rem;
+            margin-bottom: 1rem;
+            border-radius: 0.375rem;
+            box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
+            transition: all 0.3s ease;
+        }
+
+        .note-item:hover {
+            box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15);
+        }
+
+        .note-timestamp {
+            font-size: 0.75rem;
+            color: #6c757d;
+        }
+
+        .floating-notes-btn {
+            position: fixed;
+            bottom: 2rem;
+            right: 2rem;
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            background-color: #d4af37;
+            color: white;
+            border: none;
+            box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.3);
+            font-size: 1.5rem;
+            z-index: 1000;
+            transition: transform 0.3s ease;
+        }
+
+        .floating-notes-btn:hover {
+            transform: scale(1.1);
+            background-color: #c19a2f;
+        }
+
+        .notes-offcanvas {
+            width: 400px !important;
+        }
+
+        .delete-note-btn {
+            opacity: 0;
+            transition: opacity 0.2s ease;
+        }
+
+        .note-item:hover .delete-note-btn {
+            opacity: 1;
+        }
+
+        /* Progress tracking */
+        .progress-tracker {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 4px;
+            background-color: #e9ecef;
+            z-index: 9999;
+        }
+
+        .progress-tracker-fill {
+            height: 100%;
+            background-color: #d4af37;
+            transition: width 0.3s ease;
+        }
+
+        /* Timeline completion */
+        .timeline-item.completed::before {
+            background-color: #198754;
+        }
+
+        .timeline-item.in-progress::before {
+            background-color: #ffc107;
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% {
+                opacity: 1;
+            }
+            50% {
+                opacity: 0.5;
+            }
+        }
+
+        .timeline-checkbox {
+            position: absolute;
+            left: -25px;
+            top: 0.5rem;
+        }
+    </style>
+</head>
+
+<body>
+    <!-- Progress Tracker -->
+    <div class="progress-tracker">
+        <div class="progress-tracker-fill" id="progressTrackerFill" style="width: 40%;"></div>
+    </div>
+
+    <!-- Floating Notes Button -->
+    <button class="floating-notes-btn" type="button" data-bs-toggle="offcanvas" data-bs-target="#notesOffcanvas">
+        <i class="bi bi-journal-text"></i>
+    </button>
+
+    <!-- Notes Offcanvas -->
+    <div class="offcanvas offcanvas-end notes-offcanvas" tabindex="-1" id="notesOffcanvas">
+        <div class="offcanvas-header bg-dark text-light">
+            <h5 class="offcanvas-title"><i class="bi bi-journal-text me-2"></i>Project Notes</h5>
+            <button type="button" class="btn-close btn-close-white" data-bs-dismiss="offcanvas"></button>
+        </div>
+        <div class="offcanvas-body">
+            <div class="mb-3">
+                <textarea class="form-control" id="noteInput" rows="3" placeholder="Add a note..."></textarea>
+                <button class="btn btn-dark w-100 mt-2" onclick="addNote()">
+                    <i class="bi bi-plus-circle me-2"></i>Add Note
+                </button>
+            </div>
+            <hr>
+            <div id="notesList"></div>
+        </div>
+    </div>
+
+    <!-- Header -->
+    <section class="w-100 py-5 bg-dark text-light position-relative">
+        <div class="container text-center">
+            <img src="src/assets/logo.png" alt="Aperture Logo" style="height: 60px;" class="mb-3">
+            <h1 class="display-3 fw-bold serif mb-3">Project Status Report</h1>
+            <p class="lead">Aperture Event Photography & Videography Booking System</p>
+            <p class="text-muted">Generated: November 8, 2025</p>
+            <div class="mt-4">
+                <button class="btn btn-outline-light me-2" onclick="exportProgress()">
+                    <i class="bi bi-download me-2"></i>Export Progress
+                </button>
+                <button class="btn btn-outline-light" onclick="resetProgress()">
+                    <i class="bi bi-arrow-clockwise me-2"></i>Reset Tracking
+                </button>
+            </div>
+        </div>
+    </section>
+
+    <!-- Overall Progress -->
+    <section class="py-5 bg-light">
+        <div class="container">
+            <div class="row g-4">
+                <div class="col-md-3">
+                    <div class="card border-0 shadow-sm text-center progress-card h-100">
+                        <div class="card-body">
+                            <div class="metric-number" id="overallProgress">40%</div>
+                            <h5 class="card-title">Overall Progress</h5>
+                            <div class="progress mt-3" style="height: 8px;">
+                                <div class="progress-bar" id="overallProgressBar" style="width: 40%; background-color: #d4af37;"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="card border-0 shadow-sm text-center progress-card h-100">
+                        <div class="card-body">
+                            <div class="metric-number text-success" id="completedCount">15</div>
+                            <h5 class="card-title">Completed Features</h5>
+                            <small class="text-muted">Authentication, Contact, Pages</small>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="card border-0 shadow-sm text-center progress-card h-100">
+                        <div class="card-body">
+                            <div class="metric-number text-warning">3</div>
+                            <h5 class="card-title">Partial Features</h5>
+                            <small class="text-muted">Booking, Admin, Password Reset</small>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="card border-0 shadow-sm text-center progress-card h-100">
+                        <div class="card-body">
+                            <div class="metric-number text-danger" id="bugsCount">3</div>
+                            <h5 class="card-title">Critical Bugs</h5>
+                            <small class="text-muted">SQL Schema, Logic Errors</small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Completed Features -->
+    <section class="py-5">
+        <div class="container">
+            <h2 class="section-header serif fw-bold">Completed Features <span class="status-badge status-completed">✓ WORKING</span></h2>
+            <div class="row g-4">
+                <div class="col-lg-6">
+                    <div class="card border-0 shadow-sm h-100">
+                        <div class="card-body">
+                            <h4 class="card-title fw-bold mb-3"><i class="bi bi-person-check text-success me-2"></i>User Authentication System</h4>
+                            <ul class="feature-list list-unstyled">
+                                <li><i class="bi bi-check-circle-fill text-success me-2"></i><strong>Registration:</strong> Email validation, password hashing (bcrypt), email verification with 1-hour token expiry</li>
+                                <li><i class="bi bi-check-circle-fill text-success me-2"></i><strong>Login:</strong> Credential validation, session management, role-based redirects (Admin/User)</li>
+                                <li><i class="bi bi-check-circle-fill text-success me-2"></i><strong>Profile Completion:</strong> First name, last name, 11-digit phone validation</li>
+                                <li><i class="bi bi-check-circle-fill text-success me-2"></i><strong>SweetAlert2 Integration:</strong> Success messages and verification prompts</li>
+                            </ul>
+                            <div class="mt-3">
+                                <span class="badge bg-light text-dark border">register.php</span>
+                                <span class="badge bg-light text-dark border">logIn.php</span>
+                                <span class="badge bg-light text-dark border">completeProfile.php</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col-lg-6">
+                    <div class="card border-0 shadow-sm h-100">
+                        <div class="card-body">
+                            <h4 class="card-title fw-bold mb-3"><i class="bi bi-envelope-check text-success me-2"></i>Contact Form System</h4>
+                            <ul class="feature-list list-unstyled">
+                                <li><i class="bi bi-check-circle-fill text-success me-2"></i><strong>PHPMailer Integration:</strong> Fully functional email sending via Gmail SMTP</li>
+                                <li><i class="bi bi-check-circle-fill text-success me-2"></i><strong>Input Validation:</strong> XSS protection with htmlspecialchars()</li>
+                                <li><i class="bi bi-check-circle-fill text-success me-2"></i><strong>Security Fixes:</strong> Email spoofing prevention, proper error logging</li>
+                                <li><i class="bi bi-check-circle-fill text-success me-2"></i><strong>SweetAlert Feedback:</strong> Success and error messages with modern UI</li>
+                            </ul>
+                            <div class="mt-3">
+                                <span class="badge bg-light text-dark border">aboutCompany.php</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col-lg-6">
+                    <div class="card border-0 shadow-sm h-100">
+                        <div class="card-body">
+                            <h4 class="card-title fw-bold mb-3"><i class="bi bi-database-check text-success me-2"></i>Database Schema</h4>
+                            <ul class="feature-list list-unstyled">
+                                <li><i class="bi bi-check-circle-fill text-success me-2"></i><strong>Users Table:</strong> With email verification tokens and expiry</li>
+                                <li><i class="bi bi-check-circle-fill text-success me-2"></i><strong>Packages Table:</strong> Essential (₱7,500), Elite (₱15,000), Premium (₱25,000)</li>
+                                <li><i class="bi bi-check-circle-fill text-success me-2"></i><strong>Addons Table:</strong> With foreign key relationships</li>
+                                <li><i class="bi bi-check-circle-fill text-success me-2"></i><strong>Inclusion Table:</strong> Package feature listings</li>
+                            </ul>
+                            <div class="mt-3">
+                                <span class="badge bg-light text-dark border">create_tables.sql</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col-lg-6">
+                    <div class="card border-0 shadow-sm h-100">
+                        <div class="card-body">
+                            <h4 class="card-title fw-bold mb-3"><i class="bi bi-layout-text-window text-success me-2"></i>Frontend Pages</h4>
+                            <ul class="feature-list list-unstyled">
+                                <li><i class="bi bi-check-circle-fill text-success me-2"></i><strong>Landing Page:</strong> Hero section, problem-solution, services showcase</li>
+                                <li><i class="bi bi-check-circle-fill text-success me-2"></i><strong>Services Page:</strong> Package details and pricing</li>
+                                <li><i class="bi bi-check-circle-fill text-success me-2"></i><strong>About Pages:</strong> Company info and team profiles</li>
+                                <li><i class="bi bi-check-circle-fill text-success me-2"></i><strong>Legal Pages:</strong> Data privacy, Terms & Conditions modals</li>
+                            </ul>
+                            <div class="mt-3">
+                                <span class="badge bg-light text-dark border">Bootstrap 5.3.8</span>
+                                <span class="badge bg-light text-dark border">SweetAlert2</span>
+                                <span class="badge bg-light text-dark border">Responsive Design</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Partially Implemented -->
+    <section class="py-5 bg-light">
+        <div class="container">
+            <h2 class="section-header serif fw-bold">Partially Implemented <span class="status-badge status-partial">⚠️ INCOMPLETE</span></h2>
+            <div class="accordion" id="partialFeaturesAccordion">
+                <div class="accordion-item border-0 shadow-sm mb-3">
+                    <h2 class="accordion-header">
+                        <button class="accordion-button" type="button" data-bs-toggle="collapse" data-bs-target="#bookingSystem">
+                            <i class="bi bi-calendar-event text-warning me-2"></i><strong>Booking System</strong>
+                        </button>
+                    </h2>
+                    <div id="bookingSystem" class="accordion-collapse collapse show" data-bs-parent="#partialFeaturesAccordion">
+                        <div class="accordion-body">
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <h6 class="text-success"><i class="bi bi-check-circle me-2"></i>Frontend Complete</h6>
+                                    <ul class="small">
+                                        <li>Multi-step form with progress bar</li>
+                                        <li>Client info auto-filled from session</li>
+                                        <li>Event details (date, time, location)</li>
+                                        <li>Package selection with radio buttons</li>
+                                        <li>Dynamic add-ons display</li>
+                                        <li>Payment section UI</li>
+                                    </ul>
+                                </div>
+                                <div class="col-md-6">
+                                    <h6 class="text-danger"><i class="bi bi-x-circle me-2"></i>Backend Missing</h6>
+                                    <ul class="small">
+                                        <li>No POST handler for form submission</li>
+                                        <li>No booking validation logic</li>
+                                        <li>No database INSERT queries</li>
+                                        <li>No email confirmation system</li>
+                                        <li>No booking status tracking</li>
+                                    </ul>
+                                </div>
+                            </div>
+                            <div class="mt-3">
+                                <span class="badge bg-light text-dark border">booking.php</span>
+                                <span class="badge bg-warning text-dark">40% Complete</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="accordion-item border-0 shadow-sm mb-3">
+                    <h2 class="accordion-header">
+                        <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#passwordRecovery">
+                            <i class="bi bi-key text-warning me-2"></i><strong>Password Recovery</strong>
+                        </button>
+                    </h2>
+                    <div id="passwordRecovery" class="accordion-collapse collapse" data-bs-parent="#partialFeaturesAccordion">
+                        <div class="accordion-body">
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <h6 class="text-success"><i class="bi bi-check-circle me-2"></i>Frontend Exists</h6>
+                                    <ul class="small">
+                                        <li>Email input form (forgot1.php)</li>
+                                        <li>6-digit verification code UI (verification.php)</li>
+                                        <li>New password form (forgot2.php)</li>
+                                    </ul>
+                                </div>
+                                <div class="col-md-6">
+                                    <h6 class="text-danger"><i class="bi bi-x-circle me-2"></i>Backend Non-Functional</h6>
+                                    <ul class="small">
+                                        <li>No email sending logic</li>
+                                        <li>No token generation/validation</li>
+                                        <li>No password update queries</li>
+                                        <li>Hardcoded email masking bug</li>
+                                    </ul>
+                                </div>
+                            </div>
+                            <div class="mt-3">
+                                <span class="badge bg-light text-dark border">forgot1.php</span>
+                                <span class="badge bg-light text-dark border">verification.php</span>
+                                <span class="badge bg-light text-dark border">forgot2.php</span>
+                                <span class="badge bg-danger">0% Functional</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="accordion-item border-0 shadow-sm mb-3">
+                    <h2 class="accordion-header">
+                        <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#adminPanel">
+                            <i class="bi bi-speedometer2 text-warning me-2"></i><strong>Admin Panel</strong>
+                        </button>
+                    </h2>
+                    <div id="adminPanel" class="accordion-collapse collapse" data-bs-parent="#partialFeaturesAccordion">
+                        <div class="accordion-body">
+                            <h6 class="text-danger"><i class="bi bi-x-circle me-2"></i>Empty Shell - Only Logout Button Exists</h6>
+                            <p class="small text-muted">No functionality implemented:</p>
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <ul class="small">
+                                        <li>No booking management interface</li>
+                                        <li>No user management</li>
+                                        <li>No package/addon management</li>
+                                    </ul>
+                                </div>
+                                <div class="col-md-6">
+                                    <ul class="small">
+                                        <li>No reports or analytics</li>
+                                        <li>No calendar view</li>
+                                        <li>No revenue tracking</li>
+                                    </ul>
+                                </div>
+                            </div>
+                            <div class="mt-3">
+                                <span class="badge bg-light text-dark border">admin.php</span>
+                                <span class="badge bg-danger">5% Complete</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Critical Bugs -->
+    <section class="py-5">
+        <div class="container">
+            <h2 class="section-header serif fw-bold">Critical Bugs <span class="status-badge status-critical">🔴 URGENT</span></h2>
+            <div class="row g-4">
+                <div class="col-lg-4">
+                    <div class="card border-0 shadow-sm h-100 priority-high">
+                        <div class="card-body">
+                            <div class="form-check mb-3">
+                                <input class="form-check-input bug-checkbox" type="checkbox" id="bug1" onchange="updateBugCount()">
+                                <label class="form-check-label fw-bold" for="bug1">
+                                    <h5 class="card-title text-danger fw-bold mb-0"><i class="bi bi-bug-fill me-2"></i>SQL Schema Errors</h5>
+                                </label>
+                            </div>
+                            <p class="small"><strong>File:</strong> create_tables.sql (Lines 51-71)</p>
+                            <div class="code-block mb-3">
+                                <div class="text-danger">-- Line 51-52: Missing VARCHAR size</div>
+                                <div>inclusionID VARCHAR PRIMARY KEY,</div>
+                                <div>packageID VARCHAR NOT NULL,</div>
+                                <div class="text-success mt-2">-- Should be:</div>
+                                <div>inclusionID VARCHAR(50) PRIMARY KEY,</div>
+                                <div>packageID VARCHAR(50) NOT NULL,</div>
+                            </div>
+                            <p class="small"><strong>Impact:</strong> Database won't initialize properly. Blocks all development.</p>
+                            <span class="badge bg-danger">BLOCKING</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col-lg-4">
+                    <div class="card border-0 shadow-sm h-100 priority-high">
+                        <div class="card-body">
+                            <div class="form-check mb-3">
+                                <input class="form-check-input bug-checkbox" type="checkbox" id="bug2" onchange="updateBugCount()">
+                                <label class="form-check-label fw-bold" for="bug2">
+                                    <h5 class="card-title text-danger fw-bold mb-0"><i class="bi bi-bug-fill me-2"></i>Profile Logic Inverted</h5>
+                                </label>
+                            </div>
+                            <p class="small"><strong>File:</strong> booking.php (Lines 12-16)</p>
+                            <div class="code-block mb-3">
+                                <div class="text-danger">// Current (WRONG):</div>
+                                <div>if(!$isProfileCompleted){</div>
+                                <div>&nbsp;&nbsp;header("Location: completeProfile.php");</div>
+                                <div>}</div>
+                                <div class="text-success mt-2">// Should be:</div>
+                                <div>if($isProfileCompleted){</div>
+                                <div>&nbsp;&nbsp;header("Location: completeProfile.php");</div>
+                                <div>}</div>
+                            </div>
+                            <p class="small"><strong>Impact:</strong> Redirects completed profiles back to form.</p>
+                            <span class="badge bg-danger">HIGH</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col-lg-4">
+                    <div class="card border-0 shadow-sm h-100 priority-medium">
+                        <div class="card-body">
+                            <div class="form-check mb-3">
+                                <input class="form-check-input bug-checkbox" type="checkbox" id="bug3" onchange="updateBugCount()">
+                                <label class="form-check-label fw-bold" for="bug3">
+                                    <h5 class="card-title text-warning fw-bold mb-0"><i class="bi bi-bug-fill me-2"></i>Contact Validation Bug</h5>
+                                </label>
+                            </div>
+                            <p class="small"><strong>File:</strong> script.js (Lines 278-292)</p>
+                            <div class="code-block mb-3">
+                                <div>if(inputLength === 11){</div>
+                                <div>&nbsp;&nbsp;profileSubmitBtn.disabled = false;</div>
+                                <div>}else{</div>
+                                <div class="text-danger">&nbsp;&nbsp;// Re-disables if 12+ digits</div>
+                                <div>&nbsp;&nbsp;profileSubmitBtn.disabled = true;</div>
+                                <div>}</div>
+                            </div>
+                            <p class="small"><strong>Impact:</strong> Submit button disables if user types more than 11 digits.</p>
+                            <span class="badge bg-warning text-dark">MEDIUM</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Missing Features -->
+    <section class="py-5 bg-light">
+        <div class="container">
+            <h2 class="section-header serif fw-bold">Missing Features <span class="status-badge status-missing">❌ NOT STARTED</span></h2>
+            <div class="row g-4">
+                <div class="col-md-6">
+                    <div class="card border-0 shadow-sm h-100">
+                        <div class="card-header bg-danger text-white">
+                            <h5 class="mb-0"><i class="bi bi-exclamation-triangle-fill me-2"></i>Critical (MVP Required)</h5>
+                        </div>
+                        <div class="card-body">
+                            <ul class="list-unstyled mb-0">
+                                <li class="mb-2 task-item" onclick="toggleTask(this)">
+                                    <input type="checkbox" class="task-checkbox me-2">
+                                    <span>Booking Submission Backend</span>
+                                </li>
+                                <li class="mb-2 task-item" onclick="toggleTask(this)">
+                                    <input type="checkbox" class="task-checkbox me-2">
+                                    <span>Payment Integration (Stripe/PayPal/GCash)</span>
+                                </li>
+                                <li class="mb-2 task-item" onclick="toggleTask(this)">
+                                    <input type="checkbox" class="task-checkbox me-2">
+                                    <span>Admin Dashboard Functionality</span>
+                                </li>
+                                <li class="mb-2 task-item" onclick="toggleTask(this)">
+                                    <input type="checkbox" class="task-checkbox me-2">
+                                    <span>Booking Confirmation Emails</span>
+                                </li>
+                                <li class="mb-2 task-item" onclick="toggleTask(this)">
+                                    <input type="checkbox" class="task-checkbox me-2">
+                                    <span>Password Recovery System</span>
+                                </li>
+                                <li class="mb-0 task-item" onclick="toggleTask(this)">
+                                    <input type="checkbox" class="task-checkbox me-2">
+                                    <span>User Dashboard (View Bookings)</span>
+                                </li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col-md-6">
+                    <div class="card border-0 shadow-sm h-100">
+                        <div class="card-header bg-warning text-dark">
+                            <h5 class="mb-0"><i class="bi bi-star-fill me-2"></i>Important (Post-MVP)</h5>
+                        </div>
+                        <div class="card-body">
+                            <ul class="list-unstyled mb-0">
+                                <li class="mb-2 task-item" onclick="toggleTask(this)">
+                                    <input type="checkbox" class="task-checkbox me-2">
+                                    <span>Calendar/Availability System</span>
+                                </li>
+                                <li class="mb-2 task-item" onclick="toggleTask(this)">
+                                    <input type="checkbox" class="task-checkbox me-2">
+                                    <span>File Upload (Photo/Video Delivery)</span>
+                                </li>
+                                <li class="mb-2 task-item" onclick="toggleTask(this)">
+                                    <input type="checkbox" class="task-checkbox me-2">
+                                    <span>Booking Status Updates</span>
+                                </li>
+                                <li class="mb-2 task-item" onclick="toggleTask(this)">
+                                    <input type="checkbox" class="task-checkbox me-2">
+                                    <span>Invoice Generation (PDF)</span>
+                                </li>
+                                <li class="mb-2 task-item" onclick="toggleTask(this)">
+                                    <input type="checkbox" class="task-checkbox me-2">
+                                    <span>Search & Filter (Admin)</span>
+                                </li>
+                                <li class="mb-0 task-item" onclick="toggleTask(this)">
+                                    <input type="checkbox" class="task-checkbox me-2">
+                                    <span>Analytics Dashboard</span>
+                                </li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Security Issues -->
+    <section class="py-5">
+        <div class="container">
+            <h2 class="section-header serif fw-bold">Security Issues <span class="status-badge status-critical">🔒 NEEDS ATTENTION</span></h2>
+            <div class="row g-4">
+                <div class="col-lg-6">
+                    <div class="card border-0 shadow-sm border-start border-danger border-4 h-100">
+                        <div class="card-body">
+                            <h5 class="card-title text-danger fw-bold">High Priority</h5>
+                            <ul class="small mb-0">
+                                <li class="task-item" onclick="toggleTask(this)">
+                                    <input type="checkbox" class="task-checkbox me-2">
+                                    <span>No CSRF Protection on forms</span>
+                                </li>
+                                <li class="task-item" onclick="toggleTask(this)">
+                                    <input type="checkbox" class="task-checkbox me-2">
+                                    <span>No Rate Limiting (brute-force risk)</span>
+                                </li>
+                                <li class="task-item" onclick="toggleTask(this)">
+                                    <input type="checkbox" class="task-checkbox me-2">
+                                    <span>Missing Input Sanitization in some areas</span>
+                                </li>
+                                <li class="task-item" onclick="toggleTask(this)">
+                                    <input type="checkbox" class="task-checkbox me-2">
+                                    <span>Session Fixation vulnerability</span>
+                                </li>
+                                <li class="task-item" onclick="toggleTask(this)">
+                                    <input type="checkbox" class="task-checkbox me-2">
+                                    <span>SQL Injection risks (verify prepared statements)</span>
+                                </li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-lg-6">
+                    <div class="card border-0 shadow-sm border-start border-warning border-4 h-100">
+                        <div class="card-body">
+                            <h5 class="card-title text-warning fw-bold">Medium Priority</h5>
+                            <ul class="small mb-0">
+                                <li class="task-item" onclick="toggleTask(this)">
+                                    <input type="checkbox" class="task-checkbox me-2">
+                                    <span>No file upload validation (future)</span>
+                                </li>
+                                <li class="task-item" onclick="toggleTask(this)">
+                                    <input type="checkbox" class="task-checkbox me-2">
+                                    <span>Weak password policy (8 chars minimum only)</span>
+                                </li>
+                                <li class="task-item" onclick="toggleTask(this)">
+                                    <input type="checkbox" class="task-checkbox me-2">
+                                    <span>No account lockout mechanism</span>
+                                </li>
+                                <li class="task-item" onclick="toggleTask(this)">
+                                    <input type="checkbox" class="task-checkbox me-2">
+                                    <span>Missing HTTP security headers (CSP, X-Frame-Options)</span>
+                                </li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Recommended Timeline -->
+    <section class="py-5 bg-light">
+        <div class="container">
+            <h2 class="section-header serif fw-bold">Recommended Development Timeline</h2>
+            <div class="row">
+                <div class="col-lg-8 mx-auto">
+                    <div class="card border-0 shadow-sm">
+                        <div class="card-body p-4">
+                            <div class="timeline-item mb-4" data-week="1">
+                                <input type="checkbox" class="timeline-checkbox form-check-input" onchange="updateTimeline(1, this.checked)">
+                                <h5 class="fw-bold">Week 1: Fix Critical Bugs</h5>
+                                <ul class="small text-muted">
+                                    <li class="task-item" onclick="toggleTask(this)">
+                                        <input type="checkbox" class="task-checkbox me-2">
+                                        <span>Fix SQL schema (VARCHAR sizes, data types)</span>
+                                    </li>
+                                    <li class="task-item" onclick="toggleTask(this)">
+                                        <input type="checkbox" class="task-checkbox me-2">
+                                        <span>Fix profile completion redirect logic</span>
+                                    </li>
+                                    <li class="task-item" onclick="toggleTask(this)">
+                                        <input type="checkbox" class="task-checkbox me-2">
+                                        <span>Fix contact input validation</span>
+                                    </li>
+                                    <li class="task-item" onclick="toggleTask(this)">
+                                        <input type="checkbox" class="task-checkbox me-2">
+                                        <span>Add CSRF tokens to all forms</span>
+                                    </li>
+                                    <li class="task-item" onclick="toggleTask(this)">
+                                        <input type="checkbox" class="task-checkbox me-2">
+                                        <span>Test database initialization</span>
+                                    </li>
+                                </ul>
+                            </div>
+
+                            <div class="timeline-item mb-4" data-week="2">
+                                <input type="checkbox" class="timeline-checkbox form-check-input" onchange="updateTimeline(2, this.checked)">
+                                <h5 class="fw-bold">Week 2: Complete Booking System</h5>
+                                <ul class="small text-muted">
+                                    <li class="task-item" onclick="toggleTask(this)">
+                                        <input type="checkbox" class="task-checkbox me-2">
+                                        <span>Build booking submission backend</span>
+                                    </li>
+                                    <li class="task-item" onclick="toggleTask(this)">
+                                        <input type="checkbox" class="task-checkbox me-2">
+                                        <span>Save bookings to database</span>
+                                    </li>
+                                    <li class="task-item" onclick="toggleTask(this)">
+                                        <input type="checkbox" class="task-checkbox me-2">
+                                        <span>Send booking confirmation emails</span>
+                                    </li>
+                                    <li class="task-item" onclick="toggleTask(this)">
+                                        <input type="checkbox" class="task-checkbox me-2">
+                                        <span>Add booking status tracking</span>
+                                    </li>
+                                    <li class="task-item" onclick="toggleTask(this)">
+                                        <input type="checkbox" class="task-checkbox me-2">
+                                        <span>Create user dashboard to view bookings</span>
+                                    </li>
+                                </ul>
+                            </div>
+
+                            <div class="timeline-item mb-4" data-week="3">
+                                <input type="checkbox" class="timeline-checkbox form-check-input" onchange="updateTimeline(3, this.checked)">
+                                <h5 class="fw-bold">Week 3: Admin Panel Development</h5>
+                                <ul class="small text-muted">
+                                    <li class="task-item" onclick="toggleTask(this)">
+                                        <input type="checkbox" class="task-checkbox me-2">
+                                        <span>Build bookings list view</span>
+                                    </li>
+                                    <li class="task-item" onclick="toggleTask(this)">
+                                        <input type="checkbox" class="task-checkbox me-2">
+                                        <span>Add booking detail view</span>
+                                    </li>
+                                    <li class="task-item" onclick="toggleTask(this)">
+                                        <input type="checkbox" class="task-checkbox me-2">
+                                        <span>Implement status updates (approve/reject)</span>
+                                    </li>
+                                    <li class="task-item" onclick="toggleTask(this)">
+                                        <input type="checkbox" class="task-checkbox me-2">
+                                        <span>Add package/addon management</span>
+                                    </li>
+                                    <li class="task-item" onclick="toggleTask(this)">
+                                        <input type="checkbox" class="task-checkbox me-2">
+                                        <span>Basic analytics (total bookings, revenue)</span>
+                                    </li>
+                                </ul>
+                            </div>
+
+                            <div class="timeline-item mb-4" data-week="4">
+                                <input type="checkbox" class="timeline-checkbox form-check-input" onchange="updateTimeline(4, this.checked)">
+                                <h5 class="fw-bold">Week 4: Security & Password Recovery</h5>
+                                <ul class="small text-muted">
+                                    <li class="task-item" onclick="toggleTask(this)">
+                                        <input type="checkbox" class="task-checkbox me-2">
+                                        <span>Implement password reset email flow</span>
+                                    </li>
+                                    <li class="task-item" onclick="toggleTask(this)">
+                                        <input type="checkbox" class="task-checkbox me-2">
+                                        <span>Add CSRF protection</span>
+                                    </li>
+                                    <li class="task-item" onclick="toggleTask(this)">
+                                        <input type="checkbox" class="task-checkbox me-2">
+                                        <span>Implement rate limiting</span>
+                                    </li>
+                                    <li class="task-item" onclick="toggleTask(this)">
+                                        <input type="checkbox" class="task-checkbox me-2">
+                                        <span>Add session security</span>
+                                    </li>
+                                    <li class="task-item" onclick="toggleTask(this)">
+                                        <input type="checkbox" class="task-checkbox me-2">
+                                        <span>Security audit all inputs</span>
+                                    </li>
+                                </ul>
+                            </div>
+
+                            <div class="timeline-item mb-4" data-week="5">
+                                <input type="checkbox" class="timeline-checkbox form-check-input" onchange="updateTimeline(5, this.checked)">
+                                <h5 class="fw-bold">Week 5: Payment Integration</h5>
+                                <ul class="small text-muted">
+                                    <li class="task-item" onclick="toggleTask(this)">
+                                        <input type="checkbox" class="task-checkbox me-2">
+                                        <span>Choose payment provider (PayNow/GCash/PayPal)</span>
+                                    </li>
+                                    <li class="task-item" onclick="toggleTask(this)">
+                                        <input type="checkbox" class="task-checkbox me-2">
+                                        <span>Integrate payment API</span>
+                                    </li>
+                                    <li class="task-item" onclick="toggleTask(this)">
+                                        <input type="checkbox" class="task-checkbox me-2">
+                                        <span>Add downpayment system (30-50%)</span>
+                                    </li>
+                                    <li class="task-item" onclick="toggleTask(this)">
+                                        <input type="checkbox" class="task-checkbox me-2">
+                                        <span>Generate payment receipts</span>
+                                    </li>
+                                    <li class="task-item" onclick="toggleTask(this)">
+                                        <input type="checkbox" class="task-checkbox me-2">
+                                        <span>Handle payment webhooks</span>
+                                    </li>
+                                </ul>
+                            </div>
+
+                            <div class="timeline-item" data-week="6">
+                                <input type="checkbox" class="timeline-checkbox form-check-input" onchange="updateTimeline(6, this.checked)">
+                                <h5 class="fw-bold">Week 6: Polish & Testing</h5>
+                                <ul class="small text-muted">
+                                    <li class="task-item" onclick="toggleTask(this)">
+                                        <input type="checkbox" class="task-checkbox me-2">
+                                        <span>Calendar availability system</span>
+                                    </li>
+                                    <li class="task-item" onclick="toggleTask(this)">
+                                        <input type="checkbox" class="task-checkbox me-2">
+                                        <span>Email template improvements</span>
+                                    </li>
+                                    <li class="task-item" onclick="toggleTask(this)">
+                                        <input type="checkbox" class="task-checkbox me-2">
+                                        <span>Full UI/UX review</span>
+                                    </li>
+                                    <li class="task-item" onclick="toggleTask(this)">
+                                        <input type="checkbox" class="task-checkbox me-2">
+                                        <span>Cross-browser testing</span>
+                                    </li>
+                                    <li class="task-item" onclick="toggleTask(this)">
+                                        <input type="checkbox" class="task-checkbox me-2">
+                                        <span>Mobile responsiveness fixes</span>
+                                    </li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="card border-0 shadow-sm mt-4">
+                        <div class="card-body text-center">
+                            <h5 class="fw-bold mb-3">Estimated Completion Timeline</h5>
+                            <div class="row g-3">
+                                <div class="col-md-4">
+                                    <div class="p-3 bg-light rounded">
+                                        <div class="h3 fw-bold text-success mb-0">4-6 weeks</div>
+                                        <small class="text-muted">MVP (Basic Booking)</small>
+                                    </div>
+                                </div>
+                                <div class="col-md-4">
+                                    <div class="p-3 bg-light rounded">
+                                        <div class="h3 fw-bold" style="color: #d4af37;">8-10 weeks</div>
+                                        <small class="text-muted">Full Featured (with Payment)</small>
+                                    </div>
+                                </div>
+                                <div class="col-md-4">
+                                    <div class="p-3 bg-light rounded">
+                                        <div class="h3 fw-bold text-primary mb-0">12-14 weeks</div>
+                                        <small class="text-muted">Production Ready (with Security)</small>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Tech Stack Summary -->
+    <section class="py-5">
+        <div class="container">
+            <h2 class="section-header serif fw-bold">Technology Stack</h2>
+            <div class="row g-4">
+                <div class="col-md-4">
+                    <div class="card border-0 shadow-sm h-100">
+                        <div class="card-body">
+                            <h5 class="fw-bold mb-3"><i class="bi bi-server me-2"></i>Backend</h5>
+                            <ul class="list-unstyled small">
+                                <li class="mb-2"><span class="badge bg-light text-dark border">PHP 7.2+</span></li>
+                                <li class="mb-2"><span class="badge bg-light text-dark border">MySQLi</span> with prepared statements</li>
+                                <li class="mb-2"><span class="badge bg-light text-dark border">PHPMailer</span> for emails</li>
+                                <li class="mb-2"><span class="badge bg-light text-dark border">Dotenv</span> for environment variables</li>
+                                <li class="mb-2"><span class="badge bg-light text-dark border">bcrypt</span> password hashing</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col-md-4">
+                    <div class="card border-0 shadow-sm h-100">
+                        <div class="card-body">
+                            <h5 class="fw-bold mb-3"><i class="bi bi-palette me-2"></i>Frontend</h5>
+                            <ul class="list-unstyled small">
+                                <li class="mb-2"><span class="badge bg-light text-dark border">Bootstrap 5.3.8</span></li>
+                                <li class="mb-2"><span class="badge bg-light text-dark border">SweetAlert2</span> for alerts</li>
+                                <li class="mb-2"><span class="badge bg-light text-dark border">Vanilla JavaScript</span></li>
+                                <li class="mb-2"><span class="badge bg-light text-dark border">Google Fonts</span> (Inter, Old Standard TT)</li>
+                                <li class="mb-2"><span class="badge bg-light text-dark border">Bootstrap Icons</span></li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col-md-4">
+                    <div class="card border-0 shadow-sm h-100">
+                        <div class="card-body">
+                            <h5 class="fw-bold mb-3"><i class="bi bi-shield-check me-2"></i>Security & Infrastructure</h5>
+                            <ul class="list-unstyled small">
+                                <li class="mb-2"><span class="badge bg-success text-white">✓</span> Password Hashing</li>
+                                <li class="mb-2"><span class="badge bg-success text-white">✓</span> XSS Prevention</li>
+                                <li class="mb-2"><span class="badge bg-success text-white">✓</span> SQL Injection Prevention</li>
+                                <li class="mb-2"><span class="badge bg-danger text-white">✗</span> CSRF Protection (Missing)</li>
+                                <li class="mb-2"><span class="badge bg-danger text-white">✗</span> Rate Limiting (Missing)</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <section class="py-4 bg-dark text-light">
+        <div class="container text-center">
+            <p class="mb-0">&copy; 2025 Aperture Event Photography & Videography Booking System</p>
+            <small class="text-muted">Project Status Report - For Internal Use Only</small>
+        </div>
+    </section>
+
+    <script src="bootstrap-5.3.8-dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        // Initialize from localStorage
+        document.addEventListener('DOMContentLoaded', function() {
+            loadProgress();
+            loadNotes();
+            updateAllMetrics();
+        });
+
+        // Task Management
+        function toggleTask(element) {
+            const checkbox = element.querySelector('.task-checkbox');
+            if (event.target !== checkbox) {
+                checkbox.checked = !checkbox.checked;
+            }
+
+            if (checkbox.checked) {
+                element.classList.add('completed');
+            } else {
+                element.classList.remove('completed');
+            }
+
+            saveProgress();
+            updateAllMetrics();
+        }
+
+        // Bug tracking
+        function updateBugCount() {
+            const checkedBugs = document.querySelectorAll('.bug-checkbox:checked').length;
+            const totalBugs = 3;
+            const remainingBugs = totalBugs - checkedBugs;
+            document.getElementById('bugsCount').textContent = remainingBugs;
+            saveProgress();
+            updateAllMetrics();
+        }
+
+        // Timeline management
+        function updateTimeline(week, checked) {
+            const timelineItem = document.querySelector(`[data-week="${week}"]`);
+            if (checked) {
+                timelineItem.classList.add('completed');
+                timelineItem.classList.remove('in-progress');
+            } else {
+                timelineItem.classList.remove('completed');
+                // Mark as in-progress if it has any checked tasks
+                const checkedTasks = timelineItem.querySelectorAll('.task-checkbox:checked').length;
+                if (checkedTasks > 0) {
+                    timelineItem.classList.add('in-progress');
+                }
+            }
+            saveProgress();
+            updateAllMetrics();
+        }
+
+        // Notes Management
+        function addNote() {
+            const noteInput = document.getElementById('noteInput');
+            const noteText = noteInput.value.trim();
+
+            if (noteText === '') return;
+
+            const notes = getNotes();
+            const note = {
+                id: Date.now(),
+                text: noteText,
+                timestamp: new Date().toLocaleString()
+            };
+
+            notes.unshift(note);
+            localStorage.setItem('aperture_notes', JSON.stringify(notes));
+
+            noteInput.value = '';
+            loadNotes();
+        }
+
+        function deleteNote(id) {
+            const notes = getNotes();
+            const filtered = notes.filter(note => note.id !== id);
+            localStorage.setItem('aperture_notes', JSON.stringify(filtered));
+            loadNotes();
+        }
+
+        function getNotes() {
+            const notes = localStorage.getItem('aperture_notes');
+            return notes ? JSON.parse(notes) : [];
+        }
+
+        function loadNotes() {
+            const notes = getNotes();
+            const notesList = document.getElementById('notesList');
+
+            if (notes.length === 0) {
+                notesList.innerHTML = '<p class="text-muted text-center">No notes yet. Add your first note!</p>';
+                return;
+            }
+
+            notesList.innerHTML = notes.map(note => `
+                <div class="note-item">
+                    <div class="d-flex justify-content-between align-items-start mb-2">
+                        <span class="note-timestamp">${note.timestamp}</span>
+                        <button class="btn btn-sm btn-link text-danger delete-note-btn p-0" onclick="deleteNote(${note.id})">
+                            <i class="bi bi-trash"></i>
+                        </button>
+                    </div>
+                    <p class="mb-0">${note.text}</p>
+                </div>
+            `).join('');
+        }
+
+        // Progress Management
+        function saveProgress() {
+            const checkboxes = document.querySelectorAll('.task-checkbox, .bug-checkbox, .timeline-checkbox');
+            const progress = {};
+
+            checkboxes.forEach((checkbox, index) => {
+                progress[`checkbox_${index}`] = checkbox.checked;
+            });
+
+            localStorage.setItem('aperture_progress', JSON.stringify(progress));
+        }
+
+        function loadProgress() {
+            const progress = localStorage.getItem('aperture_progress');
+            if (!progress) return;
+
+            const progressData = JSON.parse(progress);
+            const checkboxes = document.querySelectorAll('.task-checkbox, .bug-checkbox, .timeline-checkbox');
+
+            checkboxes.forEach((checkbox, index) => {
+                if (progressData[`checkbox_${index}`]) {
+                    checkbox.checked = true;
+                    const parent = checkbox.closest('.task-item, .timeline-item');
+                    if (parent) {
+                        parent.classList.add('completed');
+                    }
+                }
+            });
+        }
+
+        function updateAllMetrics() {
+            // Calculate overall progress
+            const allCheckboxes = document.querySelectorAll('.task-checkbox, .bug-checkbox').length;
+            const checkedCheckboxes = document.querySelectorAll('.task-checkbox:checked, .bug-checkbox:checked').length;
+            const progressPercent = Math.round((checkedCheckboxes / allCheckboxes) * 100);
+
+            document.getElementById('overallProgress').textContent = progressPercent + '%';
+            document.getElementById('overallProgressBar').style.width = progressPercent + '%';
+            document.getElementById('progressTrackerFill').style.width = progressPercent + '%';
+
+            // Update completed count (base 15 + additional completed tasks)
+            const completedTasks = document.querySelectorAll('.task-checkbox:checked').length;
+            document.getElementById('completedCount').textContent = 15 + completedTasks;
+        }
+
+        // Export Progress
+        function exportProgress() {
+            const data = {
+                progress: localStorage.getItem('aperture_progress'),
+                notes: localStorage.getItem('aperture_notes'),
+                timestamp: new Date().toISOString()
+            };
+
+            const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `aperture-progress-${new Date().toISOString().split('T')[0]}.json`;
+            a.click();
+            URL.revokeObjectURL(url);
+        }
+
+        // Reset Progress
+        function resetProgress() {
+            if (confirm('Are you sure you want to reset all progress? This cannot be undone.')) {
+                localStorage.removeItem('aperture_progress');
+                localStorage.removeItem('aperture_notes');
+                location.reload();
+            }
+        }
+
+        // Allow Enter key to add notes
+        document.addEventListener('DOMContentLoaded', function() {
+            const noteInput = document.getElementById('noteInput');
+            noteInput.addEventListener('keypress', function(e) {
+                if (e.key === 'Enter' && !e.shiftKey) {
+                    e.preventDefault();
+                    addNote();
+                }
+            });
+        });
+    </script>
+</body>
+
+</html>
