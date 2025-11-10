@@ -5,9 +5,20 @@ require_once './includes/functions/function.php';
 require_once './includes/functions/csrf.php';
 require_once './includes/functions/session.php';
 
-if (!isset($_SESSION['userId'])) {
-    header("Location: index.php");
+ if (isset($_SESSION["userId"]) and isset($_SESSION["role"]) and $_SESSION["role"] === "User" and isset($_SESSION["isVerified"]) and  $_SESSION["isVerified"]) {
+    header("Location: booking.php");
     exit;
+}
+
+if (!isset($_SESSION['userId']) or !isset($_SESSION['isVerified']) or $_SESSION['isVerified'] === 0) {
+    header("Location: logIn.php");
+    exit;
+} else {
+    $isProfileCompleted = isProfileCompleted($_SESSION['userId']);
+    if (!$isProfileCompleted) {
+        header("Location: completeProfile.php");
+        exit;
+    }
 }
 
 if(isset($_GET['action']) and $_GET['action'] === 'logout'){

@@ -10,29 +10,29 @@ require_once './includes/functions/session.php';
 if (!isset($_SESSION['userId'])) {
     header("Location: logIn.php");
     exit;
-} else{
+} else {
     $isProfileCompleted = isProfileCompleted($_SESSION['userId']);
     if ($isProfileCompleted) {
-    if (isset($_SESSION["userId"]) and isset($_SESSION["role"]) and  $_SESSION["role"] === "Admin") {
-        header("Location: admin.php");
-        exit;
-    } else if (isset($_SESSION["userId"]) and isset($_SESSION["role"]) and $_SESSION["role"] === "User") {
-        header("Location: booking.php");
-        exit;
+        if (isset($_SESSION["userId"]) and isset($_SESSION["role"]) and  $_SESSION["role"] === "Admin") {
+            header("Location: admin.php");
+            exit;
+        } else if (isset($_SESSION["userId"]) and isset($_SESSION["role"]) and $_SESSION["role"] === "User") {
+            header("Location: booking.php");
+            exit;
+        }
     }
-    }
-}  
+}
 
 $errors = [];
 
-if(isset($_SESSION['csrfError'])){
+if (isset($_SESSION['csrfError'])) {
     $errors['csrf'] = $_SESSION['csrfError'];
     unset($_SESSION['csrfError']);
 }
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
-    if(!validateCSRFToken($_POST['csrfToken'] ?? '')){
+    if (!validateCSRFToken($_POST['csrfToken'] ?? '')) {
         handleCSRFFailure("completeProfile.php");
     }
 
@@ -51,8 +51,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
     if (empty($contact)) {
         $errors['contact'] = "Contact number is required";
+    } else if (!ctype_digit($contact)) {
+        $errors['contact'] = "Contact must contain only digits";
     } else if (strlen($contact) !== 11) {
         $errors['contact'] = "Invalid contact number";
+    } else if (!preg_match('/^09[0-9]{9}$/', $contact)) {
+        $errors['contact'] = "Contact number must start with 09";
     }
 
     if (empty($errors)) {
@@ -63,18 +67,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $_SESSION['lastName'] = $lastName;
             $_SESSION['fullName'] = $fullName;
             $_SESSION['contact'] = $contact;
-
-            if ($_SESSION['role'] === 'Admin') {
-                header("Location: admin.php");
-                exit;
-            } else {
-                header("Location:booking.php");
-                exit;
-            }
-        }else {
-        $errors['submitError'] = "Something went wrong";
+            $_SESSION['completeProfile-success'] = true;
+        } else {
+            $errors['submitError'] = "Something went wrong";
+        }
     }
-    } 
 }
 
 ?>
@@ -86,6 +83,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="stylesheet" href="../bootstrap-5.3.8-dist/css/bootstrap.min.css">
+    <link rel="stylesheet" href="../bootstrap-5.3.8-dist/sweetalert2.min.css">
     <link rel="stylesheet" href="style.css">
     <title>Complete your profile - Aperture</title>
 </head>
@@ -129,15 +127,23 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
                         <div class="mb-2">
                             <label class="form-label" for="contactInput">Contact No.<span class="text-danger">*</span></label>
-                            <input type="text" name="contactInput" id="contactInput" class="form-control <?php echo (!isset($errors['contact']) ? '' : 'is-invalid')  ?> " placeholder="e.g., 09827386287" required>
+                            <input
+                                type="text"
+                                name="contactInput"
+                                id="contactInput"
+                                class="form-control <?php echo (!isset($errors['contact']) ? '' : 'is-invalid')  ?> "
+                                placeholder="e.g., 09827386287"
+                                inputmode="numeric"
+                                maxlength="11"
+                                required>
                             <?php if (isset($errors['contact'])): ?>
-                                <p class="text-danger"><?= htmlspecialchars( $errors['contact'] ) ?></p>
+                                <p class="text-danger"><?= htmlspecialchars($errors['contact']); ?></p>
                             <?php endif ?>
                         </div>
 
 
                         <?php if (isset($errors['submitError'])): ?>
-                            <p class="text-danger"><?= htmlspecialchars( $errors['submitError'] )?></p>
+                            <p class="text-danger"><?= htmlspecialchars($errors['submitError']) ?></p>
                         <?php endif ?>
 
                         <!-- Check Terms and Condition -->
@@ -165,10 +171,40 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     </section>
 
 
+
     <!-- <?php include './includes/footer.php'; ?> -->
 
     <script src="../bootstrap-5.3.8-dist/js/bootstrap.bundle.min.js"></script>
+    <script src="../bootstrap-5.3.8-dist/sweetalert2.min.js"></script>
     <script src="script.js"></script>
+
+    <?php if (isset($_SESSION['completeProfile-success']) and ($_SESSION['completeProfile-success'])): ?>
+        
+        <script>
+            console.log('=== SESSION DEBUG ===');
+            console.log('User ID:', '<?= $_SESSION['userId'] ?? 'NOT SET'; ?>');
+            console.log('Role:', '<?= $_SESSION['role'] ?? 'NOT SET'; ?>');
+            console.log('Profile Completed:', <?= $isProfileCompleted ? 'true' : 'false'; ?>);
+            Swal.fire({
+                icon: 'success',
+                title: "Profile Completed!",
+                html: '<p>Welcome to aperture</p><p>Your profile has been successfully set up. </p>',
+                allowOutsideClick: false,
+                allowEnterKey: true,
+                allowEscapeKey: false,
+                confirmButtonText: 'Continue to dashboard',
+                confirmButtonColor: '#212529'
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    window.location.href = "<?= ($_SESSION['role'] === 'Admin') ? 'admin.php' : 'booking.php'; ?>";
+                    console.log('<?= $_SESSION['role'] . " " . $_SESSION['userId'];?>');
+                }
+            });
+        </script>
+        <?php unset($_SESSION['completeProfile-success']); 
+    echo $_SESSION['role'] . " " . $_SESSION['userId'];?>
+    <?php endif; ?>
+    
 </body>
 
 </html>

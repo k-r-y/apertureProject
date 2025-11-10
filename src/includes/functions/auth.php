@@ -200,3 +200,8 @@ function setSession($userId)
     }
     $query->close();
 }
+
+
+function storePasswordResetCode($email, $code){
+    
+}

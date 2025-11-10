@@ -75,7 +75,7 @@
             $mail->isHTML(true);
             $mail->Subject = 'Verify Your Email - Aperture';
             $mail->Body    = "
-            <div style='font-family: Arial, sans-serif; padding: 20px;'>
+            <div style='font-family: Arial, sans-serif; padding: 20px; background-color: #e9eef6; border-radius: .5rem;'>
                 <h2>Welcome to Aperture!</h2>
                 <p>Thank you for registering. Please verify your email address by clicking the button below:</p>
                 <a href='$verificationLink' style='display: inline-block; background-color: #212529; color: #ffffff; padding: 12px 24px; text-decoration: none; border-radius: 5px; margin: 20px 0;'>Verify Email</a>
@@ -96,8 +96,6 @@
 
     function saveUserProfile($userId, $firstName, $lastName, $fullName, $contact) {
         global $conn;
-
-       
 
         $query = $conn->prepare("UPDATE users SET FirstName = ?, LastName = ?, FullName = ?, contactNo = ?, profileCompleted = true WHERE userID = ?");
         $query->bind_param('sssss', $firstName, $lastName, $fullName, $contact, $userId);

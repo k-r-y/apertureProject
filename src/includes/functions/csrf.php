@@ -210,7 +210,7 @@ function handleCSRFFailure($returnUrl = null){
     if ($returnUrl) {
         header("Location: $returnUrl");
     } else {
-        header("Location: " . $_SESSION['PHP_SELF']);
+        header("Location: " . $_SERVER['PHP_SELF']);
     }
 
     // Stop script execution after redirect

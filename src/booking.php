@@ -3,6 +3,7 @@ require_once './includes/functions/config.php';
 require_once './includes/functions/function.php';
 require_once './includes/functions/auth.php';
 require_once './includes/functions/session.php';
+require_once './includes/functions/csrf.php';
 
 
 if (!isset($_SESSION['userId']) or !isset($_SESSION['isVerified']) or $_SESSION['isVerified'] === 0) {
