@@ -42,14 +42,32 @@ function createCode($email)
 function resendCode($email)
 {
     global $conn;
+    $wait = 60;
 
-    $code = createCode($email);
-    $emailSent = sendVerificationEmailWithCode($email, $code);
 
-    if ($emailSent) {
-        return true;
+
+    $query = $conn->prepare("SELECT * from users WHERE Email = ?");
+    $query->bind_param('s', $email);
+    $query->execute();
+    $result = $query->get_result();
+
+    if ($result->num_rows === 1) {
+        $user = $result->fetch_assoc();
+        $lastSent = strtotime($user['codeCreated_at']);
+        $now = time();
+        $difference =  $now - $lastSent;
+
+        if ($difference >= $wait) {
+            $code = createCode($email);
+            $emailSent = sendVerificationEmailWithCode($email, $code);
+
+            if ($emailSent) {
+                $query->close();
+                return true;
+            }
+        }
     }
-
+    $query->close();
     return false;
 }
 
@@ -100,7 +118,7 @@ function verifyEmail($code, $email)
     if ($result->num_rows > 0) {
         $user = $result->fetch_assoc();
 
-        $stmt = $conn->prepare("UPDATE users SET isVerified = true, codeExpires_at = NULL, verificationCode = NULL WHERE userID = ?");
+        $stmt = $conn->prepare("UPDATE users SET isVerified = true, codeCreated_at = NULL, codeExpires_at = NULL, verificationCode = NULL WHERE userID = ?");
         $stmt->bind_param('s', $user['userID']);
         $stmt->execute();
 
@@ -228,4 +246,125 @@ function setSession($userId)
     $query->close();
 }
 
+function createForgotCode($email)
+{
+    global $conn;
 
+    $code = random_int(100000, 999999);
+    $now = date('Y-m-d H:i:s');
+
+    $query = $conn->prepare("UPDATE users SET passwordResetCode = ?, resetCodeCreated_at = ?, resetCodeExpires_at = DATE_ADD(NOW(), INTERVAL 5 MINUTE) WHERE Email = ?");
+    $query->bind_param('sss', $code, $now, $email);
+    $query->execute();
+
+    $query->close();
+    return $code;
+}
+
+function verifyCode($code, $email)
+{
+    global $conn;
+
+    $query = $conn->prepare("SELECT userID FROM users WHERE EMAIL = ? AND passwordResetCode = ? AND resetCodeExpires_at > NOW()");
+    $query->bind_param('ss', $email, $code);
+    $query->execute();
+    $result = $query->get_result();
+
+    if ($result->num_rows === 1) {
+        $user = $result->fetch_assoc();
+        $query->close();
+        return [
+            'success' => true,
+            'userId' => $user['userID']
+        ];
+    }
+    $query->close();
+
+    return [
+        'success' => false,
+        'error' => "Invalid code or expired."
+    ];
+}
+
+function updatePassword($newPassword, $email)
+{
+
+
+    global $conn;
+
+    $hashedPassword = password_hash($newPassword, PASSWORD_DEFAULT);
+
+    $query = $conn->prepare("SELECT * FROM users WHERE Email = ?");
+    $query->bind_param('s', $email);
+    $query->execute();
+    $result = $query->get_result();
+
+    if ($result->num_rows === 1) {
+
+        $query2 = $conn->prepare("UPDATE users SET password = ? WHERE Email = ?");
+        $query2->bind_param('ss', $hashedPassword, $email);
+
+        if ($query2->execute()) {
+            $query->close();
+            $query2->close();
+            return true;
+        }
+
+        $query->close();
+        $query2->close();
+        return false;
+    }
+    $query->close();
+    return false;
+}
+
+function isEmailExist($email)
+{
+    global $conn;
+
+    $query = $conn->prepare("SELECT * from users WHERE Email = ?");
+    $query->bind_param('s', $email);
+    $query->execute();
+    $result = $query->get_result();
+
+    if ($result->num_rows === 1) {
+        $query->close();
+        return true;
+    }
+
+    $query->close();
+    return false;
+}
+
+
+function resendForgotCode($email)
+{
+    global $conn;
+
+    $wait = 60;
+
+    $query = $conn->prepare("SELECT * FROM users WHERE Email = ?");
+    $query->bind_param('s', $email);
+    $query->execute();
+    $result = $query->get_result();
+
+    if ($result->num_rows === 1) {
+        $user = $result->fetch_assoc();
+
+        $lastSent = strtotime($user['resetCodeCreated_at']);
+        $now = time();
+        $difference =  $now - $lastSent;
+
+        if ($difference >= $wait) {
+            $code = createForgotCode($email);
+            $emailSent = sendForgotPasswordWithCode($email, $code);
+
+            if ($emailSent) {
+                $query->close();
+                return true;
+            }
+        }
+    }
+    $query->close();
+    return false;
+}

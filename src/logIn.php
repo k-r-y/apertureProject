@@ -18,9 +18,10 @@ if (isset($_SESSION["userId"]) and isset($_SESSION["role"]) and  $_SESSION["role
 
 
 $errors = [];
-$showLogInForm = true;
+
 $showVerificationForm = false;
 $loginEmail = '';
+$_SESSION['counter'] = 0;
 
 if (isset($_SESSION['csrfError'])) {
     $errors['csrf'] = $_SESSION['csrfError'];
@@ -29,7 +30,6 @@ if (isset($_SESSION['csrfError'])) {
 
 if (isset($_SESSION['awaitingLoginVerification']) && ($_SESSION['awaitingLoginVerification'])) {
     $showVerificationForm = true;
-    $showLogInForm = false;
     $loginEmail = $_SESSION['loginVerificationEmail'] ?? '';
 }
 
@@ -75,6 +75,7 @@ if ($_SERVER["REQUEST_METHOD"] === 'POST') {
                             header("Location:booking.php");
                             exit;
                         }
+                        // If profile is not complete, set a partial session and redirect to completeProfile.php.
                     } else {
                         $_SESSION['email'] = $email;
                         $_SESSION['role'] = $result['role'];
@@ -83,58 +84,69 @@ if ($_SERVER["REQUEST_METHOD"] === 'POST') {
                         header("Location:completeProfile.php");
                         exit;
                     }
+                    // --- USER IS NOT VERIFIED ---
                 } else {
-                    $code = createCode($email);
+                    $code = createCode($email); // This should probably be createToken for email verification link, but current logic uses code.
                     $emailSent = sendVerificationEmailWithCode($email, $code);
 
                     if ($emailSent) {
                         $_SESSION['awaitingLoginVerification'] = true;
                         $_SESSION['loginVerificationEmail'] = $email;
-                        $_SESSION['login_success'] = true;
-
-                        $showLogInForm = false;
+                        $_SESSION['sendCodeSuccess'] = true;
 
                         header("Location: logIn.php");
                         exit;
                     } else {
-                        $errors['logIn'] = 'Something went wrong';
+                        $errors['logIn'] = 'Could not send verification code. Please try again.';
                     }
                 }
+                // --- LOGIN FAILURE ---
             } else {
+                $_SESSION['counter'] += 1;
                 $errors['logIn'] = $result['error'];
+                $errors['counter'] = $_SESSION['counter'];
             }
         }
     } else if (isset($_POST['formType']) && $_POST['formType'] === 'verification') {
+        // --- VERIFICATION CODE FORM SUBMISSION ---
 
+        // Concatenate the 6-digit code from individual input fields.
         $code = trim($_POST['code1'] . $_POST['code2'] . $_POST['code3'] . $_POST['code4'] . $_POST['code5'] . $_POST['code6']);
 
+        // Validate the verification code format.
         if (!$code) {
             $errors['verification'] = 'Verification code is required';
         } else if (!preg_match('/^[0-9]{6}$/', $code)) {
             $errors['verification'] = "Verification code must be exactly 6 digits";
         }
 
+        // If the code format is valid, proceed with verification.
         if (empty($errors)) {
             $email = $_SESSION['loginVerificationEmail'];
 
+            // Check if the session for the verification email has expired.
             if (empty($email)) {
-                $errors['verification'] = "Session expired. please register again";
+                $errors['verification'] = "Your session has expired. Please try logging in again.";
             } else {
                 $result = verifyEmail($code, $email);
+                // --- VERIFICATION SUCCESS ---
                 if ($result['success']) {
+                    // Clean up verification-related session variables.
                     unset($_SESSION['awaitingLoginVerification']);
                     unset($_SESSION['loginVerificationEmail']);
                     unset($_SESSION['loginVerificationUserId']);
 
+                    // Set the full user session.
                     setSession($result['userId']);
 
                     $_SESSION['login_success'] = true;
                 } else {
-                    $errors['verification'] = "Invalid code or expired";
+                    $errors['verification'] = "The verification code is invalid or has expired.";
                     $showVerificationForm = true;
                     $loginEmail = $email;
                 }
             }
+            // If code format is invalid, redisplay the verification form.
         } else {
             $showVerificationForm = true;
             $loginEmail = $_SESSION['loginVerificationEmail'] ?? '';
@@ -142,6 +154,7 @@ if ($_SERVER["REQUEST_METHOD"] === 'POST') {
     }
 }
 
+// --- RESEND CODE LOGIC (via GET request) ---
 if (isset($_GET['resend']) and $_GET['resend'] === 'true') {
     $loginEmail = $_SESSION['loginVerificationEmail'] ?? '';
 
@@ -151,10 +164,11 @@ if (isset($_GET['resend']) and $_GET['resend'] === 'true') {
         $_SESSION['resend_success'] = true;
     } else {
         $_SESSION['resendSuccess'] = false;
-        $errors['resend'] = "Something went wrong. Can't resend  another code.";
+        $errors['resend'] = "Failed to resend the code. Please try again in a few moments.";
     }
 }
 
+// --- CANCEL VERIFICATION LOGIC (via GET request) ---
 if (isset($_GET['cancel']) and $_GET['cancel'] === 'true') {
     unset($_SESSION['awaitingLoginVerification']);
     unset($_SESSION['loginVerificationEmail']);
@@ -179,12 +193,6 @@ if (isset($_GET['cancel']) and $_GET['cancel'] === 'true') {
 </head>
 
 <body>
-    <!-- <?php include './includes/header.php'; ?> -->
-
-    <!-- <a href="index.php" class="btn back bg-light border-1 border-secondary shadow">
-        <img src="./assets/back.png" class="img-fluid" alt="">
-        Back to Home
-    </a> -->
 
     <section class="w-100 min-vh-100  p-0 p-sm-2  d-flex justify-content-center align-items-center position-relative" id="logSection">
 
@@ -197,7 +205,8 @@ if (isset($_GET['cancel']) and $_GET['cancel'] === 'true') {
                     <img src="./assets/undraw_secure-login_m11a (1).svg" class="img-fluid object-fit-cover" alt="">
                 </div>
 
-                <?php if ($showLogInForm) : ?>
+                <!-- LOGIN FORM: Display if not in verification mode -->
+                <?php if (!$showVerificationForm) : ?>
 
                     <div class="col p-0">
                         <form action="" method="POST" class="p-2 p-md-4">
@@ -233,11 +242,11 @@ if (isset($_GET['cancel']) and $_GET['cancel'] === 'true') {
 
                             <!-- Remember me and Forgot Password -->
 
-                            <div class="mb-2 d-flex justify-content-between align-items-center">
-                                <div class="form-check">
+                            <div class="mb-2 d-flex justify-content-end align-items-center">
+                                <!-- <div class="form-check">
                                     <input type="checkbox" name="remember" class="form-check-input" id="remember">
                                     <label for="remember" class="form-check-label rememberLabel" id="rememberLabel">Remember me</label>
-                                </div>
+                                </div> -->
 
                                 <a href="forgot1.php">Forgot Password?</a>
                             </div>
@@ -255,7 +264,8 @@ if (isset($_GET['cancel']) and $_GET['cancel'] === 'true') {
                         </form>
                     </div>
 
-                <?php elseif ($showVerificationForm): ?>
+                    <!-- VERIFICATION FORM: Display if user needs to enter a code -->
+                <?php else: ?>
                     <div class="col p-0">
 
 
@@ -299,31 +309,16 @@ if (isset($_GET['cancel']) and $_GET['cancel'] === 'true') {
     </section>
 
 
-
-
-    <!-- <?php include './includes/footer.php'; ?> -->
-
     <script src="../bootstrap-5.3.8-dist/sweetalert2.min.js"></script>
     <script src="../bootstrap-5.3.8-dist/js/bootstrap.bundle.min.js"></script>
     <script src="script.js"></script>
-
-    <?php if (isset($_SESSION['userId']) and ($_SESSION['role'])): ?>
-
-        <script>
-            console.log('=== SESSION DEBUG ===');
-            console.log('User ID:', '<?= $_SESSION['userId'] ?? 'NOT SET'; ?>');
-            console.log('Role:', '<?= $_SESSION['role'] ?? 'NOT SET'; ?>');
-            console.log('Profile Completed:', <?= $isProfileCompleted ? 'true' : 'false'; ?>);
-        </script>
-        <?php echo $_SESSION['role'] . " " . $_SESSION['userId']; ?>
-    <?php endif; ?>
 
     <?php if (isset($_SESSION['resend_success']) && $_SESSION['resend_success']): ?>
         <script>
             Swal.fire({
                 icon: 'success',
-                title: 'Resend code Successful!',
-                html: '<p>A verification code has been sent to your email.</p><p class="text-muted">Please check your inbox and enter the code to verify your account.</p>',
+                title: 'Code Resent Successfully',
+                text: 'A new verification code has been sent to your email address. Please check your inbox.',
                 confirmButtonText: 'Continue',
                 confirmButtonColor: '#212529',
                 allowOutsideClick: false
@@ -337,20 +332,40 @@ if (isset($_GET['cancel']) and $_GET['cancel'] === 'true') {
         unset($_SESSION['resend_success']);
     endif; ?>
 
-
-
-    <?php if (isset($_SESSION['login']) && $_SESSION['login_success']): ?>
+    <!-- SweetAlert for successful code sending on first attempt -->
+    <?php if (isset($_SESSION['sendCodeSuccess']) && $_SESSION['sendCodeSuccess']): ?>
         <script>
             Swal.fire({
                 icon: 'success',
-                title: 'Verification Code Successfully Confirmed!',
-                html: '<p>Please finish your profile information to continue.</p>',
+                title: 'Verification Code Sent',
+                text: 'A verification code has been sent to your email to complete your login. Please check your inbox.',
                 confirmButtonText: 'Continue',
                 confirmButtonColor: '#212529',
                 allowOutsideClick: false
             }).then((result) => {
                 if (result.isConfirmed) {
-                    window.location.href = "booking.php";
+                    window.location.href = 'logIn.php';
+                }
+            });
+        </script>
+    <?php
+        unset($_SESSION['sendCodeSuccess']);
+    endif; ?>
+
+
+    <!-- SweetAlert for successful login verification -->
+    <?php if (isset($_SESSION['login_success']) && $_SESSION['login_success']): ?>
+        <script>
+            Swal.fire({
+                icon: 'success',
+                title: 'Email Verified Successfully',
+                text: 'Your email has been verified. You will now be redirected to continue.',
+                confirmButtonText: 'Continue',
+                confirmButtonColor: '#212529',
+                allowOutsideClick: false
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    window.location.href = "completeProfile.php";
                 }
             });
         </script>
@@ -358,18 +373,17 @@ if (isset($_GET['cancel']) and $_GET['cancel'] === 'true') {
         unset($_SESSION['login_success']);
     endif; ?>
 
-
-    <?php if (($errors['verification'])): ?>
+    <!-- SweetAlert for verification failure -->
+    <?php if (isset($errors['verification'])): ?>
         <script>
             Swal.fire({
                 icon: 'error',
-                title: 'Registration Failed!',
-                text: '<?= htmlspecialchars($errors['verification']) ?>' + '. Please try again.',
+                title: 'Verification Failed',
+                text: '<?= addslashes(htmlspecialchars($errors['verification'])) ?> Please try again.',
                 confirmButtonText: 'Continue',
                 confirmButtonColor: '#212529',
                 allowOutsideClick: false
             });
-            1
         </script>
     <?php endif; ?>
 </body>

@@ -16,18 +16,161 @@ if (isset($_SESSION["userId"]) and isset($_SESSION["role"]) and  $_SESSION["role
     exit;
 }
 
-
+// --- INITIALIZATION & STATE MANAGEMENT ---
 $errors  = [];
-
 $showEmailForm = true;
 $showCodeForm = false;
 $showNewPassword = false;
+$forgotEmail = '';
 
+// Check for CSRF errors from previous requests.
 if (isset($_SESSION['csrfError'])) {
     $errors['csrf'] = $_SESSION['csrfError'];
     unset($_SESSION['csrfError']);
 }
 
+// Determine which part of the form to show based on the session state.
+// This creates a multi-step form experience.
+if (isset($_SESSION['awaitingVerification']) and $_SESSION['awaitingVerification']) {
+    $showEmailForm = false;
+    $showCodeForm = true;
+    $forgotEmail = $_SESSION['forgotEmail'] ?? '';
+} else if (isset($_SESSION['awaitingNewPassword']) and $_SESSION['awaitingNewPassword']) {
+    $showNewPassword = true;
+    $showEmailForm = false;
+    $showCodeForm = false;
+    $forgotEmail = $_SESSION['forgotEmail'] ?? '';
+}
+
+// --- FORM PROCESSING ---
+if ($_SERVER["REQUEST_METHOD"] === 'POST') {
+
+    // Validate the CSRF token to prevent cross-site request forgery.
+    if (!validateCSRFToken($_POST['csrfToken'] ?? '')) {
+        handleCSRFFailure('forgot1.php');
+    }
+
+    $forgotEmail = $_SESSION['forgotEmail'] ?? '';
+
+    // --- STEP 1: EMAIL SUBMISSION ---
+    if ($_POST['formType'] === 'enterEmail') {
+        $email = trim($_POST['email']);
+
+        // Validate the email format.
+        if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
+            $errors['email'] = "Use a valid email";
+        }
+
+        // If email is valid, proceed.
+        if (empty($errors)) {
+            $isEmailExist = isEmailExist($email);
+
+            // If the email exists in the database, create and send a password reset code.
+            if ($isEmailExist) {
+                $code = createForgotCode($email);
+                $sendEmailForgot = sendForgotPasswordWithCode($email, $code);
+
+                if ($sendEmailForgot) {
+                    $_SESSION['sendEmailSuccess'] = true;
+                    $_SESSION['awaitingVerification'] = true;
+                    $_SESSION['forgotEmail'] = $email;
+                } else {
+                    $errors['sendVerificationCode'] = "Something went wrong";
+                }
+                // SECURITY: If the email does NOT exist, still pretend to send an email.
+                // This prevents attackers from using this form to discover which emails are registered (timing attack mitigation).
+            } else {
+                sleep(5);
+                $_SESSION['sendEmailSuccess'] = true;
+                $_SESSION['awaitingVerification'] = true;
+                $_SESSION['forgotEmail'] = $email;
+            }
+            // Redirect to the same page to show the next step (or the same step with an error).
+            header("Location: forgot1.php");
+            exit;
+        } else {
+            $forgotEmail = $_SESSION['forgotEmail'] ?? '';
+        }
+        // --- STEP 2: VERIFICATION CODE SUBMISSION ---
+    } else if ($_POST['formType'] === 'enterCode') {
+        // Concatenate the 6-digit code from individual input fields.
+        $code = trim($_POST['code1'] . $_POST['code2'] . $_POST['code3'] . $_POST['code4'] . $_POST['code5'] . $_POST['code6']);
+
+        // Attempt to verify the code against the email stored in the session.
+        $verifyCode = verifyCode($code, $forgotEmail);
+
+        if ($verifyCode['success']) {
+            $_SESSION['awaitingVerification'] = false;
+            $_SESSION['awaitingNewPassword'] = true;
+            $_SESSION['forgotPasswordUserID'] = $verifyCode['userId'];
+            $_SESSION['verificationSuccess'] = true;
+
+            header("Location: forgot1.php");
+            exit;
+        } else {
+            $errors['verificationCode'] = $verifyCode['error'];
+        }
+        // --- STEP 3: NEW PASSWORD SUBMISSION ---
+    } else if ($_POST['formType'] === 'enterPassword') {
+
+        // Sanitize and retrieve new password inputs.
+        $password =  trim($_POST['password']);
+        $confirmPassword =  trim($_POST['confirmPassword']);
+        $forgotEmail = $_SESSION['forgotEmail'];
+        $forgotUserId = $_SESSION['forgotPasswordUserID'];
+
+        if (empty($password)) {
+            $errors['password'] = "Password is required";
+        } else if (strlen($password) < 8) {
+            $errors['password'] = "The password must be at least 8 characters";
+        }
+
+        if ($password !== $confirmPassword) {
+            $errors['ConfirmPassword'] = "Password Mismatched";
+        }
+
+        // If validation passes, update the password in the database.
+        if (empty($errors)) {
+            $updatePass = updatePassword($password, $forgotEmail);
+
+            if ($updatePass) {
+                $_SESSION['newPassCreated'] = true;
+            }
+        }
+    }
+}
+
+// --- CANCEL PASSWORD RESET LOGIC (via GET request) ---
+if (isset($_GET['cancel']) and $_GET['cancel'] === 'true') {
+    unset($_SESSION['awaitingVerification']);
+    unset($_SESSION['awaitingNewPassword']);
+    unset($_SESSION['forgotPasswordUserID']);
+
+    header("Location: logIn.php");
+    exit;
+}
+
+// --- RESEND CODE LOGIC (via GET request) ---
+if (isset($_GET['resend']) and $_GET['resend'] === 'true') {
+    $email = $_SESSION['forgotEmail'] ?? '';
+
+    $isEmailExist = isEmailExist($email);
+
+    if ($isEmailExist) {
+        $resend = resendForgotCode($email);
+
+        if ($resend) {
+            $_SESSION['resend_success'] = true;
+        } else {
+            $_SESSION['resendSuccess'] = false;
+            $errors['resend'] = "Failed to resend the code. Please try again in a few moments.";
+        }
+    }else{
+        sleep(5);
+        $_SESSION['resend_success'] = true;
+
+    }
+}
 
 ?>
 
@@ -38,13 +181,13 @@ if (isset($_SESSION['csrfError'])) {
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="stylesheet" href="../bootstrap-5.3.8-dist/css/bootstrap.min.css">
+    <link rel="stylesheet" href="../bootstrap-5.3.8-dist/sweetalert2.min.css">
     <link rel="stylesheet" href="style.css">
     <link rel="icon" href="./assets/camera.png" type="image/x-icon">
     <title>Forgot Password - Aperture</title>
 </head>
 
 <body>
-    <!-- <?php include './includes/header.php'; ?> -->
 
     <section class="w-100 min-vh-100  p-0 p-sm-2  d-flex justify-content-center align-items-center position-relative" id="forgot1">
 
@@ -57,9 +200,13 @@ if (isset($_SESSION['csrfError'])) {
                     <img src="./assets/undraw_forgot-password_nttj.svg" class="img-fluid" alt="">
                 </div>
 
+                <!-- STEP 1 FORM: Enter Email -->
                 <?php if ($showEmailForm): ?>
                     <div class="col">
-                        <form action="verification.php" method="POST" class=" px-1 py-3 justify-content-center">
+                        <form action="" method="POST" class=" px-1 py-3 justify-content-center">
+                            <?php csrfField() ?>
+                            <input type="hidden" name="formType" value="enterEmail">
+
 
                             <div class="text-center mb-3">
                                 <h1 class=" display-3 m-0 serif">Forgot Your Password?</h1>
@@ -73,8 +220,6 @@ if (isset($_SESSION['csrfError'])) {
                             </div>
 
 
-                            <!-- <input type="submit" value="Send Verification Code" class="btn bg-dark text-light w-100 my-2 py-2"> -->
-
                             <div class="mb-1">
                                 <input type="submit" value="Send Verification Code" class="btn bg-dark text-light w-100 my-2 py-2">
                                 <a href="login.php" class="btn bg-light text-dark border w-100 mb-2">Back to Login</a>
@@ -82,37 +227,45 @@ if (isset($_SESSION['csrfError'])) {
 
                         </form>
                     </div>
+                    <!-- STEP 2 FORM: Enter Verification Code -->
                 <?php elseif ($showCodeForm): ?>
                     <div class="col">
 
 
-                        <form class=" px-0 py-3 justify-content-center">
+                        <form class=" px-0 py-3 justify-content-center" method="POST" action="">
+                            <?php csrfField() ?>
+                            <input type="hidden" name="formType" value="enterCode">
 
                             <div class="text-center mb-3">
                                 <h1 class=" display-3 m-0 serif">Check your email</h1>
                                 <p>Enter the verification code we just sent to your email</p>
                             </div>
 
-                            <div class="d-flex gap-1 gap-md-3 justify-content-center align-items-center mb-4" id="verificationCode">
-                                <input type="text" inputmode="numeric" pattern="[0-9]*" name="" id="" class="codessssss form-control fs-3 text-center" maxlength="1" required>
-                                <input type="text" inputmode="numeric" pattern="[0-9]*" name="" id="" class="codessssss form-control fs-3 text-center" maxlength="1" required>
-                                <input type="text" inputmode="numeric" pattern="[0-9]*" name="" id="" class="codessssss form-control fs-3 text-center" maxlength="1" required>
-                                <input type="text" inputmode="numeric" pattern="[0-9]*" name="" id="" class="codessssss form-control fs-3 text-center" maxlength="1" required>
-                                <input type="text" inputmode="numeric" pattern="[0-9]*" name="" id="" class="codessssss form-control fs-3 text-center" maxlength="1" required>
-                                <input type="text" inputmode="numeric" pattern="[0-9]*" name="" id="" class="codessssss form-control fs-3 text-center" maxlength="1" required>
+                            <div class="mb-3">
+                                <div class="d-flex gap-3 justify-content-center align-items-center mb-4" id="verificationCode">
+                                    <input type="text" inputmode="numeric" pattern="[0-9]*" name="code1" id="" class="codessssss form-control fs-3 text-center" maxlength="1" required>
+                                    <input type="text" inputmode="numeric" pattern="[0-9]*" name="code2" id="" class="codessssss form-control fs-3 text-center" maxlength="1" required>
+                                    <input type="text" inputmode="numeric" pattern="[0-9]*" name="code3" id="" class="codessssss form-control fs-3 text-center" maxlength="1" required>
+                                    <input type="text" inputmode="numeric" pattern="[0-9]*" name="code4" id="" class="codessssss form-control fs-3 text-center" maxlength="1" required>
+                                    <input type="text" inputmode="numeric" pattern="[0-9]*" name="code5" id="" class="codessssss form-control fs-3 text-center" maxlength="1" required>
+                                    <input type="text" inputmode="numeric" pattern="[0-9]*" name="code6" id="" class="codessssss form-control fs-3 text-center" maxlength="1" required>
+                                </div>
                             </div>
 
                             <div class="mb-1">
-                                <a href="forgot2.php" class="btn bg-dark text-light w-100 mb-2">Verify Code</a>
-                                <a href="login.php" class="btn bg-light text-dark border w-100 mb-2">Back to Login</a>
-                                <p>Didn't receive an email? <a href="#" class="">Resend</a></p>
+                                <input type="submit" class="btn bg-dark text-light w-100 mb-2" value="Verify Code">
+                                <a href="forgot1.php?cancel=true" class="btn bg-light text-dark border w-100 mb-2">Back to Login</a>
+                                <p>Didn't receive an email? <a href="forgot1.php?resend=true" class="">Resend</a></p>
                             </div>
 
                         </form>
                     </div>
+                    <!-- STEP 3 FORM: Enter New Password -->
                 <?php elseif ($showNewPassword): ?>
                     <div class="col">
                         <form action="" method="POST" class=" px-1 py-3 justify-content-center">
+                            <?php csrfField() ?>
+                            <input type="hidden" name="formType" value="enterPassword">
 
                             <div class="text-center mb-3">
                                 <h1 class=" display-3 m-0 serif">Create new Password</h1>
@@ -123,23 +276,23 @@ if (isset($_SESSION['csrfError'])) {
                             <!-- Password -->
 
                             <div class="mb-2">
-                                <label class="form-label" for="password">Password</label>
-                                <input type="password" name="password" id="password" class="form-control" required>
+                                <label class="form-label" for="password">Password<span class="text-danger">*</span></label>
+                                <input type="password" name="password" id="password" class="form-control <?= (isset($errors['password'])  ? 'is-invalid' : '')   ?> " required>
+                                <p class="text-danger"><?= (isset($errors['password'])) ? htmlspecialchars($errors['password']) : '' ?></p>
                             </div>
 
                             <!-- Confirm Password -->
 
-                            <div class="mb-2">
-                                <label class="form-label" for="confirmPassword">Confirm Password</label>
-                                <input type="password" name="confirmPassword" id="confirmPassword" class="form-control" required>
+                            <div class="mb-3">
+                                <label class="form-label" for="confirmPassword">Confirm Password<span class="text-danger">*</span></label>
+                                <input type="password" name="confirmPassword" id="confirmPassword" class="form-control <?= htmlspecialchars(!isset($errors['ConfirmPassword']) ? '' : 'is-invalid')  ?> " required>
+                                <p class="text-danger"><?= (isset($errors['ConfirmPassword'])) ? htmlspecialchars($errors['ConfirmPassword']) : '' ?></p>
                             </div>
 
 
-                            <!-- <input type="submit" value="Send Verification Code" class="btn bg-dark text-light w-100 my-2 py-2"> -->
-
                             <div class="my-3">
                                 <input type="submit" value="Update Password" class="btn bg-dark text-light w-100 mb-2">
-                                <a href="login.php" class="btn bg-light text-dark border w-100 mb-2">Back to Login</a>
+                                <a href="forgot1.php?cancel=true" class="btn bg-light text-dark border w-100 mb-2">Back to Login</a>
                             </div>
 
 
@@ -151,10 +304,99 @@ if (isset($_SESSION['csrfError'])) {
 
     </section>
 
-    <!-- <?php include './includes/footer.php'; ?> -->
-
     <script src="../bootstrap-5.3.8-dist/js/bootstrap.bundle.min.js"></script>
+    <script src="../bootstrap-5.3.8-dist/sweetalert2.min.js"></script>
     <script src="script.js"></script>
+
+    <!-- SweetAlert for successful email sending (or simulated sending) -->
+    <?php if (isset($_SESSION['sendEmailSuccess']) && $_SESSION['sendEmailSuccess']): ?>
+        <script>
+            Swal.fire({
+                icon: 'success',
+                title: 'Verification Code Sent',
+                html: 'A verification code has been sent to your email address. Please check your inbox to proceed.',
+                confirmButtonText: 'Continue',
+                confirmButtonColor: '#212529',
+                allowOutsideClick: false
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    window.location.href = "forgot1.php";
+                }
+            });
+        </script>
+    <?php
+        unset($_SESSION['sendEmailSuccess']);
+    endif; ?>
+
+    <!-- SweetAlert for verification code failure -->
+    <?php if (isset($errors['verificationCode'])): ?>
+        <script>
+            Swal.fire({
+                icon: 'error',
+                title: 'Verification Failed',
+                text: '<?= htmlspecialchars($errors['verificationCode']) ?>. Please try again.',
+                confirmButtonText: 'Continue',
+                confirmButtonColor: '#212529',
+                allowOutsideClick: false
+            });
+        </script>
+    <?php endif; ?>
+
+    <!-- SweetAlert for successful code verification -->
+    <?php if (isset($_SESSION['verificationSuccess']) and $_SESSION['verificationSuccess']): ?>
+        <script>
+            Swal.fire({
+                icon: 'success',
+                title: 'Verification Successful',
+                text: 'You may now create a new password for your account.',
+                confirmButtonText: 'Continue',
+                confirmButtonColor: '#212529',
+                allowOutsideClick: false
+            });
+        </script>
+    <?php unset($_SESSION['verificationSuccess']);
+    endif; ?>
+
+    <!-- SweetAlert for successful password update -->
+    <?php if (isset($_SESSION['newPassCreated']) and $_SESSION['newPassCreated']): ?>
+        <script>
+            Swal.fire({
+                icon: 'success',
+                title: 'Password Updated Successfully',
+                text: 'Your password has been reset. You may now log in with your new credentials.',
+                confirmButtonText: 'Go to login',
+                confirmButtonColor: '#212529',
+                allowOutsideClick: false
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    window.location.href = "forgot1.php?cancel=true";
+                }
+            })
+        </script>
+    <?php unset($_SESSION['newPassCreated']);
+    endif; ?>
+
+
+    <!-- SweetAlert for successful code resend -->
+    <?php if (isset($_SESSION['resend_success']) && $_SESSION['resend_success']): ?>
+        <script>
+            Swal.fire({
+                icon: 'success',
+                title: 'Code Resent Successfully',
+                text: 'A new verification code has been sent to your email address. Please check your inbox.',
+                confirmButtonText: 'Continue',
+                confirmButtonColor: '#212529',
+                allowOutsideClick: false
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    window.location.href = 'forgot1.php';
+                }
+            });
+        </script>
+    <?php
+        unset($_SESSION['resend_success']);
+    endif; ?>
+
 </body>
 
 </html>

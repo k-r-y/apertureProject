@@ -15,28 +15,36 @@ if (isset($_SESSION["userId"]) and isset($_SESSION["role"]) and  $_SESSION["role
     exit;
 }
 
+// --- INITIALIZATION ---
 $errors = [];
 $showVerification = false;
 $registrationEmail = '';
 
+// --- CSRF & STATE HANDLING ---
+// Check for CSRF errors from previous requests.
 if (isset($_SESSION['csrfError'])) {
     $errors['csrf'] = $_SESSION['csrfError'];
     unset($_SESSION['csrfError']);
 }
 
+// If the user is in the middle of verifying their email, show the verification form.
 if (isset($_SESSION['awaitingVerification']) && ($_SESSION['awaitingVerification'])) {
     $showVerification = true;
     $registrationEmail = $_SESSION['verificationEmail'] ?? '';
 }
 
+// --- FORM PROCESSING ---
 if ($_SERVER["REQUEST_METHOD"] === "POST") {
 
+    // Validate the CSRF token to prevent cross-site request forgery.
     if (!validateCSRFToken($_POST['csrfToken'] ?? '')) {
         handleCSRFFailure('register.php');
     }
 
+    // --- REGISTRATION FORM SUBMISSION ---
     if (isset($_POST['formType']) && $_POST['formType'] === 'registration') {
-        // Getting the user input
+
+        // Sanitize and retrieve user input.
         $email = trim($_POST['email']);
         $password = $_POST['password'];
         $confirmPassword = $_POST['confirmPassword'];
@@ -47,7 +55,6 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
         } else if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
             $errors['email'] = "Please use a valid email";
         }
-
         if (empty($password)) {
             $errors['password'] = "Password is required";
         } else if (strlen($password) < 8) {
@@ -58,15 +65,16 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
             $errors['ConfirmPassword'] = "Password Mismatched";
         }
 
-        //checking if there is an existing email/account
+        // Check if the email is already registered in the database.
         $checkEmail = isEmailExists($email);
 
         if (!$checkEmail['success']) {
             $errors['email'] = $checkEmail['error'];
         } else {
+            // If there are no validation errors, proceed with registration.
             if (empty($errors)) {
 
-                // registering the user
+                // Register the user and send a verification code.
                 $result = registerUser($email, $password);
 
                 if ($result['success']) {
@@ -82,56 +90,68 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
                 }
             }
         }
+        // --- VERIFICATION CODE FORM SUBMISSION ---
     } else if (isset($_POST['formType']) && $_POST['formType'] === 'verification') {
 
+        // Concatenate the 6-digit code from individual input fields.
         $code = trim($_POST['code1'] . $_POST['code2'] . $_POST['code3'] . $_POST['code4'] . $_POST['code5'] . $_POST['code6']);
 
+        // Validate the verification code format.
         if (!$code) {
             $errors['verification'] = 'Verification code is required';
         } else if (!preg_match('/^[0-9]{6}$/', $code)) {
             $errors['verification'] = "Verification code must be exactly 6 digits";
         }
 
+        // If the code format is valid, proceed with verification.
         if (empty($errors)) {
             $email = $_SESSION['verificationEmail'];
 
+            // Check if the session for the verification email has expired.
             if (empty($email)) {
-                $errors['verification'] = "Session expired. please register again";
+                $errors['verification'] = "Your session has expired. Please start the registration process again.";
             } else {
                 $result = verifyEmail($code, $email);
+                // --- VERIFICATION SUCCESS ---
                 if ($result['success']) {
+                    // Clean up verification-related session variables.
                     unset($_SESSION['awaitingVerification']);
                     unset($_SESSION['verificationEmail']);
                     unset($_SESSION['verificationUserId']);
 
+                    // Set the full user session.
                     setSession($result['userId']);
 
                     $_SESSION['verification_success'] = true;
                 } else {
-                    $errors['verification'] = "Invalid code or expired";
+                    $errors['verification'] = "The verification code is invalid or has expired.";
                     $showVerification = true;
                     $registrationEmail = $email;
                 }
             }
+            // If code format is invalid, redisplay the verification form.
         } else {
-            $showVerificationForm = true;
+            $showVerification = true;
             $registrationEmail = $_SESSION['verificationEmail'] ?? '';
         }
     }
 }
 
+// --- RESEND CODE LOGIC (via GET request) ---
 if (isset($_GET['resend']) and $_GET['resend'] === 'true') {
     $email = $_SESSION['verificationEmail'] ?? '';
 
-    $resend = resendCode($registrationEmail);
+    $resend = resendCode($email);
 
     if ($resend) {
         $_SESSION['resend_success'] = true;
     } else {
         $_SESSION['resendSuccess'] = false;
-        $errors['resend'] = "Something went wrong. Can't resend  another code.";
+        $errors['resend'] = "Failed to resend the code. Please try again in a few moments.";
     }
 }
+
+// --- CANCEL REGISTRATION LOGIC (via GET request) ---
 if (isset($_GET['cancel']) and $_GET['cancel'] === 'true') {
     unset($_SESSION['awaitingVerification']);
     unset($_SESSION['verificationEmail']);
@@ -159,16 +179,13 @@ if (isset($_GET['cancel']) and $_GET['cancel'] === 'true') {
 </head>
 
 <body>
-    <!-- <?php include './includes/header.php'; ?> -->
-
-
-
 
     <section class="w-100 min-vh-100  p-0 p-sm-2  d-flex justify-content-center align-items-center position-relative" id="reg">
 
         <a href="index.php"><img src="./assets/logo.png" alt="" id="logo"></a>
 
 
+        <!-- Main container for the form -->
         <div class="container justify-content-center px-4 p-md-3">
             <div class="row justify-content-center align-items-center bg-white shadow p-0 p-md-3 rounded-5 position-relative ">
 
@@ -230,8 +247,9 @@ if (isset($_GET['cancel']) and $_GET['cancel'] === 'true') {
 
                     </div>
 
+                    <!-- VERIFICATION FORM: Display if user needs to enter a code -->
                 <?php else: ?>
-              
+
 
                     <div class="col ">
 
@@ -255,8 +273,6 @@ if (isset($_GET['cancel']) and $_GET['cancel'] === 'true') {
                                     <input type="text" inputmode="numeric" pattern="[0-9]*" name="code5" id="" class="codessssss form-control fs-3 text-center" maxlength="1" required>
                                     <input type="text" inputmode="numeric" pattern="[0-9]*" name="code6" id="" class="codessssss form-control fs-3 text-center" maxlength="1" required>
                                 </div>
-
-
                             </div>
 
 
@@ -281,9 +297,6 @@ if (isset($_GET['cancel']) and $_GET['cancel'] === 'true') {
     </section>
 
 
-    <!-- <?php include './includes/footer.php'; ?> -->
-
-    <!-- SweetAlert2 JS -->
     <script src="../bootstrap-5.3.8-dist/sweetalert2.min.js"></script>
     <script src="../bootstrap-5.3.8-dist/js/bootstrap.bundle.min.js"></script>
     <script src="script.js"></script>
@@ -292,8 +305,8 @@ if (isset($_GET['cancel']) and $_GET['cancel'] === 'true') {
         <script>
             Swal.fire({
                 icon: 'success',
-                title: 'Registration Successful!',
-                html: '<p>A verification code has been sent to your email.</p><p class="text-muted">Please check your inbox and enter the code to verify your account.</p>',
+                title: 'Registration Successful',
+                text: 'A verification code has been sent to your email. Please check your inbox to activate your account.',
                 confirmButtonText: 'Continue',
                 confirmButtonColor: '#212529',
                 allowOutsideClick: false
@@ -308,13 +321,13 @@ if (isset($_GET['cancel']) and $_GET['cancel'] === 'true') {
     endif; ?>
 
 
-
+    <!-- SweetAlert for successful code resend -->
     <?php if (isset($_SESSION['resend_success']) && $_SESSION['resend_success']): ?>
         <script>
             Swal.fire({
                 icon: 'success',
-                title: 'Resend code Successful!',
-                html: '<p>A verification code has been sent to your email.</p><p class="text-muted">Please check your inbox and enter the code to verify your account.</p>',
+                title: 'Code Resent Successfully',
+                text: 'A new verification code has been sent to your email address. Please check your inbox.',
                 confirmButtonText: 'Continue',
                 confirmButtonColor: '#212529',
                 allowOutsideClick: false
@@ -329,19 +342,19 @@ if (isset($_GET['cancel']) and $_GET['cancel'] === 'true') {
     endif; ?>
 
 
-
+    <!-- SweetAlert for successful account verification -->
     <?php if (isset($_SESSION['verification_success']) && $_SESSION['verification_success']): ?>
         <script>
             Swal.fire({
                 icon: 'success',
-                title: 'Verification Code Successfully Confirmed!',
-                html: '<p>Please finish your profile information to continue.</p>',
+                title: 'Account Verified',
+                text: 'Your account has been successfully verified. Please complete your profile to continue.',
                 confirmButtonText: 'Continue',
                 confirmButtonColor: '#212529',
                 allowOutsideClick: false
             }).then((result) => {
                 if (result.isConfirmed) {
-                    window.location.href = "booking.php";
+                    window.location.href = "completeProfile.php";
                 }
             });
         </script>
@@ -349,18 +362,17 @@ if (isset($_GET['cancel']) and $_GET['cancel'] === 'true') {
         unset($_SESSION['verification_success']);
     endif; ?>
 
-
+    <!-- SweetAlert for verification failure -->
     <?php if (isset($errors['verification'])): ?>
         <script>
             Swal.fire({
                 icon: 'error',
-                title: 'Registration Failed!',
-                text: '<?= htmlspecialchars($errors['verification']) ?>' + '. Please try again.',
+                title: 'Verification Failed',
+                text: '<?= addslashes(htmlspecialchars($errors['verification'])) ?> Please try again.',
                 confirmButtonText: 'Continue',
                 confirmButtonColor: '#212529',
                 allowOutsideClick: false
             });
-            1
         </script>
     <?php endif; ?>
 </body>
