@@ -18,79 +18,151 @@ if (isset($_SESSION["userId"]) and isset($_SESSION["role"]) and  $_SESSION["role
 
 
 $errors = [];
+$showLogInForm = true;
+$showVerificationForm = false;
+$loginEmail = '';
 
-if(isset($_SESSION['csrfError'])){
+if (isset($_SESSION['csrfError'])) {
     $errors['csrf'] = $_SESSION['csrfError'];
     unset($_SESSION['csrfError']);
 }
 
+if (isset($_SESSION['awaitingLoginVerification']) && ($_SESSION['awaitingLoginVerification'])) {
+    $showVerificationForm = true;
+    $showLogInForm = false;
+    $loginEmail = $_SESSION['loginVerificationEmail'] ?? '';
+}
+
 if ($_SERVER["REQUEST_METHOD"] === 'POST') {
 
-    if(!validateCSRFToken($_POST['csrfToken'] ?? '')){
+    if (!validateCSRFToken($_POST['csrfToken'] ?? '')) {
         handleCSRFFailure('logIn.php');
     }
 
-    // Getting the user input
-    $email = trim($_POST['email']);
-    $password = $_POST['password'];
+    if (isset($_POST['formType']) and $_POST['formType'] === 'login') {
 
-    //checking if there's an error in the password and email
-    if (empty($email)) {
-        $errors['logIn'] = "Email is required";
-    } else if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
-        $errors['logIn'] = "Please use a valid email";
-    }
+        // Getting the user input
+        $email = trim($_POST['email']);
+        $password = $_POST['password'];
 
-    if (empty($password)) {
-        $errors['logIn'] = "Password is required";
-    }
+        //checking if there's an error in the password and email
+        if (empty($email)) {
+            $errors['logIn'] = "Email is required";
+        } else if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
+            $errors['logIn'] = "Please use a valid email";
+        }
 
-    //loggin in the user
-    if (empty($errors)) {
-        $result = logInUser($email, $password);
+        if (empty($password)) {
+            $errors['logIn'] = "Password is required";
+        }
 
-        if ($result['success']) {
-            $isEmailVerified = isVerified($email);
+        //loggin in the user
+        if (empty($errors)) {
+            $result = logInUser($email, $password);
 
-            if ($isEmailVerified) {
-                $isProfileCompleted = isProfileCompleted($result['userId']);
+            if ($result['success']) {
+                $isEmailVerified = isVerified($email);
 
-                if ($isProfileCompleted) {
-                    setSession($result['userId']);
-                    if ($result['role'] === 'Admin') {
-                        header("Location: admin.php");
-                        exit;
+                if ($isEmailVerified) {
+                    $isProfileCompleted = isProfileCompleted($result['userId']);
+
+                    if ($isProfileCompleted) {
+                        setSession($result['userId']);
+                        if ($result['role'] === 'Admin') {
+                            header("Location: admin.php");
+                            exit;
+                        } else {
+                            header("Location:booking.php");
+                            exit;
+                        }
                     } else {
-                        header("Location:booking.php");
+                        $_SESSION['email'] = $email;
+                        $_SESSION['role'] = $result['role'];
+                        $_SESSION['userId'] = $result['userId'];
+                        $_SESSION['isVerified'] = true;
+                        header("Location:completeProfile.php");
                         exit;
                     }
                 } else {
-                    $_SESSION['email'] = $email;
-                    $_SESSION['role'] = $result['role'];
-                    $_SESSION['userId'] = $result['userId'];
-                    $_SESSION['isVerified'] = true;
-                    header("Location:completeProfile.php");
-                    exit;
+                    $code = createCode($email);
+                    $emailSent = sendVerificationEmailWithCode($email, $code);
+
+                    if ($emailSent) {
+                        $_SESSION['awaitingLoginVerification'] = true;
+                        $_SESSION['loginVerificationEmail'] = $email;
+                        $_SESSION['login_success'] = true;
+
+                        $showLogInForm = false;
+
+                        header("Location: logIn.php");
+                        exit;
+                    } else {
+                        $errors['logIn'] = 'Something went wrong';
+                    }
                 }
             } else {
-                $token = createToken($email);
-                $emailSent = sendVerificationEmail($email, $token);
+                $errors['logIn'] = $result['error'];
+            }
+        }
+    } else if (isset($_POST['formType']) && $_POST['formType'] === 'verification') {
 
-                if ($emailSent) {
+        $code = trim($_POST['code1'] . $_POST['code2'] . $_POST['code3'] . $_POST['code4'] . $_POST['code5'] . $_POST['code6']);
+
+        if (!$code) {
+            $errors['verification'] = 'Verification code is required';
+        } else if (!preg_match('/^[0-9]{6}$/', $code)) {
+            $errors['verification'] = "Verification code must be exactly 6 digits";
+        }
+
+        if (empty($errors)) {
+            $email = $_SESSION['loginVerificationEmail'];
+
+            if (empty($email)) {
+                $errors['verification'] = "Session expired. please register again";
+            } else {
+                $result = verifyEmail($code, $email);
+                if ($result['success']) {
+                    unset($_SESSION['awaitingLoginVerification']);
+                    unset($_SESSION['loginVerificationEmail']);
+                    unset($_SESSION['loginVerificationUserId']);
+
+                    setSession($result['userId']);
+
                     $_SESSION['login_success'] = true;
-                    header("Location: logIn.php");
-                    exit;
                 } else {
-                    $errors['logIn'] = 'Something went wrong';
+                    $errors['verification'] = "Invalid code or expired";
+                    $showVerificationForm = true;
+                    $loginEmail = $email;
                 }
             }
         } else {
-            $errors['logIn'] = $result['error'];
+            $showVerificationForm = true;
+            $loginEmail = $_SESSION['loginVerificationEmail'] ?? '';
         }
     }
 }
 
+if (isset($_GET['resend']) and $_GET['resend'] === 'true') {
+    $loginEmail = $_SESSION['loginVerificationEmail'] ?? '';
 
+    $resend = resendCode($loginEmail);
+
+    if ($resend) {
+        $_SESSION['resend_success'] = true;
+    } else {
+        $_SESSION['resendSuccess'] = false;
+        $errors['resend'] = "Something went wrong. Can't resend  another code.";
+    }
+}
+
+if (isset($_GET['cancel']) and $_GET['cancel'] === 'true') {
+    unset($_SESSION['awaitingLoginVerification']);
+    unset($_SESSION['loginVerificationEmail']);
+    unset($_SESSION['loginVerificationUserId']);
+
+    header("Location: logIn.php");
+    exit;
+}
 ?>
 
 <!DOCTYPE html>
@@ -125,61 +197,102 @@ if ($_SERVER["REQUEST_METHOD"] === 'POST') {
                     <img src="./assets/undraw_secure-login_m11a (1).svg" class="img-fluid object-fit-cover" alt="">
                 </div>
 
+                <?php if ($showLogInForm) : ?>
 
-                <div class="col p-0">
-                    <form action="" method="POST" class="p-2 p-md-4">
-                        <?php csrfField() ?>
-                        
-                        <div class="text-center mb-3">
-                            <h1 class=" display-3 m-0 serif">Log in</h1>
-                            <p>Please enter your registered email address and password to securely access your Aperture account.</p>
-                        </div>
+                    <div class="col p-0">
+                        <form action="" method="POST" class="p-2 p-md-4">
+                            <?php csrfField() ?>
+                            <input type="hidden" name="formType" value="login">
+
+                            <div class="text-center mb-3">
+                                <h1 class=" display-3 m-0 serif">Log in</h1>
+                                <p>Please enter your registered email address and password to securely access your Aperture account.</p>
+                            </div>
 
 
-                        <!-- Email  -->
+                            <!-- Email  -->
 
-                        <div class="mb-2">
-                            <label class="form-label" for="email">Email</label>
-                            <input type="email" name="email" id="email" class="form-control" value="<?php echo (htmlspecialchars($email ?? '')) ?>" required>
-                        </div>
+                            <div class="mb-2">
+                                <label class="form-label" for="email">Email</label>
+                                <input type="email" name="email" id="email" class="form-control" value="<?php echo (htmlspecialchars($email ?? '')) ?>" required>
+                            </div>
 
-                        <!-- Password -->
+                            <!-- Password -->
 
-                        <div class="mb-1">
-                            <label class="form-label" for="password">Password</label>
-                            <input type="password" name="password" id="password" class="form-control 
+                            <div class="mb-1">
+                                <label class="form-label" for="password">Password</label>
+                                <input type="password" name="password" id="password" class="form-control 
                             
                             <?php echo (!isset($errors['logIn']) ? '' : 'is-invalid')  ?>
 
                             " value="" required>
-                            <?php if (isset($errors['logIn'])): ?>
-                                <small class="text-danger"><?= htmlspecialchars($errors['logIn'] ) ?></small>
-                            <?php endif ?>
-                        </div>
-
-                        <!-- Remember me and Forgot Password -->
-
-                        <div class="mb-2 d-flex justify-content-between align-items-center">
-                            <div class="form-check">
-                                <input type="checkbox" name="remember" class="form-check-input" id="remember">
-                                <label for="remember" class="form-check-label rememberLabel" id="rememberLabel">Remember me</label>
+                                <?php if (isset($errors['logIn'])): ?>
+                                    <small class="text-danger"><?= htmlspecialchars($errors['logIn']) ?></small>
+                                <?php endif ?>
                             </div>
 
-                            <a href="forgot1.php">Forgot Password?</a>
-                        </div>
+                            <!-- Remember me and Forgot Password -->
+
+                            <div class="mb-2 d-flex justify-content-between align-items-center">
+                                <div class="form-check">
+                                    <input type="checkbox" name="remember" class="form-check-input" id="remember">
+                                    <label for="remember" class="form-check-label rememberLabel" id="rememberLabel">Remember me</label>
+                                </div>
+
+                                <a href="forgot1.php">Forgot Password?</a>
+                            </div>
 
 
-                        <!-- Submit Button -->
-                        <div class="mt-3">
-                            <input type="submit" class="btn w-100 bg-dark text-light mb-1" value="Log in">
-                            <p>Don't have an account? <a href="register.php">Sign up</a></p>
-                        </div>
+                            <!-- Submit Button -->
+                            <div class="mt-3">
+                                <input type="submit" class="btn w-100 bg-dark text-light mb-1" value="Log in">
+                                <p>Don't have an account? <a href="register.php">Sign up</a></p>
+                            </div>
 
 
 
 
-                    </form>
-                </div>
+                        </form>
+                    </div>
+
+                <?php elseif ($showVerificationForm): ?>
+                    <div class="col p-0">
+
+
+                        <form class=" p-2 p-md-4 justify-content-center" method="POST">
+                            <?php csrfField() ?>
+                            <input type="hidden" name="formType" value="verification">
+
+
+                            <div class="text-center mb-3">
+                                <h1 class=" display-3 m-0 serif">Check your email</h1>
+                                <p>Enter the verification code we just sent to your email</p>
+                            </div>
+
+                            <div class="mb-3">
+                                <div class="d-flex gap-3 justify-content-center align-items-center mb-4" id="verificationCode">
+                                    <input type="text" inputmode="numeric" pattern="[0-9]*" name="code1" id="" class="codessssss form-control fs-3 text-center" maxlength="1" required>
+                                    <input type="text" inputmode="numeric" pattern="[0-9]*" name="code2" id="" class="codessssss form-control fs-3 text-center" maxlength="1" required>
+                                    <input type="text" inputmode="numeric" pattern="[0-9]*" name="code3" id="" class="codessssss form-control fs-3 text-center" maxlength="1" required>
+                                    <input type="text" inputmode="numeric" pattern="[0-9]*" name="code4" id="" class="codessssss form-control fs-3 text-center" maxlength="1" required>
+                                    <input type="text" inputmode="numeric" pattern="[0-9]*" name="code5" id="" class="codessssss form-control fs-3 text-center" maxlength="1" required>
+                                    <input type="text" inputmode="numeric" pattern="[0-9]*" name="code6" id="" class="codessssss form-control fs-3 text-center" maxlength="1" required>
+                                </div>
+
+
+                            </div>
+
+
+
+                            <div class="mb-1">
+                                <input type="submit" class="btn bg-dark text-light w-100 mb-2" value="Verify Code">
+                                <a href="login.php?cancel=true" class="btn btn-light border w-100">Back to Login</a>
+                                <p>Didn't receive an email? <a href="logIn.php?resend=true" class="">Resend</a></p>
+                            </div>
+
+                        </form>
+                    </div>
+                <?php endif; ?>
             </div>
         </div>
 
@@ -193,12 +306,24 @@ if ($_SERVER["REQUEST_METHOD"] === 'POST') {
     <script src="../bootstrap-5.3.8-dist/sweetalert2.min.js"></script>
     <script src="../bootstrap-5.3.8-dist/js/bootstrap.bundle.min.js"></script>
     <script src="script.js"></script>
-    <?php if (isset($_SESSION['login_success']) && $_SESSION['login_success']): ?>
+
+    <?php if (isset($_SESSION['userId']) and ($_SESSION['role'])): ?>
+
+        <script>
+            console.log('=== SESSION DEBUG ===');
+            console.log('User ID:', '<?= $_SESSION['userId'] ?? 'NOT SET'; ?>');
+            console.log('Role:', '<?= $_SESSION['role'] ?? 'NOT SET'; ?>');
+            console.log('Profile Completed:', <?= $isProfileCompleted ? 'true' : 'false'; ?>);
+        </script>
+        <?php echo $_SESSION['role'] . " " . $_SESSION['userId']; ?>
+    <?php endif; ?>
+
+    <?php if (isset($_SESSION['resend_success']) && $_SESSION['resend_success']): ?>
         <script>
             Swal.fire({
                 icon: 'success',
-                title: 'Please Verify your email',
-                html: '<p>A verification link has been sent to your email.</p><p class="text-muted">Please check your inbox and click the link to verify your account.</p>',
+                title: 'Resend code Successful!',
+                html: '<p>A verification code has been sent to your email.</p><p class="text-muted">Please check your inbox and enter the code to verify your account.</p>',
                 confirmButtonText: 'Continue',
                 confirmButtonColor: '#212529',
                 allowOutsideClick: false
@@ -209,24 +334,44 @@ if ($_SERVER["REQUEST_METHOD"] === 'POST') {
             });
         </script>
     <?php
-        unset($_SESSION['login_success']);
-    endif;
-    ?>
+        unset($_SESSION['resend_success']);
+    endif; ?>
 
-    <?php if (isset($_SESSION['userId']) and ($_SESSION['role'])): ?>
-        
+
+
+    <?php if (isset($_SESSION['login']) && $_SESSION['login_success']): ?>
         <script>
-            console.log('=== SESSION DEBUG ===');
-            console.log('User ID:', '<?= $_SESSION['userId'] ?? 'NOT SET'; ?>');
-            console.log('Role:', '<?= $_SESSION['role'] ?? 'NOT SET'; ?>');
-            console.log('Profile Completed:', <?= $isProfileCompleted ? 'true' : 'false'; ?>);
-           
+            Swal.fire({
+                icon: 'success',
+                title: 'Verification Code Successfully Confirmed!',
+                html: '<p>Please finish your profile information to continue.</p>',
+                confirmButtonText: 'Continue',
+                confirmButtonColor: '#212529',
+                allowOutsideClick: false
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    window.location.href = "booking.php";
+                }
+            });
         </script>
-        <?php echo $_SESSION['role'] . " " . $_SESSION['userId'];?>
+    <?php
+        unset($_SESSION['login_success']);
+    endif; ?>
+
+
+    <?php if (($errors['verification'])): ?>
+        <script>
+            Swal.fire({
+                icon: 'error',
+                title: 'Registration Failed!',
+                text: '<?= htmlspecialchars($errors['verification']) ?>' + '. Please try again.',
+                confirmButtonText: 'Continue',
+                confirmButtonColor: '#212529',
+                allowOutsideClick: false
+            });
+            1
+        </script>
     <?php endif; ?>
 </body>
 
 </html>
-
-
-

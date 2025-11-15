@@ -655,24 +655,19 @@ input:checked {
 
 #back {
   position: absolute;
-  top: 0;
+  top: 1rem;
   left: 0;
   transition: ease 0.5s;
 }
 
-#back:hover {
-  transform: translateX(-5px);
-}
+
 
 #back:active,
 #back:focus {
   border: none !important;
 }
 
-#back img {
-  height: 2rem;
-  transform: rotate(90deg);
-}
+
 
 label,
 p {
@@ -742,8 +737,9 @@ a.btn:hover {
 }
 
 #verificationCode input {
-  height: 3.5rem;
-  width: 3.5rem;
+  flex: 1;
+  max-width: 3.5rem;
+  max-height: 3.5rem;
 }
 form label,
 form p,
@@ -829,4 +825,99 @@ fieldset #legend {
 .checkInput,
 .checkInputLabel{
   font-size: 1.3rem !important;
+}
+
+/* Service Page Styles - Luxury Design */
+.service-img-wrapper {
+  position: relative;
+  overflow: hidden;
+  border-radius: 8px;
+}
+
+.service-img-wrapper img {
+  transition: transform 0.5s ease;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.service-img-wrapper:hover img {
+  transform: scale(1.05);
+}
+
+.package-card,
+.package-card-featured,
+.addon-card {
+  transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.package-card:hover,
+.addon-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.12) !important;
+  border-color: rgba(212, 175, 55, 0.3) !important;
+}
+
+.package-card-featured:hover {
+  transform: scale(1.07);
+  box-shadow: 0 25px 70px rgba(212, 175, 55, 0.25) !important;
+}
+
+.comparison-table {
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+.comparison-table tbody tr {
+  transition: background-color 0.2s ease;
+}
+
+.comparison-table tbody tr:hover {
+  background-color: rgba(212, 175, 55, 0.04);
+}
+
+/* Gallery hover effects */
+.gallery-item {
+  cursor: pointer;
+  transition: all 0.4s ease;
+}
+
+.gallery-item:hover {
+  transform: translateY(-8px);
+  box-shadow: 0 20px 60px rgba(212, 175, 55, 0.2);
+}
+
+.gallery-item:hover img {
+  transform: scale(1.1);
+}
+
+/* Button hover effects for luxury design */
+.btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
+}
+
+/* Scroll animation for hero section */
+@keyframes bounce {
+  0%, 100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(10px);
+  }
+}
+
+/* Responsive styles for mobile */
+@media (max-width: 768px) {
+  .package-card-featured {
+    transform: scale(1) !important;
+  }
+
+  .package-card-featured:hover {
+    transform: scale(1.02) !important;
+  }
+
+  .gallery-item {
+    height: 280px !important;
+  }
 }

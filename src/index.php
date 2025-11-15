@@ -25,7 +25,9 @@
 
     <div class="overlay"></div>
     <div class="container position-absolute text-center text-light d-flex align-items-center justify-content-center flex-column gap-3" id="homeText">
-      <p class="fs-5 m-0 ">Aperture</p>
+      <div class="m-0">
+            <small class="d-inline-block py-2 px-3 rounded-pill bg-opacity-10 bg-light "  style="border: 1px solid var(--light);">Aperture Studios</small>
+        </div>
       <h1 class="display-1 w-75 fw-semibold serif m-0 text-light">Capture Every Moment, Book Every Memory</h1>
       <div class="d-flex flex-column flex-md-row gap-3">
         <a href="login.php" class="btn border-light px-4 text-light rounded">Book Now</a>
@@ -323,7 +325,7 @@
   <!------------------------------------- PRICING SECTION-------------------------------------------->
 
 
-
+<!-- 
   <section class="py-5 px-2 bg-light pricing min-vh-100 w-100" id="pricing">
     <div class="container">
 
@@ -422,7 +424,7 @@
       </div>
 
     </div>
-  </section>
+  </section> -->
 
 
 

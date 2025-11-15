@@ -30,7 +30,8 @@
         <div class="col-md-3 col-lg-4 col-xl-3 mx-auto mb-4">
 
           <h6 class="text-uppercase fw-bold mb-4 text-light">Aperture</h6>
-          <p>Capture Every Moment, Book Every Memory</p>
+          <p class="fw-bold mb-2">Capture Every Moment, Book Every Memory</p>
+          <small>Bespoke photography and videography services for discerning clients who demand excellence. From intimate celebrations to grand corporate events, we transform fleeting moments into timeless art.</small>
         </div>
 
 

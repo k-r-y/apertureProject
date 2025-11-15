@@ -1,5 +1,6 @@
 <?php
 
+// check if the email exist
 function isEmailExists($email)
 {
     global $conn;
@@ -20,20 +21,40 @@ function isEmailExists($email)
     }
 }
 
-function createToken($email)
+// generate verification code
+function createCode($email)
 {
     global $conn;
 
-    $token = bin2hex(random_bytes(32));
+    $code = random_int(100000, 999999);
+    $now = date('Y-m-d H:i:s');
 
-    $query = $conn->prepare("UPDATE users SET verificationToken = ?, tokenExpires_at = DATE_ADD(NOW(), INTERVAL 1 HOUR) WHERE Email = ?");
-    $query->bind_param('ss', $token, $email);
+
+
+    $query = $conn->prepare("UPDATE users SET verificationCode = ?, codeCreated_at = ?, codeExpires_at = DATE_ADD(NOW(), INTERVAL 5 MINUTE) WHERE Email = ?");
+    $query->bind_param('sss', $code, $now, $email);
     $query->execute();
 
     $query->close();
-    return $token;
+    return $code;
 }
 
+function resendCode($email)
+{
+    global $conn;
+
+    $code = createCode($email);
+    $emailSent = sendVerificationEmailWithCode($email, $code);
+
+    if ($emailSent) {
+        return true;
+    }
+
+    return false;
+}
+
+
+// register user
 function registerUser($email, $password)
 {
     global $conn;
@@ -45,8 +66,8 @@ function registerUser($email, $password)
 
     if ($query->execute()) {
         // Creating and sending token for email verification
-        $token = createToken($email);
-        $emailSent = sendVerificationEmail($email, $token);
+        $code = createCode($email);
+        $emailSent = sendVerificationEmailWithCode($email, $code);
 
         $query->close();
         if ($emailSent) {
@@ -67,19 +88,19 @@ function registerUser($email, $password)
 }
 
 // function to verify email
-function verifyEmail($token)
+function verifyEmail($code, $email)
 {
     global $conn;
 
-    $query = $conn->prepare("SELECT userID FROM users WHERE verificationToken = ? AND tokenExpires_at > NOW()");
-    $query->bind_param('s', $token);
+    $query = $conn->prepare("SELECT userID FROM users WHERE EMAIL = ? AND verificationCode = ? AND codeExpires_at > NOW()");
+    $query->bind_param('ss', $email, $code);
     $query->execute();
     $result = $query->get_result();
 
     if ($result->num_rows > 0) {
         $user = $result->fetch_assoc();
 
-        $stmt = $conn->prepare("UPDATE users SET isVerified = true, tokenExpires_at = NULL, verificationToken = NULL WHERE userID = ?");
+        $stmt = $conn->prepare("UPDATE users SET isVerified = true, codeExpires_at = NULL, verificationCode = NULL WHERE userID = ?");
         $stmt->bind_param('s', $user['userID']);
         $stmt->execute();
 
@@ -96,7 +117,8 @@ function verifyEmail($token)
 }
 
 // function to logIn users
-function logInUser($email, $password){
+function logInUser($email, $password)
+{
     global $conn;
 
     $query = $conn->prepare("SELECT userID, Email, Password, Role from users WHERE email = ?");
@@ -132,7 +154,9 @@ function logInUser($email, $password){
     }
 }
 
-function isVerified($email){
+// checks if the user is verified
+function isVerified($email)
+{
     global $conn;
 
     $query = $conn->prepare("SELECT * from users WHERE Email = ? and isVerified = true");
@@ -152,7 +176,8 @@ function isVerified($email){
 
 
 // checks if the user needs to complete their profile info
-function isProfileCompleted($userId){
+function isProfileCompleted($userId)
+{
     global $conn;
 
     $query = $conn->prepare("SELECT * FROM users WHERE userID = ? AND profileCompleted = true");
@@ -161,20 +186,22 @@ function isProfileCompleted($userId){
     $result = $query->get_result();
 
     if ($result->num_rows > 0) {
-      $query->close();
-      return true;
+        $query->close();
+        return true;
     }
 
     $query->close();
     return false;
 }
 
-function logout() {
+// logout function
+function logout()
+{
     session_start();
     session_unset();
     session_destroy();
     header("Location: index.php");
-exit;
+    exit;
 }
 
 function setSession($userId)
@@ -202,6 +229,3 @@ function setSession($userId)
 }
 
 
-function storePasswordResetCode($email, $code){
-    
-}

@@ -281,13 +281,56 @@ const profileSubmitBtn = document.getElementById("profileSubmitBtn");
 if (contactInput) {
     contactInput.addEventListener('keyup', () => {
 
-    let inputLength = contactInput.value.length;
+        let inputLength = contactInput.value.length;
 
-    if(inputLength === 11){
-        profileSubmitBtn.disabled = false;
-    }else{
-        profileSubmitBtn.disabled = true;
-    }
+        if (inputLength === 11) {
+            profileSubmitBtn.disabled = false;
+        } else {
+            profileSubmitBtn.disabled = true;
+        }
     })
+}
+
+
+
+
+
+
+
+const codeInputs = document.querySelectorAll(".codessssss ");
+
+if (codeInputs) {
+    codeInputs.forEach((input, index) => {
+        input.addEventListener("input", (e) => {
+            // Only numbers
+            input.value = input.value.replace(/[^0-9]/g, "");
+
+            // Move to next box automatically
+            if (input.value && index < codeInputs.length - 1) {
+                codeInputs[index + 1].focus();
+            }
+        });
+
+        input.addEventListener("keydown", (e) => {
+            // Move back if pressing Backspace on empty input
+            if (e.key === "Backspace" && !input.value && index > 0) {
+                codeInputs[index - 1].focus();
+            }
+        });
+
+        // Handle paste (e.g. user pastes "123456")
+        input.addEventListener("paste", (e) => {
+            e.preventDefault();
+            const paste = e.clipboardData.getData("text").replace(/[^0-9]/g, "");
+            paste.split("").forEach((char, i) => {
+                if (codeInputs[index + i]) {
+                    codeInputs[index + i].value = char;
+                }
+            });
+            const nextIndex = Math.min(index + paste.length, codeInputs.length - 1);
+            codeInputs[nextIndex].focus();
+        });
+    });
+
 }
 

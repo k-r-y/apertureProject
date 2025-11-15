@@ -52,7 +52,7 @@
         exit;
     }
 
-    function sendVerificationEmail($email, $token){
+    function sendVerificationEmailWithCode($email, $code){
         $mail = new PHPMailer(true);
 
         try {
@@ -69,21 +69,51 @@
             $mail->setFrom($_ENV['SMTP_USERNAME'], 'Aperture');
             $mail->addAddress($email);
 
-            // Content
-            $verificationLink = $_ENV['APP_URL'] . "/src/verify.php?token=$token";
-
+            // Content with luxury design matching the brand
             $mail->isHTML(true);
             $mail->Subject = 'Verify Your Email - Aperture';
             $mail->Body    = "
-            <div style='font-family: Arial, sans-serif; padding: 20px; background-color: #e9eef6; border-radius: .5rem;'>
-                <h2>Welcome to Aperture!</h2>
-                <p>Thank you for registering. Please verify your email address by clicking the button below:</p>
-                <a href='$verificationLink' style='display: inline-block; background-color: #212529; color: #ffffff; padding: 12px 24px; text-decoration: none; border-radius: 5px; margin: 20px 0;'>Verify Email</a>
-                <p>Or copy this link: <a href='$verificationLink'>$verificationLink</a></p>
-                <p>This link will expire in 1 hour.</p>
-                <p><small>If you didn't create an account, please ignore this email.</small></p>
+            <div style='font-family: -apple-system, BlinkMacSystemFont, \"Segoe UI\", Roboto, \"Helvetica Neue\", Arial, sans-serif; max-width: 600px; margin: 0 auto; background-color: #ffffff;'>
+                <!-- Header with gold accent -->
+                <div style='background: linear-gradient(135deg, #1a1a1a 0%, #2a2a2a 100%); padding: 40px 30px; text-align: center;'>
+                    <h1 style='font-family: \"Playfair Display\", Georgia, serif; font-size: 2.5rem; font-weight: 300; letter-spacing: 3px; color: #d4af37; margin: 0;'>APERTURE</h1>
+                    <p style='color: #ffffff; font-size: 0.9rem; margin-top: 10px; opacity: 0.8;'>Photography & Videography</p>
+                </div>
+
+                <!-- Main Content -->
+                <div style='padding: 50px 40px; background-color: #fafafa;'>
+                    <h2 style='font-size: 1.5rem; font-weight: 300; color: #1a1a1a; margin-bottom: 20px;'>Welcome to Aperture!</h2>
+                    <p style='font-size: 1rem; color: #4a4a4a; line-height: 1.6; margin-bottom: 30px;'>Thank you for registering. Please verify your email address using the code below:</p>
+
+                    <!-- Verification Code Box -->
+                    <div style='background: #ffffff; border: 2px solid #d4af37; border-radius: 8px; padding: 30px; text-align: center; margin: 30px 0;'>
+                        <p style='font-size: 0.85rem; text-transform: uppercase; letter-spacing: 2px; color: #999; margin-bottom: 15px;'>Your Verification Code</p>
+                        <div style='font-family: \"Courier New\", monospace; font-size: 2rem; font-weight: 600; letter-spacing: 8px; color: #d4af37; margin: 20px 0;'>$code</div>
+                        <p style='font-size: 0.8rem; color: #666; margin-top: 15px;'>This code will expire in 5 minutes</p>
+                    </div>
+
+                    <p style='font-size: 0.9rem; color: #4a4a4a; line-height: 1.6; margin-top: 30px;'>Enter this code on the verification page to complete your registration and start booking our services.</p>
+
+                    <!-- Security Notice -->
+                    <div style='background: #fff3cd; border-left: 4px solid #ffc107; padding: 15px; margin-top: 30px; border-radius: 4px;'>
+                        <p style='font-size: 0.85rem; color: #856404; margin: 0; line-height: 1.5;'><strong>Security Notice:</strong> If you didn't create an account with Aperture, please ignore this email. Never share this code with anyone.</p>
+                    </div>
+                </div>
+
+                <!-- Footer -->
+                <div style='background-color: #1a1a1a; padding: 30px; text-align: center;'>
+                    <p style='font-size: 0.8rem; color: #999; margin: 0; line-height: 1.6;'>
+                        This is an automated message from Aperture.<br>
+                        For assistance, please contact us through our website.
+                    </p>
+                    <p style='font-size: 0.75rem; color: #666; margin-top: 15px;'>
+                        © 2025 Aperture. All rights reserved.
+                    </p>
+                </div>
             </div>
         ";
+
+            $mail->AltBody = "Welcome to Aperture!\n\nYour verification code is: $code\n\nThis code will expire in 15 minutes.\n\nIf you didn't create an account, please ignore this email.";
 
             $mail->send();
             return true;

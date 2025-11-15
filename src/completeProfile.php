@@ -181,10 +181,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     <?php if (isset($_SESSION['completeProfile-success']) and ($_SESSION['completeProfile-success'])): ?>
         
         <script>
-            console.log('=== SESSION DEBUG ===');
-            console.log('User ID:', '<?= $_SESSION['userId'] ?? 'NOT SET'; ?>');
-            console.log('Role:', '<?= $_SESSION['role'] ?? 'NOT SET'; ?>');
-            console.log('Profile Completed:', <?= $isProfileCompleted ? 'true' : 'false'; ?>);
             Swal.fire({
                 icon: 'success',
                 title: "Profile Completed!",
