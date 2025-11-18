@@ -18,6 +18,9 @@
   --hr-color: #dee2e6;
   --dropdown-bg: #f8f9faa1;
   --gold: #d4af37;
+
+     --sidebar-width: 260px;
+            --sidebar-mini-width: 80px;
 }
 
 html,
@@ -880,11 +883,6 @@ fieldset #legend {
 .gallery-item {
   cursor: pointer;
   transition: all 0.4s ease;
-}
-
-.gallery-item:hover {
-  transform: translateY(-8px);
-  box-shadow: 0 20px 60px rgba(212, 175, 55, 0.2);
 }
 
 .gallery-item:hover img {

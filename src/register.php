@@ -18,6 +18,7 @@ if (isset($_SESSION["userId"]) and isset($_SESSION["role"]) and  $_SESSION["role
 // --- INITIALIZATION ---
 $errors = [];
 $showVerification = false;
+$lastSentTime = null;
 $registrationEmail = '';
 
 // --- CSRF & STATE HANDLING ---
@@ -31,6 +32,7 @@ if (isset($_SESSION['csrfError'])) {
 if (isset($_SESSION['awaitingVerification']) && ($_SESSION['awaitingVerification'])) {
     $showVerification = true;
     $registrationEmail = $_SESSION['verificationEmail'] ?? '';
+    $lastSentTime = getCodeCreationTime($registrationEmail, 'registration');
 }
 
 // --- FORM PROCESSING ---
@@ -66,10 +68,8 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
         }
 
         // Check if the email is already registered in the database.
-        $checkEmail = isEmailExists($email);
-
-        if (!$checkEmail['success']) {
-            $errors['email'] = $checkEmail['error'];
+        if (isEmailExists($email)) {
+            $errors['email'] = 'An account with this email already exists.';
         } else {
             // If there are no validation errors, proceed with registration.
             if (empty($errors)) {
@@ -86,7 +86,7 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
                     header("Location: register.php");
                     exit;
                 } else {
-                    $errors['email'] = $result['error'];
+                    $errors['registration'] = $result['error'];
                 }
             }
         }
@@ -111,7 +111,7 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
             if (empty($email)) {
                 $errors['verification'] = "Your session has expired. Please start the registration process again.";
             } else {
-                $result = verifyEmail($code, $email);
+                $result = verifyEmail($email, $code, "registration");
                 // --- VERIFICATION SUCCESS ---
                 if ($result['success']) {
                     // Clean up verification-related session variables.
@@ -124,9 +124,10 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
 
                     $_SESSION['verification_success'] = true;
                 } else {
-                    $errors['verification'] = "The verification code is invalid or has expired.";
+                    $errors['verification'] = $result['error'];
                     $showVerification = true;
-                    $registrationEmail = $email;
+                    $registrationEmail = $email; // Keep email for display
+                    // The addFailedAttempt is now called inside verifyEmail()
                 }
             }
             // If code format is invalid, redisplay the verification form.
@@ -146,7 +147,7 @@ if (isset($_GET['resend']) and $_GET['resend'] === 'true') {
     if ($resend) {
         $_SESSION['resend_success'] = true;
     } else {
-        $_SESSION['resendSuccess'] = false;
+        $_SESSION['resend_fail'] = true;
         $errors['resend'] = "Failed to resend the code. Please try again in a few moments.";
     }
 }
@@ -280,7 +281,7 @@ if (isset($_GET['cancel']) and $_GET['cancel'] === 'true') {
                             <div class="mb-1">
                                 <input type="submit" class="btn bg-dark text-light w-100 mb-2" value="Verify Code">
                                 <a href="register.php?cancel=true" class="btn bg-light text-dark border w-100 mb-2">Back to Registration</a>
-                                <p>Didn't receive an email? <a href="register.php?resend=true" class="">Resend</a></p>
+                                <p>Didn't receive an email? <a href="register.php?resend=true" id="resendLink">Resend</a><span id="resendTimer" class="ms-2"></span></p>
                             </div>
 
                         </form>
@@ -300,6 +301,41 @@ if (isset($_GET['cancel']) and $_GET['cancel'] === 'true') {
     <script src="../bootstrap-5.3.8-dist/sweetalert2.min.js"></script>
     <script src="../bootstrap-5.3.8-dist/js/bootstrap.bundle.min.js"></script>
     <script src="script.js"></script>
+
+    <?php if ($showVerification && $lastSentTime): ?>
+        <script>
+            document.addEventListener('DOMContentLoaded', function() {
+                const resendLink = document.getElementById('resendLink');
+                const resendTimer = document.getElementById('resendTimer');
+                const lastSent = new Date('<?= $lastSentTime ?> UTC').getTime();
+                const waitTime = 60; // 60 seconds
+
+                function updateTimer() {
+                    const now = new Date().getTime();
+                    const timeDiff = (now - lastSent) / 1000;
+                    const remaining = Math.ceil(waitTime - timeDiff);
+
+                    if (remaining > 0) {
+                        resendLink.style.pointerEvents = 'none';
+                        resendLink.style.color = '#6c757d'; // Muted color
+                        resendTimer.textContent = `(wait ${remaining}s)`;
+                    } else {
+                        resendLink.style.pointerEvents = 'auto';
+                        resendLink.style.color = ''; // Reset color
+                        resendTimer.textContent = '';
+                        clearInterval(timerInterval);
+                    }
+                }
+
+                // Initial check
+                const initialDiff = (new Date().getTime() - lastSent) / 1000;
+                if (initialDiff < waitTime) {
+                    const timerInterval = setInterval(updateTimer, 1000);
+                    updateTimer(); // Run once immediately
+                }
+            });
+        </script>
+    <?php endif; ?>
 
     <?php if (isset($_SESSION['registration_success']) && $_SESSION['registration_success']): ?>
         <script>
@@ -341,6 +377,25 @@ if (isset($_GET['cancel']) and $_GET['cancel'] === 'true') {
         unset($_SESSION['resend_success']);
     endif; ?>
 
+    <!-- SweetAlert for failed code resend -->
+    <?php if (isset($_SESSION['resend_fail']) && $_SESSION['resend_fail']): ?>
+        <script>
+            Swal.fire({
+                icon: 'error',
+                title: 'Resend Failed',
+                text: 'We couldn\'t resend the code. Please wait a minute before trying again.',
+                confirmButtonText: 'OK',
+                confirmButtonColor: '#212529',
+                allowOutsideClick: false
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    window.location.href = 'register.php';
+                }
+            });
+        </script>
+    <?php unset($_SESSION['resend_fail']);
+    endif; ?>
+
 
     <!-- SweetAlert for successful account verification -->
     <?php if (isset($_SESSION['verification_success']) && $_SESSION['verification_success']): ?>
@@ -362,16 +417,55 @@ if (isset($_GET['cancel']) and $_GET['cancel'] === 'true') {
         unset($_SESSION['verification_success']);
     endif; ?>
 
+    <!-- SweetAlert for registration failure -->
+    <?php if (isset($errors['registration'])): ?>
+        <script>
+            document.addEventListener('DOMContentLoaded', function() {
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Registration Failed',
+                    text: '<?= addslashes(htmlspecialchars($errors['registration'])) ?>',
+                    confirmButtonColor: '#212529'
+                });
+            });
+        </script>
+    <?php endif; ?>
+
     <!-- SweetAlert for verification failure -->
     <?php if (isset($errors['verification'])): ?>
         <script>
-            Swal.fire({
-                icon: 'error',
-                title: 'Verification Failed',
-                text: '<?= addslashes(htmlspecialchars($errors['verification'])) ?> Please try again.',
-                confirmButtonText: 'Continue',
-                confirmButtonColor: '#212529',
-                allowOutsideClick: false
+            document.addEventListener('DOMContentLoaded', function() {
+                let errorText = '<?= addslashes(htmlspecialchars($errors['verification'])) ?>';
+                let secondsMatch = errorText.match(/(\d+)\s*seconds/);
+
+                if (secondsMatch) {
+                    let duration = parseInt(secondsMatch[1], 10);
+                    let timerInterval;
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Account Locked',
+                        html: `Too many failed attempts. Please try again in <b></b> seconds.`,
+                        timer: duration * 1000,
+                        timerProgressBar: true,
+                        allowOutsideClick: false,
+                        didOpen: () => {
+                            const b = Swal.getHtmlContainer().querySelector('b');
+                            timerInterval = setInterval(() => {
+                                b.textContent = Math.ceil(Swal.getTimerLeft() / 1000);
+                            }, 100);
+                        },
+                        willClose: () => {
+                            clearInterval(timerInterval);
+                        }
+                    });
+                } else {
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Verification Failed',
+                        text: errorText,
+                        confirmButtonColor: '#212529'
+                    });
+                }
             });
         </script>
     <?php endif; ?>

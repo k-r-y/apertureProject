@@ -21,6 +21,7 @@ $errors  = [];
 $showEmailForm = true;
 $showCodeForm = false;
 $showNewPassword = false;
+$lastSentTime = null;
 $forgotEmail = '';
 
 // Check for CSRF errors from previous requests.
@@ -35,6 +36,7 @@ if (isset($_SESSION['awaitingVerification']) and $_SESSION['awaitingVerification
     $showEmailForm = false;
     $showCodeForm = true;
     $forgotEmail = $_SESSION['forgotEmail'] ?? '';
+    $lastSentTime = getCodeCreationTime($forgotEmail, 'forgot_password');
 } else if (isset($_SESSION['awaitingNewPassword']) and $_SESSION['awaitingNewPassword']) {
     $showNewPassword = true;
     $showEmailForm = false;
@@ -63,7 +65,7 @@ if ($_SERVER["REQUEST_METHOD"] === 'POST') {
 
         // If email is valid, proceed.
         if (empty($errors)) {
-            $isEmailExist = isEmailExist($email);
+            $isEmailExist = isEmailExists($email);
 
             // If the email exists in the database, create and send a password reset code.
             if ($isEmailExist) {
@@ -75,12 +77,13 @@ if ($_SERVER["REQUEST_METHOD"] === 'POST') {
                     $_SESSION['awaitingVerification'] = true;
                     $_SESSION['forgotEmail'] = $email;
                 } else {
-                    $errors['sendVerificationCode'] = "Something went wrong";
+                    $errors['email'] = "We couldn't send a verification code at this time. Please try again later.";
                 }
                 // SECURITY: If the email does NOT exist, still pretend to send an email.
                 // This prevents attackers from using this form to discover which emails are registered (timing attack mitigation).
             } else {
-                sleep(5);
+                // We still simulate success to prevent email enumeration.
+                sleep(rand(1, 2)); // Simulate work to mitigate timing attacks
                 $_SESSION['sendEmailSuccess'] = true;
                 $_SESSION['awaitingVerification'] = true;
                 $_SESSION['forgotEmail'] = $email;
@@ -88,8 +91,6 @@ if ($_SERVER["REQUEST_METHOD"] === 'POST') {
             // Redirect to the same page to show the next step (or the same step with an error).
             header("Location: forgot1.php");
             exit;
-        } else {
-            $forgotEmail = $_SESSION['forgotEmail'] ?? '';
         }
         // --- STEP 2: VERIFICATION CODE SUBMISSION ---
     } else if ($_POST['formType'] === 'enterCode') {
@@ -97,7 +98,7 @@ if ($_SERVER["REQUEST_METHOD"] === 'POST') {
         $code = trim($_POST['code1'] . $_POST['code2'] . $_POST['code3'] . $_POST['code4'] . $_POST['code5'] . $_POST['code6']);
 
         // Attempt to verify the code against the email stored in the session.
-        $verifyCode = verifyCode($code, $forgotEmail);
+        $verifyCode = verifyCode($forgotEmail, $code, "forgot_password");
 
         if ($verifyCode['success']) {
             $_SESSION['awaitingVerification'] = false;
@@ -109,6 +110,7 @@ if ($_SERVER["REQUEST_METHOD"] === 'POST') {
             exit;
         } else {
             $errors['verificationCode'] = $verifyCode['error'];
+            // addFailedAttempt is now called inside verifyCode()
         }
         // --- STEP 3: NEW PASSWORD SUBMISSION ---
     } else if ($_POST['formType'] === 'enterPassword') {
@@ -135,6 +137,8 @@ if ($_SERVER["REQUEST_METHOD"] === 'POST') {
 
             if ($updatePass) {
                 $_SESSION['newPassCreated'] = true;
+                header("Location: forgot1.php"); // Redirect to show success message
+                exit;
             }
         }
     }
@@ -154,7 +158,7 @@ if (isset($_GET['cancel']) and $_GET['cancel'] === 'true') {
 if (isset($_GET['resend']) and $_GET['resend'] === 'true') {
     $email = $_SESSION['forgotEmail'] ?? '';
 
-    $isEmailExist = isEmailExist($email);
+    $isEmailExist = isEmailExists($email);
 
     if ($isEmailExist) {
         $resend = resendForgotCode($email);
@@ -162,13 +166,12 @@ if (isset($_GET['resend']) and $_GET['resend'] === 'true') {
         if ($resend) {
             $_SESSION['resend_success'] = true;
         } else {
-            $_SESSION['resendSuccess'] = false;
+            $_SESSION['resend_fail'] = true;
             $errors['resend'] = "Failed to resend the code. Please try again in a few moments.";
         }
-    }else{
-        sleep(5);
+    } else {
+        sleep(rand(1, 2));
         $_SESSION['resend_success'] = true;
-
     }
 }
 
@@ -194,8 +197,8 @@ if (isset($_GET['resend']) and $_GET['resend'] === 'true') {
         <a href="index.php"><img src="./assets/logo.png" alt="" id="logo"></a>
 
 
-        <div class="container justify-content-center px-4 p-md-3">
-            <div class="row justify-content-center align-items-center bg-white shadow py-3 rounded-5">
+        <div class="container justify-content-center px-2 p-md-3">
+            <div class="row justify-content-center align-items-center bg-white shadow p-3 rounded-5">
                 <div class="col d-none d-md-inline p-4 rounded-4 overflow-hidden bg-secondary">
                     <img src="./assets/undraw_forgot-password_nttj.svg" class="img-fluid" alt="">
                 </div>
@@ -255,7 +258,7 @@ if (isset($_GET['resend']) and $_GET['resend'] === 'true') {
                             <div class="mb-1">
                                 <input type="submit" class="btn bg-dark text-light w-100 mb-2" value="Verify Code">
                                 <a href="forgot1.php?cancel=true" class="btn bg-light text-dark border w-100 mb-2">Back to Login</a>
-                                <p>Didn't receive an email? <a href="forgot1.php?resend=true" class="">Resend</a></p>
+                                <p>Didn't receive an email? <a href="forgot1.php?resend=true" id="resendLink">Resend</a><span id="resendTimer" class="ms-2"></span></p>
                             </div>
 
                         </form>
@@ -308,6 +311,41 @@ if (isset($_GET['resend']) and $_GET['resend'] === 'true') {
     <script src="../bootstrap-5.3.8-dist/sweetalert2.min.js"></script>
     <script src="script.js"></script>
 
+    <?php if ($showCodeForm && $lastSentTime): ?>
+        <script>
+            document.addEventListener('DOMContentLoaded', function() {
+                const resendLink = document.getElementById('resendLink');
+                const resendTimer = document.getElementById('resendTimer');
+                const lastSent = new Date('<?= $lastSentTime ?> UTC').getTime();
+                const waitTime = 60; // 60 seconds
+
+                function updateTimer() {
+                    const now = new Date().getTime();
+                    const timeDiff = (now - lastSent) / 1000;
+                    const remaining = Math.ceil(waitTime - timeDiff);
+
+                    if (remaining > 0) {
+                        resendLink.style.pointerEvents = 'none';
+                        resendLink.style.color = '#6c757d'; // Muted color
+                        resendTimer.textContent = `(wait ${remaining}s)`;
+                    } else {
+                        resendLink.style.pointerEvents = 'auto';
+                        resendLink.style.color = ''; // Reset color
+                        resendTimer.textContent = '';
+                        clearInterval(timerInterval);
+                    }
+                }
+
+                // Initial check
+                const initialDiff = (new Date().getTime() - lastSent) / 1000;
+                if (initialDiff < waitTime) {
+                    const timerInterval = setInterval(updateTimer, 1000);
+                    updateTimer(); // Run once immediately
+                }
+            });
+        </script>
+    <?php endif; ?>
+
     <!-- SweetAlert for successful email sending (or simulated sending) -->
     <?php if (isset($_SESSION['sendEmailSuccess']) && $_SESSION['sendEmailSuccess']): ?>
         <script>
@@ -328,16 +366,55 @@ if (isset($_GET['resend']) and $_GET['resend'] === 'true') {
         unset($_SESSION['sendEmailSuccess']);
     endif; ?>
 
+    <!-- SweetAlert for email sending failure -->
+    <?php if (isset($errors['email']) && !isset($_POST['formType'])): ?>
+        <script>
+            document.addEventListener('DOMContentLoaded', function() {
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Request Failed',
+                    text: '<?= addslashes(htmlspecialchars($errors['email'])) ?>',
+                    confirmButtonColor: '#212529'
+                });
+            });
+        </script>
+    <?php endif; ?>
+
     <!-- SweetAlert for verification code failure -->
     <?php if (isset($errors['verificationCode'])): ?>
         <script>
-            Swal.fire({
-                icon: 'error',
-                title: 'Verification Failed',
-                text: '<?= htmlspecialchars($errors['verificationCode']) ?>. Please try again.',
-                confirmButtonText: 'Continue',
-                confirmButtonColor: '#212529',
-                allowOutsideClick: false
+            document.addEventListener('DOMContentLoaded', function() {
+                let errorText = '<?= addslashes(htmlspecialchars($errors['verificationCode'])) ?>';
+                let secondsMatch = errorText.match(/(\d+)\s*seconds/);
+
+                if (secondsMatch) {
+                    let duration = parseInt(secondsMatch[1], 10);
+                    let timerInterval;
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Account Locked',
+                        html: `Too many failed attempts. Please try again in <b></b> seconds.`,
+                        timer: duration * 1000,
+                        timerProgressBar: true,
+                        allowOutsideClick: false,
+                        didOpen: () => {
+                            const b = Swal.getHtmlContainer().querySelector('b');
+                            timerInterval = setInterval(() => {
+                                b.textContent = Math.ceil(Swal.getTimerLeft() / 1000);
+                            }, 100);
+                        },
+                        willClose: () => {
+                            clearInterval(timerInterval);
+                        }
+                    });
+                } else {
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Verification Failed',
+                        text: errorText,
+                        confirmButtonColor: '#212529'
+                    });
+                }
             });
         </script>
     <?php endif; ?>
@@ -395,6 +472,25 @@ if (isset($_GET['resend']) and $_GET['resend'] === 'true') {
         </script>
     <?php
         unset($_SESSION['resend_success']);
+    endif; ?>
+
+    <!-- SweetAlert for failed code resend -->
+    <?php if (isset($_SESSION['resend_fail']) && $_SESSION['resend_fail']): ?>
+        <script>
+            Swal.fire({
+                icon: 'error',
+                title: 'Resend Failed',
+                text: 'We couldn\'t resend the code. Please wait a minute before trying again.',
+                confirmButtonText: 'OK',
+                confirmButtonColor: '#212529',
+                allowOutsideClick: false
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    window.location.href = 'forgot1.php';
+                }
+            });
+        </script>
+    <?php unset($_SESSION['resend_fail']);
     endif; ?>
 
 </body>

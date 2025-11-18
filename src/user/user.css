@@ -1,0 +1,205 @@
+/* User Dashboard Specific Styles - Inherits from admin.css */
+:root {
+  --gold: #d4af37;
+  --admin-bg: #101010;
+  --card-bg: #1a1a1a;
+  --text-primary: #000000;
+  --text-secondary: #888888;
+  --border-color: rgba(255, 255, 255, 0.05);
+  --gold-soft: rgba(212, 175, 55, 0.1);
+  --gold-glow: 0 0 25px rgba(212, 175, 55, 0.15);
+  --sidebar-width: 240px;
+  --sidebar-mini-width: 80px;
+  --sidebar-text: #e9ecef;
+}
+
+body.admin-dashboard {
+  font-family: "Inter", sans-serif;
+  background-color: var(--admin-bg);
+  color: var(--text-primary);
+  font-size: 0.875rem;
+  overflow-x: hidden;
+}
+
+.header-title {
+  font-family: "Old Standard TT", serif;
+  font-weight: 700;
+  color: var(--gold);
+  font-size: 2.25rem;
+}
+
+.card-solid {
+  background-color: var(--card-bg);
+  border: 1px solid var(--border-color);
+  border-radius: 12px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+  height: 100%;
+  transition: all 0.3s ease;
+}
+
+.sidebar {
+  position: fixed;
+  top: 0;
+  left: 0;
+  height: 100vh;
+  width: var(--sidebar-width);
+  background-color: #000;
+  border-right: 1px solid var(--border-color);
+  padding: 1rem;
+  transition: width 0.3s ease, left 0.3s ease;
+  z-index: 100;
+  overflow-x: hidden;
+  display: flex;
+  flex-direction: column;
+}
+
+.sidebar-brand {
+  font-family: "Poppins", sans-serif;
+  font-weight: 600;
+  font-size: 1.5rem;
+  color: var(--gold);
+  text-decoration: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding-bottom: 1rem;
+  margin-bottom: 1rem;
+  white-space: nowrap;
+  border-bottom: 1px solid var(--border-color);
+}
+
+.sidebar-brand .brand-icon {
+  height: 30px;
+  transition: margin 0.3s ease;
+}
+
+.sidebar-nav {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  flex-grow: 1;
+}
+
+.nav-section-title {
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: var(--text-secondary);
+  text-transform: uppercase;
+  padding: 1rem 0.75rem 0.5rem;
+  white-space: nowrap;
+}
+
+.sidebar-nav-link {
+  display: flex;
+  align-items: center;
+  color: var(--sidebar-text);
+  font-family: "Poppins", sans-serif;
+  font-weight: 400;
+  text-decoration: none;
+  padding: 0.6rem 1rem;
+  border-radius: 8px;
+  margin-bottom: 0.25rem;
+  white-space: nowrap;
+  transition: all 0.2s ease;
+}
+
+.sidebar-nav-link .nav-icon {
+  font-size: 1.2rem;
+  margin-right: 1.25rem;
+  width: 20px;
+  transition: margin 0.3s ease;
+}
+
+.sidebar-nav-link:hover {
+  background-color: var(--gold-soft);
+  color: var(--gold);
+}
+
+.sidebar-nav-link.active {
+  background-color: transparent;
+  color: var(--gold);
+  border-left: 3px solid var(--gold);
+  font-weight: 500;
+}
+
+.sidebar-nav-link.active .nav-icon {
+  color: var(--gold);
+}
+
+.sidebar-footer {
+  padding-top: 1rem;
+  border-top: 1px solid var(--border-color);
+  white-space: nowrap;
+}
+
+.page-wrapper {
+  margin-left: var(--sidebar-width);
+  transition: margin-left 0.3s ease;
+}
+
+.header {
+  position: sticky;
+  top: 0;
+  z-index: 90;
+  background-color: rgba(20, 20, 20, 0.65);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border-bottom: 1px solid var(--border-color);
+  padding: 0.75rem 2rem;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 1rem;
+}
+
+.header-search .form-control {
+  background-color: rgba(255, 255, 255, 0.05);
+  border-color: var(--border-color);
+  color: var(--text-primary);
+  border-radius: 8px;
+}
+
+.header-search .form-control::placeholder {
+  color: var(--text-secondary);
+}
+
+.header-search .form-control:focus {
+  background-color: rgba(255, 255, 255, 0.1);
+  border-color: var(--gold);
+  box-shadow: none;
+}
+
+.btn-gold {
+  background-color: var(--gold);
+  color: #000;
+  border-radius: 8px;
+  font-weight: 500;
+}
+
+.header-toggle {
+  font-size: 1.5rem;
+  cursor: pointer;
+  color: var(--text-primary);
+}
+
+.main-content {
+  padding: 2rem;
+}
+
+.admin-card {
+  padding: 2rem;
+  height: 100%;
+}
+
+.card-header-title {
+  font-family: "Old Standard TT", serif;
+  font-weight: 700;
+  font-size: 1.4rem;
+  color: var(--text-primary);
+  margin-bottom: 1rem;
+  border-bottom: 1px solid var(--border-color);
+  padding-bottom: 0.75rem;
+}
+
+/* Import styles from admin.css */
+@import url("admin.css");
