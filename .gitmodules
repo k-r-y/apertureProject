@@ -1,0 +1,3 @@
+[submodule "apertureProject"]
+	path = apertureProject
+	url = https://github.com/noir-13/apertureProject.git

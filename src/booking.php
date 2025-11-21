@@ -19,7 +19,6 @@ if (!isset($_SESSION['userId']) or !isset($_SESSION['isVerified']) or $_SESSION[
 
 
 if (isset($_GET['action']) and $_GET['action'] === 'logout') {
-    require_once './includes/functions/auth.php';
     logout();
 }
 

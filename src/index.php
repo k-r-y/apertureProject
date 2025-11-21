@@ -1,3 +1,10 @@
+<?php
+
+require_once 'includes/functions/session.php';
+
+
+?>
+
 <!DOCTYPE html>
 <html lang="en">
 

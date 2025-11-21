@@ -11,7 +11,7 @@ if (isset($_SESSION["userId"]) and isset($_SESSION["role"]) and  $_SESSION["role
     header("Location: admin/adminDashboard.php");
     exit;
 } else if (isset($_SESSION["userId"]) and isset($_SESSION["role"]) and $_SESSION["role"] === "User" and isset($_SESSION["isVerified"]) and  $_SESSION["isVerified"]) {
-    header("Location: booking.php");
+    header("Location: user/user.php");
     exit;
 }
 
@@ -75,7 +75,7 @@ if ($_SERVER["REQUEST_METHOD"] === 'POST') {
                             header("Location: admin/adminDashboard.php");
                             exit;
                         } else {
-                            header("Location:user/dashboard.php");
+                            header("Location:user/user.php");
                             exit;
                         }
                         // If profile is not complete, set a partial session and redirect to completeProfile.php.
@@ -213,7 +213,7 @@ if (isset($_GET['cancel']) and $_GET['cancel'] === 'true') {
                 <?php if (!$showVerificationForm) : ?>
 
                     <div class="col p-0">
-                        <form action="" method="POST" class="p-2 p-md-4">
+                        <form action="logIn.php" method="POST" class="p-2 p-md-4">
                             <?php csrfField() ?>
                             <input type="hidden" name="formType" value="login">
 

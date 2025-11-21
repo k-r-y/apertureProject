@@ -25,6 +25,35 @@ if (isset($_GET['action']) and $_GET['action'] === 'logout') {
     require_once '../includes/functions/auth.php';
     logout();
 }
+
+
+global $conn;
+
+$search_term = $_GET['search'] ?? '';
+
+$sql = "SELECT userID, Email, FirstName, LastName, contactNo, `Role`, Status, ProfileCompleted, isVerified FROM users";
+$params = [];
+$types = '';
+
+if (!empty($search_term)) {
+    $sql .= " WHERE CONCAT(FirstName, ' ', LastName, ' ', userID, ' ', Email, ' ', contactNo, ' ', `Role`, ' ', Status, ' ', ProfileCompleted, ' ', isVerified) LIKE ? OR Email LIKE ?";
+    $like_term = "%" . $search_term . "%";
+    $params = [$like_term, $like_term];
+    $types = 'ss';
+}
+
+$stmt = $conn->prepare($sql);
+if (!empty($params)) {
+    $stmt->bind_param($types, ...$params);
+}
+$stmt->execute();
+$result = $stmt->get_result();
+
+$users = [];
+while ($row = $result->fetch_assoc()) {
+    $users[] = $row;
+}
+
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -33,21 +62,14 @@ if (isset($_GET['action']) and $_GET['action'] === 'logout') {
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Client Directory - Aperture Admin</title>
-
-    <!-- Local Bootstrap CSS -->
-    <link rel="stylesheet" href="../../bootstrap-5.3.8-dist/css/bootstrap.min.css">
-    <!-- Bootstrap Icons -->
+   <link rel="stylesheet" href="../../bootstrap-5.3.8-dist/css/bootstrap.min.css">
     <link rel="stylesheet" href="../../bootstrap-5.3.8-dist/font/bootstrap-icons.css">
-    <link rel="stylesheet" href="admin.css">
-    <!-- Main Stylesheet -->
     <link rel="stylesheet" href="../style.css">
-    <!-- Favicon -->
+    <link rel="stylesheet" href="admin.css">
     <link rel="icon" href="../assets/camera.png" type="image/x-icon">
 
-    <!-- Google Fonts -->
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Old+Standard+TT:wght@400;700&family=Poppins:wght@400;500;600&display=swap" rel="stylesheet">
+    <!-- ApexCharts -->
+    <script src="https://cdn.jsdelivr.net/npm/apexcharts"></script>
 </head>
 
 <body class="admin-dashboard">
@@ -66,50 +88,61 @@ if (isset($_GET['action']) and $_GET['action'] === 'logout') {
 
                 <!-- Filters -->
                 <div class="card-solid mb-4">
-                    <div class="card-body d-flex flex-wrap gap-3 align-items-center">
-                        <div class="flex-grow-1">
-                            <input type="text" class="form-control bg-dark border-secondary text-light" placeholder="Search by client name or company...">
+                    <form action="client.php" method="GET">
+                        <div class="card-body d-flex flex-wrap gap-3 align-items-center">
+                            <div class="flex-grow-1">
+                                <input type="text" name="search" class="form-control bg-dark border-secondary text-light" placeholder="Search by client name or email..." value="<?= htmlspecialchars($search_term) ?>">
+                            </div>
+                            <button type="submit" class="btn btn-outline-secondary">Search</button>
                         </div>
-                        <button class="btn btn-outline-secondary">Search</button>
-                    </div>
+                    </form>
                 </div>
 
                 <!-- Client Cards -->
-                <div class="row g-4">
-                    <?php
-                    $clients = [
-                        ['name' => 'Tony Stark', 'company' => 'Stark Industries', 'bookings' => 5, 'revenue' => '150,000', 'img' => '1'],
-                        ['name' => 'Bruce Wayne', 'company' => 'Wayne Enterprises', 'bookings' => 3, 'revenue' => '95,000', 'img' => '2'],
-                        ['name' => 'Diana Prince', 'company' => 'Themyscira Exports', 'bookings' => 8, 'revenue' => '210,000', 'img' => '3'],
-                        ['name' => 'Clark Kent', 'company' => 'Daily Planet', 'bookings' => 2, 'revenue' => '15,000', 'img' => '4'],
-                        ['name' => 'Peter Parker', 'company' => 'Daily Bugle', 'bookings' => 12, 'revenue' => '80,000', 'img' => '5'],
-                        ['name' => 'Selina Kyle', 'company' => 'Cat Co.', 'bookings' => 4, 'revenue' => '60,000', 'img' => '6'],
-                    ];
-                    foreach ($clients as $client) :
-                    ?>
-                        <div class="col-xl-4 col-md-6">
-                            <div class="card-solid client-card p-4">
-                                <div class="d-flex align-items-center mb-3">
-                                    <img src="https://i.pravatar.cc/150?img=<?= $client['img'] ?>" alt="Client Avatar" class="client-avatar me-3">
-                                    <div>
-                                        <h5 class="mb-0 text-light"><?= $client['name'] ?></h5>
-                                        <p class="mb-0 text-secondary small"><?= $client['company'] ?></p>
-                                    </div>
-                                </div>
-                                <div class="d-flex justify-content-around text-center border-top border-secondary pt-3">
-                                    <div>
-                                        <p class="mb-0 text-secondary small text-uppercase">Bookings</p>
-                                        <h5 class="mb-0 text-light"><?= $client['bookings'] ?></h5>
-                                    </div>
-                                    <div>
-                                        <p class="mb-0 text-secondary small text-uppercase">Revenue</p>
-                                        <h5 class="mb-0 text-gold">₱<?= $client['revenue'] ?></h5>
-                                    </div>
-                                </div>
-                                <a href="#" class="btn btn-sm btn-outline-secondary w-100 mt-3">View Profile</a>
-                            </div>
-                        </div>
-                    <?php endforeach; ?>
+                <div class="card-solid">
+                    <div class="table-responsive">
+                        <table class="table  table-hover table  ">
+
+                            <thead>
+                                <tr>
+                                    <th>UserID</th>
+                                    <th>Email</th>
+                                    <th>First Name</th>
+                                    <th>Last Name</th>
+                                    <th>Contact No.</th>
+                                    <th>Role</th>
+                                    <th>Status</th>
+                                    <th>isProfileCompleted</th>
+                                    <th>isVerified</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+
+                            <tbody>
+
+                                <?php foreach ($users as $user): ?>
+
+                                    <tr>
+                                        <td><?= htmlspecialchars($user['userID']); ?></td>
+                                        <td><?= htmlspecialchars($user['Email']); ?></td>
+                                        <td><?= htmlspecialchars($user['FirstName']); ?></td>
+                                        <td><?= htmlspecialchars($user['LastName']); ?></td>
+                                        <td><?= htmlspecialchars($user['contactNo']); ?></td>
+                                        <td><?= htmlspecialchars($user['Role']); ?></td>
+                                        <td><?= htmlspecialchars($user['Status']); ?></td>
+                                        <td><?= htmlspecialchars($user['ProfileCompleted'] ? 'Yes' : 'No'); ?></td>
+                                        <td><?= htmlspecialchars($user['isVerified'] ? 'Yes' : 'No'); ?></td>
+                                        <td>
+                                            <a href="#" class="btn btn-sm btn-outline-secondary">View</a>
+                                            <a href="#" class="btn btn-sm btn-outline-secondary"><i class="bi bi-pencil-fill"></i></a>
+                                        </td>
+                                    </tr>
+
+                                <?php endforeach; ?>
+
+                            </tbody>
+                        </table>
+                    </div>
                 </div>
 
             </div>

@@ -1,3 +1,10 @@
+<?php
+
+require_once 'includes/functions/session.php';
+
+
+?>
+
 <!DOCTYPE html>
 <html lang="en">
 
@@ -495,7 +502,7 @@
   <!--------------------------------------- BOOKING DETAILS SECTION ---------------------------------------->
 
   <!--------------------------------------- GALLERY SECTION ---------------------------------------->
-  <section class="w-100 py-5" style="background: #0a0a0a;">
+  <section class="w-100 py-5" style="background: #0a0a0a;" id="gallery">
     <div class="container py-5">
       <div class="row justify-content-center mb-5">
         <div class="col-md-10 text-center">

@@ -34,20 +34,14 @@ if (isset($_GET['action']) and $_GET['action'] === 'logout') {
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Services & Packages - Aperture Admin</title>
 
-    <!-- Local Bootstrap CSS -->
     <link rel="stylesheet" href="../../bootstrap-5.3.8-dist/css/bootstrap.min.css">
-    <!-- Bootstrap Icons -->
     <link rel="stylesheet" href="../../bootstrap-5.3.8-dist/font/bootstrap-icons.css">
-    <link rel="stylesheet" href="admin.css">
-    <!-- Main Stylesheet -->
     <link rel="stylesheet" href="../style.css">
-    <!-- Favicon -->
+    <link rel="stylesheet" href="admin.css">
     <link rel="icon" href="../assets/camera.png" type="image/x-icon">
 
-    <!-- Google Fonts -->
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Old+Standard+TT:wght@400;700&family=Poppins:wght@400;500;600&display=swap" rel="stylesheet">
+    <!-- ApexCharts -->
+    <script src="https://cdn.jsdelivr.net/npm/apexcharts"></script>
 </head>
 
 <body class="admin-dashboard">
@@ -74,11 +68,11 @@ if (isset($_GET['action']) and $_GET['action'] === 'logout') {
                     foreach ($packages as $pkg) :
                     ?>
                         <div class="col-lg-4 col-md-6">
-                            <div class="card-solid package-card p-4 d-flex flex-column">
+                            <div class="stat-card package-card p-4 d-flex flex-column">
                                 <div class="flex-grow-1">
                                     <div class="d-flex justify-content-between align-items-start mb-2">
-                                        <h4 class="text-light mb-0"><?= $pkg['name'] ?> Package</h4>
-                                        <span class="text-gold fs-5 fw-bold">₱<?= $pkg['price'] ?></span>
+                                        <h4 class=" mb-0 serif"><?= $pkg['name'] ?> Package</h4>
+                                        <span class="text-light fs-5 fw-bold">₱<?= $pkg['price'] ?></span>
                                     </div>
                                     <p class="text-secondary small"><?= $pkg['desc'] ?></p>
                                     <ul class="text-secondary small p-0" style="list-style-type: none;">

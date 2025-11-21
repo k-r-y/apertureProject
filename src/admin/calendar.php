@@ -34,64 +34,20 @@ if (isset($_GET['action']) and $_GET['action'] === 'logout') {
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Calendar - Aperture Admin</title>
 
-    <!-- Local Bootstrap CSS -->
     <link rel="stylesheet" href="../../bootstrap-5.3.8-dist/css/bootstrap.min.css">
-    <!-- Bootstrap Icons -->
     <link rel="stylesheet" href="../../bootstrap-5.3.8-dist/font/bootstrap-icons.css">
-    <link rel="stylesheet" href="admin.css">
-    <!-- Main Stylesheet -->
     <link rel="stylesheet" href="../style.css">
-    <!-- Favicon -->
+    <link rel="stylesheet" href="admin.css">
     <link rel="icon" href="../assets/camera.png" type="image/x-icon">
 
-    <!-- Google Fonts -->
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Old+Standard+TT:wght@400;700&family=Poppins:wght@400;500;600&display=swap" rel="stylesheet">
+    <!-- ApexCharts -->
+    <script src="https://cdn.jsdelivr.net/npm/apexcharts"></script>
 
     <!-- FullCalendar CSS -->
     <script src='https://cdn.jsdelivr.net/npm/fullcalendar@6.1.14/index.global.min.js'></script>
 
     <style>
         /* FullCalendar Customizations */
-        #calendar {
-            height: 80vh;
-        }
-
-        .fc {
-            color: var(--text-primary);
-        }
-
-        .fc .fc-toolbar-title {
-            color: var(--gold);
-            font-family: 'Old Standard TT', serif;
-        }
-
-        .fc .fc-button-primary {
-            background-color: var(--card-bg);
-            border-color: var(--border-color);
-            color: var(--text-primary);
-        }
-
-        .fc .fc-button-primary:hover {
-            background-color: var(--gold-soft);
-            border-color: var(--gold);
-        }
-
-        .fc .fc-button-primary:active,
-        .fc .fc-button-primary:focus {
-            box-shadow: 0 0 0 0.2rem var(--gold-soft);
-        }
-
-        .fc-daygrid-day.fc-day-today {
-            background-color: var(--gold-soft);
-        }
-
-        .fc-event {
-            border: 1px solid var(--gold) !important;
-            background-color: var(--gold-soft) !important;
-            color: var(--gold) !important;
-        }
     </style>
 </head>
 
@@ -109,7 +65,7 @@ if (isset($_GET['action']) and $_GET['action'] === 'logout') {
                 </div>
 
                 <div class="card-solid p-4">
-                    <div id='calendar'></div>
+                    <div id='calendar' class=""></div>
                 </div>
             </div>
         </main>
@@ -122,6 +78,7 @@ if (isset($_GET['action']) and $_GET['action'] === 'logout') {
             var calendarEl = document.getElementById('calendar');
             var calendar = new FullCalendar.Calendar(calendarEl, {
                 initialView: 'dayGridMonth',
+                themeSystem: 'bootstrap5',
                 headerToolbar: {
                     left: 'prev,next today',
                     center: 'title',

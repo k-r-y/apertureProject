@@ -8,10 +8,10 @@ require_once './includes/functions/session.php';
 
 
 if (isset($_SESSION["userId"]) and isset($_SESSION["role"]) and  $_SESSION["role"] === "Admin" and isset($_SESSION["isVerified"]) and  $_SESSION["isVerified"]) {
-    header("Location: admin.php");
+    header("Location: admin/adminDashboard.php");
     exit;
 } else if (isset($_SESSION["userId"]) and isset($_SESSION["role"]) and $_SESSION["role"] === "User" and isset($_SESSION["isVerified"]) and  $_SESSION["isVerified"]) {
-    header("Location: booking.php");
+    header("Location: user/user.php");
     exit;
 }
 

@@ -163,7 +163,7 @@ if (radios.length > 0) {
 function loadPackageDetails(packageId) {
     console.log('loading package details for: ' + packageId);
 
-    fetch(`booking.php?packageId=${packageId}`)
+    fetch(`user/bookingForm.php?packageId=${packageId}`)
         .then(response => {
             if (!response.ok) {
                 throw new Error('network response not okay');

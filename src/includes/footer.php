@@ -78,11 +78,6 @@
             <a href="index.php#howItWorks" class="text-reset">How it works Section</a>
           </p>
 
-
-          <p>
-            <a href="index.php#pricing" class="text-reset">Pricing Section</a>
-          </p>
-
           <p>
             <a href="index.php#faq" class="text-reset">Faq Section</a>
           </p>

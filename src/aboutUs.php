@@ -1,4 +1,6 @@
 <?php
+require_once 'includes/functions/session.php';
+
 $activeMember = isset($_GET['member']) ? $_GET['member'] : 'casiano';
 ?>
 

@@ -1,4 +1,5 @@
 <?php
+require_once 'includes/functions/session.php';
 
 use PHPMailer\PHPMailer\PHPMailer;
 use PHPMailer\PHPMailer\Exception;

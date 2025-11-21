@@ -10,6 +10,17 @@ if (!isset($_SESSION['userId']) || $_SESSION['role'] !== 'User' || !$_SESSION['i
     header("Location: ../logIn.php");
     exit;
 }
+
+$query = "SELECT * FROM bookings WHERE userID = ?";
+$stmt = $conn->prepare($query);
+$stmt->bind_param("i", $_SESSION['userId']);
+$stmt->execute();
+$result = $stmt->get_result();
+
+$bookings = [];
+while ($row = $result->fetch_assoc()) {
+    $bookings[] = $row;
+}
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -23,7 +34,7 @@ if (!isset($_SESSION['userId']) || $_SESSION['role'] !== 'User' || !$_SESSION['i
     <link rel="stylesheet" href="../../bootstrap-5.3.8-dist/css/bootstrap.min.css">
     <!-- Bootstrap Icons -->
     <link rel="stylesheet" href="../../bootstrap-5.3.8-dist/font/bootstrap-icons.css">
-    <!-- Custom Admin CSS -->
+    <!-- Custom User CSS -->
     <link rel="stylesheet" href="user.css">
     <!-- Main Stylesheet -->
     <link rel="stylesheet" href="../style.css">
@@ -47,11 +58,10 @@ if (!isset($_SESSION['userId']) || $_SESSION['role'] !== 'User' || !$_SESSION['i
 
                 <div class="d-flex justify-content-between align-items-center mb-4">
                     <h1 class="header-title m-0">My Appointments</h1>
-                    <a href="../booking.php" class="btn btn-gold">+ New Booking</a>
                 </div>
 
                 <!-- Filters -->
-                <div class="card-solid mb-4" style="background-color: var(--card-bg); border: 1px solid var(--border-color); border-radius: 12px;">
+                <div class="glass-card mb-4">
                     <div class="card-body d-flex flex-wrap gap-3 align-items-center">
                         <div class="flex-grow-1">
                             <input type="text" class="form-control bg-dark border-secondary text-light" placeholder="Search by event type...">
@@ -59,9 +69,10 @@ if (!isset($_SESSION['userId']) || $_SESSION['role'] !== 'User' || !$_SESSION['i
                         <div>
                             <select class="form-select bg-dark border-secondary text-light">
                                 <option selected>All Statuses</option>
-                                <option value="1">Upcoming</option>
-                                <option value="2">Completed</option>
-                                <option value="3">Canceled</option>
+                                <option value="Pending">Pending</option>
+                                <option value="Confirmed">Confirmed</option>
+                                <option value="Completed">Completed</option>
+                                <option value="Canceled">Canceled</option>
                             </select>
                         </div>
                         <button class="btn btn-outline-secondary">Filter</button>
@@ -69,9 +80,9 @@ if (!isset($_SESSION['userId']) || $_SESSION['role'] !== 'User' || !$_SESSION['i
                 </div>
 
                 <!-- Appointments Table -->
-                <div class="card-solid" style="background-color: var(--card-bg); border: 1px solid var(--border-color); border-radius: 12px;">
+                <div class="glass-card">
                     <div class="table-responsive">
-                        <table class="table table-hover mb-0">
+                        <table class="table-luxury">
                             <thead>
                                 <tr>
                                     <th class="ps-3">Event Type</th>
@@ -82,37 +93,36 @@ if (!isset($_SESSION['userId']) || $_SESSION['role'] !== 'User' || !$_SESSION['i
                                 </tr>
                             </thead>
                             <tbody>
-                                <?php
-                                $appointments = [
-                                    ['event' => 'Wedding Photography', 'date' => 'Nov 18, 2025', 'package' => 'Premium', 'status' => 'Upcoming', 'status_class' => 'status-confirmed'],
-                                    ['event' => 'Corporate Headshots', 'date' => 'Oct 22, 2025', 'package' => 'Essential', 'status' => 'Completed', 'status_class' => 'status-completed'],
-                                    ['event' => 'Birthday Celebration', 'date' => 'Sep 05, 2025', 'package' => 'Essential', 'status' => 'Completed', 'status_class' => 'status-completed'],
-                                    ['event' => 'Product Launch Video', 'date' => 'Jul 15, 2025', 'package' => 'Elite', 'status' => 'Canceled', 'status_class' => 'status-canceled'],
-                                ];
-                                foreach ($appointments as $appt) :
-                                ?>
+                                <?php if (empty($bookings)): ?>
                                     <tr>
-                                        <td class="client-name ps-3"><?= $appt['event'] ?></td>
-                                        <td><?= $appt['date'] ?></td>
-                                        <td><?= $appt['package'] ?></td>
-                                        <td><span class="status-badge <?= $appt['status_class'] ?>"><?= $appt['status'] ?></span></td>
-                                        <td class="text-end pe-3">
-                                            <a href="#" class="btn btn-sm btn-outline-secondary">View Details</a>
-                                        </td>
+                                        <td colspan="5" class="text-center py-4 text-light">No appointments found.</td>
                                     </tr>
-                                <?php endforeach; ?>
+                                <?php else: ?>
+                                    <?php foreach ($bookings as $appt) : 
+                                        $statusClass = 'status-pending';
+                                        switch($appt['status']) {
+                                            case 'Confirmed': $statusClass = 'status-confirmed'; break;
+                                            case 'Completed': $statusClass = 'status-completed'; break;
+                                            case 'Canceled': $statusClass = 'status-canceled'; break;
+                                        }
+                                    ?>
+                                        <tr>
+                                            <td class="ps-3 fw-bold"><?= htmlspecialchars($appt['eventType']) ?></td>
+                                            <td><?= date('M d, Y', strtotime($appt['eventDate'])) ?></td>
+                                            <td><?= htmlspecialchars($appt['packageName'] ?? 'Custom') ?></td>
+                                            <td><span class="status-badge <?= $statusClass ?>"><?= htmlspecialchars($appt['status']) ?></span></td>
+                                            <td class="text-end pe-3">
+                                                <a href="#" class="btn btn-sm btn-outline-light">View Details</a>
+                                            </td>
+                                        </tr>
+                                    <?php endforeach; ?>
+                                <?php endif; ?>
                             </tbody>
                         </table>
                     </div>
-                    <div class="card-footer bg-transparent border-top-0 d-flex justify-content-between align-items-center">
-                        <span class="text-secondary small">Showing 1-4 of 4 appointments</span>
-                        <nav>
-                            <ul class="pagination pagination-sm mb-0">
-                                <li class="page-item disabled"><a class="page-link" href="#">Previous</a></li>
-                                <li class="page-item active"><a class="page-link" href="#">1</a></li>
-                                <li class="page-item"><a class="page-link" href="#">Next</a></li>
-                            </ul>
-                        </nav>
+                    <div class="card-footer bg-transparent border-top-0 d-flex justify-content-between align-items-center mt-3">
+                        <span class="text-secondary small">Showing <?= count($bookings) ?> appointments</span>
+                        <!-- Pagination could be added here -->
                     </div>
                 </div>
             </div>

@@ -52,29 +52,32 @@ if (!isset($_SESSION['userId']) || $_SESSION['role'] !== 'User' || !$_SESSION['i
                 <div class="row g-4">
                     <!-- Personal Information -->
                     <div class="col-lg-6">
-                        <div class="card-solid">
-                            <div class="card-body p-4">
-                                <h5 class="card-header-title mb-4">Personal Information</h5>
+                        <div class="glass-card h-100">
+                            <div class="glass-card-header">
+                                <i class="bi bi-person-badge me-2"></i>
+                                <span>Personal Information</span>
+                            </div>
+                            <div class="glass-card-body">
                                 <form>
                                     <div class="row g-3">
                                         <div class="col-md-6 mb-3">
-                                            <label for="firstName" class="form-label text-secondary small">First Name</label>
-                                            <input type="text" class="form-control bg-dark border-secondary text-light" id="firstName" value="<?= htmlspecialchars($_SESSION['firstName'] ?? '') ?>">
+                                            <label for="firstName" class="luxury-label">First Name</label>
+                                            <input type="text" class="luxury-input" id="firstName" value="<?= htmlspecialchars($_SESSION['firstName'] ?? '') ?>">
                                         </div>
                                         <div class="col-md-6 mb-3">
-                                            <label for="lastName" class="form-label text-secondary small">Last Name</label>
-                                            <input type="text" class="form-control bg-dark border-secondary text-light" id="lastName" value="<?= htmlspecialchars($_SESSION['lastName'] ?? '') ?>">
+                                            <label for="lastName" class="luxury-label">Last Name</label>
+                                            <input type="text" class="luxury-input" id="lastName" value="<?= htmlspecialchars($_SESSION['lastName'] ?? '') ?>">
                                         </div>
                                     </div>
                                     <div class="mb-3">
-                                        <label for="email" class="form-label text-secondary small">Email Address</label>
-                                        <input type="email" class="form-control bg-dark border-secondary text-light" id="email" value="<?= htmlspecialchars($_SESSION['email'] ?? '') ?>" readonly>
+                                        <label for="email" class="luxury-label">Email Address</label>
+                                        <input type="email" class="luxury-input" id="email" value="<?= htmlspecialchars($_SESSION['email'] ?? '') ?>" readonly>
                                     </div>
                                     <div class="mb-3">
-                                        <label for="contactPhone" class="form-label text-secondary small">Contact Phone</label>
-                                        <input type="text" class="form-control bg-dark border-secondary text-light" id="contactPhone" value="<?= htmlspecialchars($_SESSION['contact'] ?? '') ?>">
+                                        <label for="contactPhone" class="luxury-label">Contact Phone</label>
+                                        <input type="text" class="luxury-input" id="contactPhone" value="<?= htmlspecialchars($_SESSION['contact'] ?? '') ?>">
                                     </div>
-                                    <button type="submit" class="btn btn-gold mt-3">Save Changes</button>
+                                    <button type="submit" class="btn btn-gold w-100 mt-2">Save Changes</button>
                                 </form>
                             </div>
                         </div>
@@ -82,23 +85,26 @@ if (!isset($_SESSION['userId']) || $_SESSION['role'] !== 'User' || !$_SESSION['i
 
                     <!-- Change Password -->
                     <div class="col-lg-6">
-                        <div class="card-solid">
-                            <div class="card-body p-4">
-                                <h5 class="card-header-title mb-4">Change Password</h5>
+                        <div class="glass-card h-100">
+                            <div class="glass-card-header">
+                                <i class="bi bi-shield-lock me-2"></i>
+                                <span>Change Password</span>
+                            </div>
+                            <div class="glass-card-body">
                                 <form>
                                     <div class="mb-3">
-                                        <label for="currentPassword" class="form-label text-secondary small">Current Password</label>
-                                        <input type="password" class="form-control bg-dark border-secondary text-light" id="currentPassword" placeholder="Enter your current password">
+                                        <label for="currentPassword" class="luxury-label">Current Password</label>
+                                        <input type="password" class="luxury-input" id="currentPassword" placeholder="Enter your current password">
                                     </div>
                                     <div class="mb-3">
-                                        <label for="newPassword" class="form-label text-secondary small">New Password</label>
-                                        <input type="password" class="form-control bg-dark border-secondary text-light" id="newPassword" placeholder="Enter new password">
+                                        <label for="newPassword" class="luxury-label">New Password</label>
+                                        <input type="password" class="luxury-input" id="newPassword" placeholder="Enter new password">
                                     </div>
                                     <div class="mb-3">
-                                        <label for="confirmPassword" class="form-label text-secondary small">Confirm New Password</label>
-                                        <input type="password" class="form-control bg-dark border-secondary text-light" id="confirmPassword" placeholder="Confirm new password">
+                                        <label for="confirmPassword" class="luxury-label">Confirm New Password</label>
+                                        <input type="password" class="luxury-input" id="confirmPassword" placeholder="Confirm new password">
                                     </div>
-                                    <button type="submit" class="btn btn-gold mt-3">Update Password</button>
+                                    <button type="submit" class="btn btn-outline-gold w-100 mt-2">Update Password</button>
                                 </form>
                             </div>
                         </div>
@@ -106,10 +112,10 @@ if (!isset($_SESSION['userId']) || $_SESSION['role'] !== 'User' || !$_SESSION['i
 
                     <!-- Account Deletion -->
                     <div class="col-12">
-                        <div class="card-solid" style="border-color: rgba(220, 53, 69, 0.3);">
-                            <div class="card-body p-4 d-md-flex justify-content-between align-items-center">
+                        <div class="glass-card" style="border-color: rgba(220, 53, 69, 0.3);">
+                            <div class="glass-card-body d-md-flex justify-content-between align-items-center">
                                 <div>
-                                    <h5 class="mb-1" style="color: #dc3545;">Delete Account</h5>
+                                    <h5 class="mb-1 text-danger"><i class="bi bi-exclamation-triangle me-2"></i>Delete Account</h5>
                                     <p class="text-secondary small mb-md-0">Permanently delete your account and all associated data. This action cannot be undone.</p>
                                 </div>
                                 <button type="button" class="btn btn-outline-danger mt-3 mt-md-0">Request Account Deletion</button>

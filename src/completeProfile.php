@@ -14,10 +14,10 @@ if (!isset($_SESSION['userId'])) {
     $isProfileCompleted = isProfileCompleted($_SESSION['userId']);
     if ($isProfileCompleted) {
         if (isset($_SESSION["userId"]) and isset($_SESSION["role"]) and  $_SESSION["role"] === "Admin") {
-            header("Location: admin.php");
+            header("Location: admin/adminDashboard.php");
             exit;
         } else if (isset($_SESSION["userId"]) and isset($_SESSION["role"]) and $_SESSION["role"] === "User") {
-            header("Location: booking.php");
+            header("Location: user/user.php");
             exit;
         }
     }
@@ -179,7 +179,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     <script src="script.js"></script>
 
     <?php if (isset($_SESSION['completeProfile-success']) and ($_SESSION['completeProfile-success'])): ?>
-        
+
         <script>
             Swal.fire({
                 icon: 'success',
@@ -192,15 +192,15 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 confirmButtonColor: '#212529'
             }).then((result) => {
                 if (result.isConfirmed) {
-                    window.location.href = "<?= ($_SESSION['role'] === 'Admin') ? 'admin.php' : 'booking.php'; ?>";
-                    console.log('<?= $_SESSION['role'] . " " . $_SESSION['userId'];?>');
+                    window.location.href = "<?= ($_SESSION['role'] === 'Admin') ? 'admin/adminDashboard.php' : 'user/user.php'; ?>";
+                    console.log('<?= $_SESSION['role'] . " " . $_SESSION['userId']; ?>');
                 }
             });
         </script>
-        <?php unset($_SESSION['completeProfile-success']); 
-    echo $_SESSION['role'] . " " . $_SESSION['userId'];?>
+        <?php unset($_SESSION['completeProfile-success']);
+        echo $_SESSION['role'] . " " . $_SESSION['userId']; ?>
     <?php endif; ?>
-    
+
 </body>
 
 </html>
