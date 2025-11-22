@@ -1,73 +1,54 @@
 <?php
-// getPackageDetails.php
+require_once '../includes/functions/config.php';
+require_once '../includes/functions/session.php';
+
 header('Content-Type: application/json');
 
-// IMPORTANT: Adjust this path if your config file is in a different location.
-// If this path is wrong, you will get the "Unexpected token '<'" error.
-require_once '../includes/functions/config.php';
-
-// 1. Change validation to accept a string, as packageID is varchar in your DB.
-$packageId = filter_input(INPUT_GET, 'packageId', FILTER_SANITIZE_STRING);
-
-if (!$packageId) {
+if (!isset($_GET['packageId'])) {
     http_response_code(400);
-    echo json_encode(['error' => 'Invalid Package ID']);
+    echo json_encode(['error' => 'Package ID is required']);
     exit;
 }
 
-$response = [
-    'inclusions' => [],
-    'addons' => []
-];
+$packageId = $_GET['packageId'];
 
-// --- Fetch Inclusions ---
-// 2. Update table name to 'inclusion' and column to 'Description' based on your schema.
-$stmt_inclusions = $conn->prepare("SELECT Description FROM inclusion WHERE packageID = ?");
-// Bind as a string ("s")
-$stmt_inclusions->bind_param("s", $packageId);
-
-if ($stmt_inclusions->execute()) {
-    $result_inclusions = $stmt_inclusions->get_result();
-    while ($row = $result_inclusions->fetch_assoc()) {
-        $response['inclusions'][] = $row['Description'];
+try {
+    // Fetch Inclusions
+    $stmt = $conn->prepare("SELECT Description FROM inclusion WHERE packageID = ?");
+    $stmt->bind_param("s", $packageId); // Assuming packageID is string based on create_tables.sql ('basic', 'elite', etc.)
+    $stmt->execute();
+    $result = $stmt->get_result();
+    
+    $inclusions = [];
+    while ($row = $result->fetch_assoc()) {
+        $inclusions[] = $row['Description'];
     }
-} else {
-    // Log error or handle appropriately
-    error_log("Database error fetching inclusions: " . $stmt_inclusions->error);
-}
-$stmt_inclusions->close();
+    $stmt->close();
 
-
-// --- Fetch Add-ons ---
-// 3. Update query to select directly from 'addons' table based on your schema.
-// Using 'addID' as ID and 'Description' as the name.
-$stmt_addons = $conn->prepare("
-    SELECT addID, Description, Price
-    FROM addons
-    WHERE packageID = ?
-");
-// Bind as a string ("s")
-$stmt_addons->bind_param("s", $packageId);
-
-if ($stmt_addons->execute()) {
-    $result_addons = $stmt_addons->get_result();
-    while ($row = $result_addons->fetch_assoc()) {
-        $response['addons'][] = [
-            'addID' => $row['addID'],       // Changed from addonID
-            'Description' => $row['Description'], // Changed from name
-            'Price' => $row['Price']        // Using capitalized 'Price' to match DB
+    // Fetch Add-ons
+    $stmt = $conn->prepare("SELECT addID, Description, Price FROM addons WHERE packageID = ?");
+    $stmt->bind_param("s", $packageId);
+    $stmt->execute();
+    $result = $stmt->get_result();
+    
+    $addons = [];
+    while ($row = $result->fetch_assoc()) {
+        $addons[] = [
+            'addonID' => $row['addID'],
+            'Description' => $row['Description'],
+            'Price' => $row['Price']
         ];
     }
-} else {
-     // Log error or handle appropriately
-     error_log("Database error fetching addons: " . $stmt_addons->error);
-}
-$stmt_addons->close();
+    $stmt->close();
 
-// Final output
-echo json_encode($response);
+    echo json_encode([
+        'inclusions' => $inclusions,
+        'addons' => $addons
+    ]);
 
-if ($conn) {
-    $conn->close();
+} catch (Exception $e) {
+    error_log("Package details error: " . $e->getMessage());
+    http_response_code(500);
+    echo json_encode(['error' => 'Server error fetching details']);
 }
 ?>

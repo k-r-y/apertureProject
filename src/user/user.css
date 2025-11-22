@@ -34,10 +34,7 @@ body.admin-dashboard {
   position: relative;
 }
 
-.dark-luxury-theme {
-  background: var(--dark-bg);
-  color: var(--text-primary);
-}
+
 
 .luxury-booking-bg {
   background: linear-gradient(135deg, #0a0a0a 0%, #1a1a1a 50%, #0f0f0f 100%);
@@ -88,7 +85,7 @@ body.admin-dashboard {
 
 .luxury-label {
   display: block;
-  color: var(--text-secondary);
+  color: var(--light);
   font-size: 0.75rem;
   font-weight: 500;
   margin-bottom: 0.375rem;
@@ -151,7 +148,7 @@ body.admin-dashboard {
   background: rgba(255, 255, 255, 0.05);
   border: 1px solid rgba(255, 255, 255, 0.1);
   border-radius: 6px;
-  color: var(--text-primary);
+  color: var(--text-muted);
   font-size: 0.875rem;
   transition: all 0.3s ease;
   outline: none;
@@ -492,17 +489,10 @@ body.admin-dashboard {
 .luxury-checkbox {
   width: 20px;
   height: 20px;
-  border: 2px solid rgba(255, 255, 255, 0.2);
-  border-radius: 6px;
-  background: rgba(255, 255, 255, 0.05);
   cursor: pointer;
-  transition: all 0.3s ease;
 }
 
-.luxury-checkbox:checked {
-  background: var(--gold);
-  border-color: var(--gold);
-}
+
 
 .luxury-checkbox-label {
   color: var(--text-secondary);
@@ -517,9 +507,26 @@ body.admin-dashboard {
 .sticky-luxury-summary {
   position: -webkit-sticky; /* Safari */
   position: sticky;
-  top: 2rem;
-  z-index: 100;
-  height: fit-content;
+  top: 1.5rem;
+  z-index: 10;
+}
+
+/* Custom scrollbar for sticky summary */
+.sticky-luxury-summary::-webkit-scrollbar {
+  width: 4px;
+}
+
+.sticky-luxury-summary::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.sticky-luxury-summary::-webkit-scrollbar-thumb {
+  background: rgba(212, 175, 55, 0.3);
+  border-radius: 2px;
+}
+
+.sticky-luxury-summary::-webkit-scrollbar-thumb:hover {
+  background: rgba(212, 175, 55, 0.5);
 }
 
 .summary-card {

@@ -208,6 +208,97 @@
             return false;
         }
     }
+    function sendBookingConfirmationEmail($email, $bookingDetails) {
+        $mail = new PHPMailer(true);
+
+        try {
+            // Server settings
+            $mail->isSMTP();
+            $mail->Host       = $_ENV['SMTP_HOST'];
+            $mail->SMTPAuth   = true;
+            $mail->Username   = $_ENV['SMTP_USERNAME'];
+            $mail->Password   = $_ENV['SMTP_PASSWORD'];
+            $mail->SMTPSecure = PHPMailer::ENCRYPTION_STARTTLS;
+            $mail->Port       = $_ENV['SMTP_PORT'];
+
+            // Recipients
+            $mail->setFrom($_ENV['SMTP_USERNAME'], 'Aperture');
+            $mail->addAddress($email);
+
+            // Content
+            $mail->isHTML(true);
+            $mail->Subject = 'Booking Confirmation - Aperture';
+            
+            $itemsHtml = '';
+            foreach ($bookingDetails['items'] as $item) {
+                $itemsHtml .= "<tr><td style='padding: 10px; border-bottom: 1px solid #eee;'>{$item['name']}</td><td style='padding: 10px; border-bottom: 1px solid #eee; text-align: right;'>{$item['price']}</td></tr>";
+            }
+
+            $mail->Body = "
+            <div style='font-family: \"Inter\", sans-serif; max-width: 600px; margin: 0 auto; color: #333;'>
+                <div style='background: #0a0a0a; padding: 30px; text-align: center;'>
+                    <h1 style='color: #d4af37; margin: 0; font-family: \"Playfair Display\", serif;'>APERTURE</h1>
+                </div>
+                
+                <div style='padding: 40px; background: #fff;'>
+                    <h2 style='color: #0a0a0a; margin-top: 0;'>Booking Received</h2>
+                    <p>Dear {$bookingDetails['name']},</p>
+                    <p>Thank you for choosing Aperture. We have received your booking request and it is currently <strong>Pending</strong> review.</p>
+                    
+                    <div style='background: #f8f9fa; padding: 20px; border-radius: 8px; margin: 30px 0;'>
+                        <h3 style='margin-top: 0; font-size: 16px; color: #666;'>Booking Details</h3>
+                        <table style='width: 100%; border-collapse: collapse;'>
+                            <tr>
+                                <td style='padding: 8px 0; color: #666;'>Event Date:</td>
+                                <td style='padding: 8px 0; text-align: right; font-weight: 600;'>{$bookingDetails['date']}</td>
+                            </tr>
+                            <tr>
+                                <td style='padding: 8px 0; color: #666;'>Time:</td>
+                                <td style='padding: 8px 0; text-align: right; font-weight: 600;'>{$bookingDetails['time']}</td>
+                            </tr>
+                            <tr>
+                                <td style='padding: 8px 0; color: #666;'>Location:</td>
+                                <td style='padding: 8px 0; text-align: right; font-weight: 600;'>{$bookingDetails['location']}</td>
+                            </tr>
+                            <tr>
+                                <td style='padding: 8px 0; color: #666;'>Reference No:</td>
+                                <td style='padding: 8px 0; text-align: right; font-weight: 600; color: #d4af37;'>#{$bookingDetails['ref']}</td>
+                            </tr>
+                        </table>
+                    </div>
+
+                    <h3 style='font-size: 16px; color: #666;'>Payment Summary</h3>
+                    <table style='width: 100%; border-collapse: collapse; margin-bottom: 30px;'>
+                        {$itemsHtml}
+                        <tr>
+                            <td style='padding: 15px 10px; font-weight: bold;'>Total</td>
+                            <td style='padding: 15px 10px; text-align: right; font-weight: bold; color: #d4af37;'>{$bookingDetails['total']}</td>
+                        </tr>
+                        <tr>
+                            <td style='padding: 5px 10px; font-size: 14px; color: #666;'>Downpayment (25%)</td>
+                            <td style='padding: 5px 10px; text-align: right; font-size: 14px; color: #666;'>{$bookingDetails['downpayment']}</td>
+                        </tr>
+                    </table>
+
+                    <p>Please allow 24-48 hours for our team to review your booking and verify your payment. You will receive another email once your booking is confirmed.</p>
+                </div>
+
+                <div style='background: #f8f9fa; padding: 30px; text-align: center; font-size: 12px; color: #999;'>
+                    &copy; 2025 Aperture Photography. All rights reserved.
+                </div>
+            </div>
+            ";
+
+            $mail->AltBody = "Booking Received. Reference: #{$bookingDetails['ref']}. Total: {$bookingDetails['total']}. Please wait for confirmation.";
+
+            $mail->send();
+            return true;
+        } catch (Exception $e) {
+            error_log("Booking email error: {$mail->ErrorInfo}");
+            return false;
+        }
+    }
+
     function sanitizeInput($data) {
         $data = trim($data);
         $data = stripslashes($data);

@@ -1,0 +1,66 @@
+<?php
+
+function validateBookingDate($date) {
+    $minDate = date('Y-m-d', strtotime('+5 days'));
+    if (strtotime($date) < strtotime($minDate)) {
+        throw new Exception("Bookings must be made at least 5 days in advance.");
+    }
+    return true;
+}
+
+function validateBookingTime($startTime, $endTime) {
+    $start = strtotime($startTime);
+    $end = strtotime($endTime);
+    
+    $minTime = strtotime('07:00:00');
+    $maxTime = strtotime('22:00:00');
+    
+    // Extract time part only for comparison if dates are involved, but input is usually just time
+    // Assuming inputs are 'H:i' strings
+    // Let's use a fixed date to compare times correctly
+    $baseDate = date('Y-m-d');
+    $startTs = strtotime("$baseDate $startTime");
+    $endTs = strtotime("$baseDate $endTime");
+    $minTs = strtotime("$baseDate 07:00:00");
+    $maxTs = strtotime("$baseDate 22:00:00");
+
+    if ($startTs < $minTs || $endTs > $maxTs) {
+        throw new Exception("Events must be scheduled between 7:00 AM and 10:00 PM.");
+    }
+    
+    if ($startTs >= $endTs) {
+        throw new Exception("End time must be after start time.");
+    }
+    
+    return true;
+}
+
+function calculateExtraHoursCost($startTime, $endTime, $coverageHours, $rate) {
+    $start = new DateTime($startTime);
+    $end = new DateTime($endTime);
+    $interval = $start->diff($end);
+    
+    $durationHours = $interval->h + ($interval->i / 60);
+    
+    $extraHours = max(0, $durationHours - $coverageHours);
+    // Round up extra hours? Or charge per fraction? Usually per hour or fraction.
+    // Let's assume per hour started (ceil) or exact. User said "excess hours".
+    // Let's use exact float for now, or ceil if typical.
+    // "excess hours should be paid extra". Let's ceil to nearest hour for simplicity or use float.
+    // Common practice: charge per hour.
+    $extraHours = ceil($extraHours); 
+    
+    return $extraHours * $rate;
+}
+
+function getPackageData($conn, $packageId) {
+    $stmt = $conn->prepare("SELECT Price, packageName, coverage_hours, extra_hour_rate FROM packages WHERE packageID = ?");
+    $stmt->bind_param("s", $packageId);
+    $stmt->execute();
+    $result = $stmt->get_result();
+    if ($result->num_rows === 0) {
+        throw new Exception("Invalid package selected.");
+    }
+    return $result->fetch_assoc();
+}
+?>

@@ -18,6 +18,11 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     try {
         $userId = $_SESSION["userId"];
         
+        require_once '../includes/functions/booking_logic.php';
+
+        // Store form data in session for error recovery
+        $_SESSION['booking_form_data'] = $_POST;
+
         // 1. Retrieve and Sanitize Inputs
         $eventDate = sanitizeInput($_POST['eventDate']);
         $eventType = sanitizeInput($_POST['eventType']);
@@ -29,6 +34,25 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         $paymentMethod = sanitizeInput($_POST['paymentMethod']);
         $specialRequests = isset($_POST['specialRequests']) ? sanitizeInput($_POST['specialRequests']) : '';
         
+        // Validate Date (3-5 days in advance)
+        validateBookingDate($eventDate);
+        
+        // Validate Time (7am - 10pm)
+        validateBookingTime($startTime, $endTime);
+
+        // Server-side Availability Check
+        // Check if date is fully booked (Limit: 1 booking per day)
+        $checkStmt = $conn->prepare("SELECT COUNT(*) as count FROM bookings WHERE event_date = ? AND booking_status IN ('confirmed', 'pending_consultation')");
+        $checkStmt->bind_param("s", $eventDate);
+        $checkStmt->execute();
+        $checkResult = $checkStmt->get_result();
+        $checkRow = $checkResult->fetch_assoc();
+        $checkStmt->close();
+        
+        if ($checkRow['count'] >= 1) {
+            throw new Exception("Selected date is fully booked. Please choose another date.");
+        }
+
         // Handle Add-ons (Array)
         $addons = [];
         if (isset($_POST['addons']) && is_array($_POST['addons'])) {
@@ -40,29 +64,28 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 
         // 2. Calculate Pricing (Server-side validation)
         $totalPrice = 0;
+        $items = []; // For email
         
-        // Fetch Package Price
-        $stmt = $conn->prepare("SELECT Price, packageName FROM packages WHERE packageID = ?");
-        $stmt->bind_param("s", $packageId);
-        $stmt->execute();
-        $result = $stmt->get_result();
+        // Fetch Package Price & Details
+        $pkg = getPackageData($conn, $packageId);
         
-        if ($result->num_rows === 0) {
-            throw new Exception("Invalid package selected.");
-        }
-        
-        $pkg = $result->fetch_assoc();
         $totalPrice += floatval($pkg['Price']);
-        $packageName = $pkg['packageName']; // For reference if needed
-        $stmt->close();
+        $packageName = $pkg['packageName'];
+        $items[] = ['name' => $packageName, 'price' => '₱' . number_format($pkg['Price'], 2)];
+        
+        // Calculate Extra Hours Cost
+        $extraCost = calculateExtraHoursCost($startTime, $endTime, $pkg['coverage_hours'], $pkg['extra_hour_rate']);
+        if ($extraCost > 0) {
+            $totalPrice += $extraCost;
+            $items[] = ['name' => 'Extra Hours Charge', 'price' => '₱' . number_format($extraCost, 2)];
+        }
 
         // Fetch Add-on Prices
         if (!empty($addons)) {
-            // Create a string of placeholders for the IN clause
             $placeholders = implode(',', array_fill(0, count($addons), '?'));
-            $types = str_repeat('s', count($addons)); // Assuming addon IDs are strings/ints
+            $types = str_repeat('s', count($addons));
             
-            $query = "SELECT Price FROM addons WHERE addID IN ($placeholders)";
+            $query = "SELECT Description, Price FROM addons WHERE addID IN ($placeholders)";
             $stmt = $conn->prepare($query);
             $stmt->bind_param($types, ...$addons);
             $stmt->execute();
@@ -70,6 +93,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
             
             while ($row = $result->fetch_assoc()) {
                 $totalPrice += floatval($row['Price']);
+                $items[] = ['name' => $row['Description'], 'price' => '₱' . number_format($row['Price'], 2)];
             }
             $stmt->close();
         }
@@ -105,66 +129,85 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
             }
         }
 
-        // 4. Insert into Database
-        // Note: Using 'venue_address' for location and 'venue_name' for landmark/venue name combination or just location
-        // Adjusting based on schema: venue_name, venue_address
-        
+        // 4. Insert into Database - UPDATED TO MATCH ACTUAL SCHEMA
         $query = "INSERT INTO bookings (
             userID, 
+            packageID,
             event_type, 
             event_date, 
             event_time_start, 
             event_time_end, 
-            venue_address, 
-            venue_name,
-            service_type, 
-            package_type, 
-            add_ons, 
-            special_requirements, 
-            reference_files, 
-            total_price, 
-            downpayment, 
-            balance, 
-            status, 
-            payment_status
-        ) VALUES (?, ?, ?, ?, ?, ?, ?, 'Both', ?, ?, ?, ?, ?, ?, ?, 'Pending', 'Unpaid')";
+            event_location,
+            client_message, 
+            gdrive_link, 
+            total_amount, 
+            downpayment_amount, 
+            booking_status, 
+            is_fully_paid
+        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'pending_consultation', 0)";
 
         $stmt = $conn->prepare($query);
         
-        // service_type is hardcoded to 'Both' for now as per form context, or could be derived
-        // venue_name used for landmark if provided, else same as location or empty
-        $venueName = $landmark ? $landmark : $location; 
+        $eventLocation = $location . ($landmark ? " (Near: $landmark)" : "");
+        $clientMessage = $specialRequests;
 
         $stmt->bind_param(
-            "isssssssssssddd", 
+            "issssssssdd", 
             $userId,
+            $packageId,
             $eventType,
             $eventDate,
             $startTime,
             $endTime,
-            $location,
-            $venueName,
-            $packageId, // Storing packageID in package_type column for now
-            $addonsJson,
-            $specialRequests,
+            $eventLocation,
+            $clientMessage,
             $referenceFilePath,
             $totalPrice,
-            $downpayment,
-            $balance
+            $downpayment
         );
 
         if ($stmt->execute()) {
-            // Success! Redirect to appointments or confirmation page
-            header("Location: appointments.php?booking=success");
+            $bookingId = $stmt->insert_id;
+            
+            // Send Confirmation Email
+            $userEmail = $_SESSION['email'] ?? ''; // Assuming email is in session, otherwise fetch from DB
+            if ($userEmail) {
+                $bookingDetails = [
+                    'name' => $_SESSION['firstName'] . ' ' . $_SESSION['lastName'],
+                    'date' => date('F j, Y', strtotime($eventDate)),
+                    'time' => date('g:i A', strtotime($startTime)) . ' - ' . date('g:i A', strtotime($endTime)),
+                    'location' => $location,
+                    'ref' => str_pad($bookingId, 6, '0', STR_PAD_LEFT),
+                    'items' => $items,
+                    'total' => '₱' . number_format($totalPrice, 2),
+                    'downpayment' => '₱' . number_format($downpayment, 2)
+                ];
+                sendBookingConfirmationEmail($userEmail, $bookingDetails);
+            }
+
+            // Clear saved form data on success
+            unset($_SESSION['booking_form_data']);
+            
+            // Set success message in session
+            $_SESSION['booking_success'] = 'Your booking has been submitted successfully! We will review your booking and contact you shortly.';
+
+            // Redirect to appointments page
+            header("Location: appointments.php");
             exit;
         } else {
             throw new Exception("Database error: " . $stmt->error);
         }
 
     } catch (Exception $e) {
-        // Handle errors (redirect back with error message)
-        $errorMsg = urlencode($e->getMessage());
-        header("Location: bookingForm.php?error=" . $errorMsg);
+        // Log error for debugging
+        error_log("Booking Error: " . $e->getMessage());
+        error_log("Stack trace: " . $e->getTraceAsString());
+        
+        // Store error message in session (form data already stored)
+        $_SESSION['booking_error'] = $e->getMessage();
+        
+        // Redirect back to form (form data will be preserved)
+        header("Location: bookingForm.php");
         exit;
     }
 } else {
