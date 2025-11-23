@@ -39,15 +39,13 @@ document.addEventListener("DOMContentLoaded", function () {
                                 feedbackDiv.style.display = 'block';
                             }
 
-                            // Show SweetAlert notification
-                            if (typeof Swal !== 'undefined') {
-                                Swal.fire({
-                                    icon: 'warning',
+                            // Show LuxuryModal notification
+                            if (typeof LuxuryModal !== 'undefined') {
+                                LuxuryModal.show({
                                     title: 'Date Unavailable',
-                                    text: 'This date is already booked. Please select another date.',
-                                    confirmButtonColor: '#d4af37',
-                                    background: '#1a1a1a',
-                                    color: '#ffffff'
+                                    message: 'This date is already booked. Please select another date.',
+                                    icon: 'warning',
+                                    confirmText: 'OK'
                                 });
                             }
                         }
@@ -58,6 +56,70 @@ document.addEventListener("DOMContentLoaded", function () {
         .catch(error => {
             console.error('Error fetching booked dates:', error);
         });
+
+    // Validate Date Range (5 days min, 3 years max)
+    const eventDateRangeInput = document.getElementById('eventDate');
+    if (eventDateRangeInput) {
+        eventDateRangeInput.addEventListener('change', function () {
+            const selectedDate = new Date(this.value);
+            const today = new Date();
+            today.setHours(0, 0, 0, 0);
+
+            const minDate = new Date(today);
+            minDate.setDate(today.getDate() + 5);
+
+            const maxDate = new Date(today);
+            maxDate.setFullYear(today.getFullYear() + 3);
+
+            if (selectedDate < minDate) {
+                LuxuryModal.show({
+                    title: 'Invalid Date',
+                    message: 'Bookings must be made at least 5 days in advance.',
+                    icon: 'warning'
+                });
+                this.value = '';
+                return;
+            }
+
+            if (selectedDate > maxDate) {
+                LuxuryModal.show({
+                    title: 'Invalid Date',
+                    message: 'Bookings cannot be made more than 3 years in advance.',
+                    icon: 'warning'
+                });
+                this.value = '';
+                return;
+            }
+        });
+    }
+
+    // ===================================
+    // EVENT TYPE CUSTOM INPUT HANDLER
+    // ===================================
+
+    const eventTypeSelect = document.getElementById('eventType');
+    const customEventTypeContainer = document.getElementById('customEventTypeContainer');
+    const customEventTypeInput = document.getElementById('customEventType');
+
+    if (eventTypeSelect && customEventTypeContainer && customEventTypeInput) {
+        // Check initial state on page load
+        if (eventTypeSelect.value === 'Other') {
+            customEventTypeContainer.style.display = 'block';
+            customEventTypeInput.setAttribute('required', 'required');
+        }
+
+        eventTypeSelect.addEventListener('change', function () {
+            if (this.value === 'Other') {
+                customEventTypeContainer.style.display = 'block';
+                customEventTypeInput.setAttribute('required', 'required');
+                customEventTypeInput.focus();
+            } else {
+                customEventTypeContainer.style.display = 'none';
+                customEventTypeInput.removeAttribute('required');
+                customEventTypeInput.value = '';
+            }
+        });
+    }
 
     // ===================================
     // REAL-TIME BOOKING SUMMARY LOGIC
@@ -141,7 +203,10 @@ document.addEventListener("DOMContentLoaded", function () {
 
                 if (summaryPackageName) {
                     // Use innerHTML to render the span tag
-                    summaryPackageName.innerHTML = `<span class="text-muted" style="font-size: 0.875rem; font-weight: 400;">${sanitizeInput(packageName)} - ₱${packagePrice.toLocaleString()}</span>`;
+                    summaryPackageName.innerHTML = `<div class="d-flex justify-content-between align-items-center">
+                   <span class="text-muted" style="font-size: 0.875rem; font-weight: 400;">${sanitizeInput(packageName)}</span>
+                   <span class="text-muted" style="font-size: 0.875rem; font-weight: 400;"> ₱${packagePrice.toLocaleString()}</span>
+                </div>`;
                     console.log('Package summary updated:', summaryPackageName.innerHTML);
                 } else {
                     console.error('summaryPackageName element not found!');
@@ -169,7 +234,12 @@ document.addEventListener("DOMContentLoaded", function () {
                     total += addonPrice;
 
                     const addonItem = document.createElement('div');
-                    addonItem.innerHTML = `<span class="text-muted" style="font-size: 0.875rem; font-weight: 400;">${sanitizeInput(addonName)}</span><span>₱${addonPrice.toLocaleString()}</span>`;
+                    addonItem.innerHTML = `
+                    
+                    <div class="d-flex justify-content-between align-items-center">
+                   <span class="text-muted" style="font-size: 0.875rem; font-weight: 400;">${sanitizeInput(addonName)}</span>
+                   <span class="text-muted" style="font-size: 0.875rem; font-weight: 400;"> ₱${addonPrice.toLocaleString()}</span>
+                </div>`;
                     summaryAddonsList.appendChild(addonItem);
                 });
                 if (summaryAddonsContainer) summaryAddonsContainer.style.display = 'block';
@@ -518,9 +588,9 @@ document.addEventListener("DOMContentLoaded", function () {
 
             // Inclusions
             if (data.inclusions && data.inclusions.length > 0) {
-                detailsHtml += '<div class="col-12"><h6>What\'s Included</h6><ul>';
+                detailsHtml += '<div class="col-12"><h6 class="text-gold text-uppercase small letter-spacing-1 mb-2">What\'s Included</h6><ul class="list-unstyled mb-0">';
                 data.inclusions.forEach(item => {
-                    detailsHtml += `<li>${sanitizeInput(item)}</li>`;
+                    detailsHtml += `<li class="text-muted small mb-1"><i class="bi bi-check2 text-gold me-2"></i>${sanitizeInput(item)}</li>`;
                 });
                 detailsHtml += '</ul></div>';
             }
@@ -534,9 +604,9 @@ document.addEventListener("DOMContentLoaded", function () {
                     const addonPrice = parseFloat(addon.Price);
 
                     detailsHtml += `
-                        <div class="addon-card-luxury">
+                        <div class="addon-card-luxury position-relative">
                             <input class="form-check-input" type="checkbox" name="addons[]" value="${addonId}" id="addon-${addonId}" data-price="${addonPrice}" data-name="${addonDesc}">
-                            <label class="form-check-label ms-2" for="addon-${addonId}" style="color: var(--text-secondary); cursor: pointer;">
+                            <label class="form-check-label ms-2 stretched-link" for="addon-${addonId}" style="color: var(--text-secondary); cursor: pointer;">
                                 <strong>${addonDesc}</strong> - <span class="text-gold">₱${addonPrice.toLocaleString()}</span>
                             </label>
                         </div>`;
@@ -561,7 +631,12 @@ document.addEventListener("DOMContentLoaded", function () {
         radio.addEventListener('change', function () {
             // Clear previous add-ons
             document.querySelectorAll('input[name="addons[]"]').forEach(cb => cb.checked = false);
-            document.querySelectorAll('.package-details-luxury').forEach(c => c.style.display = 'none');
+
+            // Hide ALL package details containers
+            document.querySelectorAll('[id^="details-"]').forEach(container => {
+                container.style.display = 'none';
+                container.innerHTML = ''; // Clear content for performance
+            });
 
             const packageId = this.value;
             const detailsContainer = document.getElementById(`details-${packageId}`);
@@ -675,13 +750,11 @@ document.addEventListener("DOMContentLoaded", function () {
             // File size validation (5MB max)
             const maxSize = 5 * 1024 * 1024;
             if (file.size > maxSize) {
-                Swal.fire({
-                    icon: 'error',
+                LuxuryModal.show({
                     title: 'File Too Large',
-                    text: 'File size must be less than 5MB',
-                    confirmButtonColor: '#d4af37',
-                    background: '#1a1a1a',
-                    color: '#ffffff'
+                    message: 'File size must be less than 5MB',
+                    icon: 'error',
+                    confirmText: 'OK'
                 });
                 this.value = '';
                 proofPreview.innerHTML = '';
@@ -691,13 +764,11 @@ document.addEventListener("DOMContentLoaded", function () {
             // File type validation
             const validTypes = ['image/jpeg', 'image/png', 'image/jpg', 'application/pdf'];
             if (!validTypes.includes(file.type)) {
-                Swal.fire({
-                    icon: 'error',
+                LuxuryModal.show({
                     title: 'Invalid File Type',
-                    text: 'Please upload a valid image (JPG, PNG) or PDF file',
-                    confirmButtonColor: '#d4af37',
-                    background: '#1a1a1a',
-                    color: '#ffffff'
+                    message: 'Please upload a valid image (JPG, PNG) or PDF file',
+                    icon: 'error',
+                    confirmText: 'OK'
                 });
                 this.value = '';
                 proofPreview.innerHTML = '';
@@ -744,13 +815,11 @@ document.addEventListener("DOMContentLoaded", function () {
             // Validate package selection
             const selectedPackage = document.querySelector('input[name="packageID"]:checked');
             if (!selectedPackage) {
-                Swal.fire({
-                    icon: 'warning',
+                LuxuryModal.show({
                     title: 'Package Required',
-                    text: 'Please select a package before submitting your booking.',
-                    confirmButtonColor: '#d4af37',
-                    background: '#1a1a1a',
-                    color: '#ffffff'
+                    message: 'Please select a package before submitting your booking.',
+                    icon: 'warning',
+                    confirmText: 'OK'
                 });
                 return;
             }
@@ -758,13 +827,11 @@ document.addEventListener("DOMContentLoaded", function () {
             // Validate payment method
             const selectedPaymentMethod = document.querySelector('input[name="paymentMethod"]:checked');
             if (!selectedPaymentMethod) {
-                Swal.fire({
-                    icon: 'warning',
+                LuxuryModal.show({
                     title: 'Payment Method Required',
-                    text: 'Please select a payment method.',
-                    confirmButtonColor: '#d4af37',
-                    background: '#1a1a1a',
-                    color: '#ffffff'
+                    message: 'Please select a payment method.',
+                    icon: 'warning',
+                    confirmText: 'OK'
                 });
                 return;
             }
@@ -772,13 +839,11 @@ document.addEventListener("DOMContentLoaded", function () {
             // Validate proof of payment for online methods
             const paymentProof = document.getElementById('paymentProof');
             if (selectedPaymentMethod.value !== 'Cash' && !paymentProof.files.length) {
-                Swal.fire({
-                    icon: 'warning',
+                LuxuryModal.show({
                     title: 'Payment Proof Required',
-                    text: 'Please upload proof of payment for online payment methods.',
-                    confirmButtonColor: '#d4af37',
-                    background: '#1a1a1a',
-                    color: '#ffffff'
+                    message: 'Please upload proof of payment for online payment methods.',
+                    icon: 'warning',
+                    confirmText: 'OK'
                 });
                 return;
             }
@@ -786,13 +851,11 @@ document.addEventListener("DOMContentLoaded", function () {
             // Validate terms acceptance
             const termsCheckbox = document.getElementById('termsConfirm');
             if (!termsCheckbox.checked) {
-                Swal.fire({
-                    icon: 'warning',
+                LuxuryModal.show({
                     title: 'Terms & Conditions',
-                    text: 'Please accept the terms and conditions to proceed.',
-                    confirmButtonColor: '#d4af37',
-                    background: '#1a1a1a',
-                    color: '#ffffff'
+                    message: 'Please accept the terms and conditions to proceed.',
+                    icon: 'warning',
+                    confirmText: 'OK'
                 });
                 return;
             }
@@ -801,7 +864,7 @@ document.addEventListener("DOMContentLoaded", function () {
             const total = updateBookingSummary();
             const downpayment = total * 0.25;
 
-            Swal.fire({
+            LuxuryModal.show({
                 icon: 'question',
                 title: 'Confirm Your Booking',
                 html: `
@@ -837,17 +900,101 @@ document.addEventListener("DOMContentLoaded", function () {
                     confirmButton: 'luxury-swal-confirm',
                     cancelButton: 'luxury-swal-cancel'
                 }
-            }).then((result) => {
+            }).then(async (result) => {
                 // Only submit if user explicitly clicked "Confirm Booking"
                 if (result.isConfirmed) {
                     // Show loading state
-                    const submitBtn = this.querySelector('.luxury-submit-btn');
-                    const originalText = submitBtn.innerHTML;
-                    submitBtn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Processing...';
-                    submitBtn.disabled = true;
+                    const submitBtn = this.querySelector('.luxury-submit-btn') || this.querySelector('input[type="submit"]');
+                    if (submitBtn) {
+                        const originalText = submitBtn.value || submitBtn.innerHTML;
+                        if (submitBtn.tagName === 'INPUT') {
+                            submitBtn.value = 'Processing...';
+                        } else {
+                            submitBtn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Processing...';
+                        }
+                        submitBtn.disabled = true;
+                    }
 
-                    // Submit form
-                    this.submit();
+                    // Submit form via AJAX
+                    try {
+                        const formData = new FormData(this);
+                        const response = await fetch('processBooking.php', {
+                            method: 'POST',
+                            body: formData
+                        });
+
+                        const contentType = response.headers.get('content-type');
+                        let data;
+
+                        if (contentType && contentType.includes('application/json')) {
+                            data = await response.json();
+                        } else {
+                            // If not JSON, it might be a redirect or HTML error
+                            const text = await response.text();
+                            console.error('Non-JSON response:', text);
+                            throw new Error('Server returned an unexpected response');
+                        }
+
+                        if (data.success) {
+                            // Show success modal with redirect button
+                            LuxuryModal.show({
+                                icon: 'success',
+                                title: 'Booking Confirmed!',
+                                html: `
+                                    <div style="text-align: center; padding: 20px;">
+                                        <p style="margin-bottom: 15px; font-size: 1.1em;">${data.message || 'Your booking has been submitted successfully!'}</p>
+                                        <div style="background: rgba(212, 175, 55, 0.1); padding: 15px; border-radius: 8px; margin: 20px 0;">
+                                            <p style="margin: 5px 0;"><strong>Booking Reference:</strong> #${data.bookingRef || 'N/A'}</p>
+                                            <p style="margin: 5px 0; color: #aaa; font-size: 0.9em;">We will review your booking and contact you shortly.</p>
+                                        </div>
+                                    </div>
+                                `,
+                                confirmButtonText: 'View My Appointments',
+                                confirmColor: '#d4af37'
+                            }).then(() => {
+                                // Redirect to appointments page
+                                window.location.href = 'appointments.php';
+                            });
+                        } else {
+                            // Show error modal
+                            LuxuryModal.show({
+                                icon: 'error',
+                                title: 'Booking Failed',
+                                message: data.message || 'An error occurred while processing your booking. Please try again.',
+                                confirmButtonText: 'OK'
+                            });
+
+                            // Re-enable submit button
+                            if (submitBtn) {
+                                submitBtn.disabled = false;
+                                if (submitBtn.tagName === 'INPUT') {
+                                    submitBtn.value = originalText;
+                                } else {
+                                    submitBtn.innerHTML = originalText;
+                                }
+                            }
+                        }
+                    } catch (error) {
+                        console.error('Booking submission error:', error);
+
+                        // Show error modal
+                        LuxuryModal.show({
+                            icon: 'error',
+                            title: 'Network Error',
+                            message: 'Could not connect to the server. Please check your internet connection and try again.',
+                            confirmButtonText: 'OK'
+                        });
+
+                        // Re-enable submit button
+                        if (submitBtn) {
+                            submitBtn.disabled = false;
+                            if (submitBtn.tagName === 'INPUT') {
+                                submitBtn.value = originalText;
+                            } else {
+                                submitBtn.innerHTML = originalText;
+                            }
+                        }
+                    }
                 }
                 // If user clicked "Review Again" (isDismissed or isDenied), do nothing
                 // Form will NOT submit

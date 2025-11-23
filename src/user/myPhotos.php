@@ -20,6 +20,7 @@ if (!isset($_SESSION["userId"]) || !isset($_SESSION["role"]) || $_SESSION["role"
     <title>My Photos - Aperture</title>
     <link rel="stylesheet" href="../../bootstrap-5.3.8-dist/css/bootstrap.min.css">
     <link rel="stylesheet" href="../../bootstrap-5.3.8-dist/font/bootstrap-icons.css">
+    <link rel="stylesheet" href="../luxuryDesignSystem.css">
     <link rel="stylesheet" href="user.css">
     <link rel="stylesheet" href="../style.css">
     <link rel="icon" href="../assets/camera.png" type="image/x-icon">
@@ -29,7 +30,7 @@ if (!isset($_SESSION["userId"]) || !isset($_SESSION["role"]) || $_SESSION["role"
 
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Old+Standard+TT:wght@400;700&family=Poppins:wght@400;500;600&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Playfair+Display:wght@400;500;600;700&display=swap" rel="stylesheet">
 </head>
 
 <body class="admin-dashboard">
@@ -39,29 +40,42 @@ if (!isset($_SESSION["userId"]) || !isset($_SESSION["role"]) || $_SESSION["role"
         <?php include_once 'components/header.php'; ?>
 
         <main class="main-content">
-            <div class="container-fluid">
-                <div class="d-flex justify-content-between align-items-center mb-4">
-                    <h1 class="header-title m-0">My Photos</h1>
-                    <span class="badge bg-gold text-dark" id="photoCount">0 Photos</span>
+            <div class="container-fluid px-3 px-lg-5 py-5">
+                
+                <!-- Header -->
+                <div class="d-flex justify-content-between align-items-center mb-5">
+                    <div>
+                        <h1 class="mb-2">My Gallery</h1>
+                        <p class="text-muted">Your captured moments</p>
+                    </div>
+                    <div class="neo-card px-4 py-2 d-flex align-items-center gap-3">
+                        <i class="bi bi-images text-gold fs-4"></i>
+                        <div>
+                            <div class="text-muted small">Total Photos</div>
+                            <div class="h5 m-0 text-light" id="photoCount">0</div>
+                        </div>
+                    </div>
                 </div>
 
                 <!-- Loading State -->
                 <div class="loading-state text-center py-5" id="loadingState">
-                    <div class="spinner-border text-gold" role="status">
+                    <div class="spinner-border text-gold" role="status" style="width: 3rem; height: 3rem;">
                         <span class="visually-hidden">Loading...</span>
                     </div>
-                    <p class="text-secondary mt-3">Loading your photos...</p>
+                    <p class="text-muted mt-3">Curating your gallery...</p>
                 </div>
 
                 <!-- Empty State -->
                 <div class="empty-state text-center py-5 d-none" id="emptyState">
-                    <i class="bi bi-images fs-1 text-secondary mb-3 d-block"></i>
-                    <h3 class="text-light mb-2">No Photos Yet</h3>
-                    <p class="text-secondary">Your photos will appear here once they're uploaded by our team.</p>
+                    <div class="neo-card d-inline-block p-5">
+                        <i class="bi bi-camera fs-1 text-gold mb-4 d-block"></i>
+                        <h3 class="text-light mb-3">No Photos Yet</h3>
+                        <p class="text-muted mb-0">Your photos will appear here once they're uploaded by our team.</p>
+                    </div>
                 </div>
 
                 <!-- Photo Grid -->
-                <div class="photo-grid d-none" id="photoGrid"></div>
+                <div class="row g-4 d-none" id="photoGrid"></div>
             </div>
         </main>
     </div>
@@ -110,26 +124,32 @@ if (!isset($_SESSION["userId"]) || !isset($_SESSION["role"]) || $_SESSION["role"
 
             emptyState.classList.add('d-none');
             photoGrid.classList.remove('d-none');
-            photoCount.textContent = `${photos.length} Photo${photos.length !== 1 ? 's' : ''}`;
+            photoCount.textContent = photos.length;
 
             photoGrid.innerHTML = photos.map((photo, index) => {
                 const uploadDate = new Date(photo.uploadDate).toLocaleDateString();
                 return `
-                    <div class="photo-item">
-                        <a href="${photo.url}" 
-                           data-pswp-width="1200" 
-                           data-pswp-height="800"
-                           data-pswp-caption="${photo.caption || photo.originalName}"
-                           target="_blank">
-                            <img src="${photo.url}" alt="${photo.caption || photo.originalName}" loading="lazy">
-                        </a>
-                        <div class="photo-overlay">
-                            <div class="photo-caption">${photo.caption || ''}</div>
-                            <div class="d-flex justify-content-between align-items-center mt-2">
-                                <span class="photo-date"><i class="bi bi-calendar3 me-1"></i>${uploadDate}</span>
-                                <a href="${photo.url}" download="${photo.originalName}" class="text-white" title="Download">
-                                    <i class="bi bi-download"></i>
-                                </a>
+                    <div class="col-sm-6 col-md-4 col-lg-3">
+                        <div class="neo-card h-100 p-2 photo-card-luxury">
+                            <a href="${photo.url}" 
+                               data-pswp-width="1200" 
+                               data-pswp-height="800"
+                               data-pswp-caption="${photo.caption || photo.originalName}"
+                               target="_blank"
+                               class="d-block position-relative overflow-hidden rounded mb-2">
+                                <img src="${photo.url}" alt="${photo.caption || photo.originalName}" loading="lazy" class="img-fluid w-100" style="aspect-ratio: 1/1; object-fit: cover; transition: transform 0.5s ease;">
+                                <div class="photo-overlay-luxury">
+                                    <i class="bi bi-zoom-in fs-3 text-white"></i>
+                                </div>
+                            </a>
+                            <div class="px-2 pb-2">
+                                <div class="text-light fw-medium text-truncate mb-1">${photo.caption || 'Untitled'}</div>
+                                <div class="d-flex justify-content-between align-items-center">
+                                    <small class="text-muted"><i class="bi bi-calendar3 me-1"></i>${uploadDate}</small>
+                                    <a href="${photo.url}" download="${photo.originalName}" class="btn btn-sm btn-gold rounded-circle p-0 d-flex align-items-center justify-content-center" style="width: 32px; height: 32px;" title="Download">
+                                        <i class="bi bi-download"></i>
+                                    </a>
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -144,7 +164,7 @@ if (!isset($_SESSION["userId"]) || !isset($_SESSION["role"]) || $_SESSION["role"
             loadingState.classList.add('d-none');
             photoGrid.classList.add('d-none');
             emptyState.classList.remove('d-none');
-            photoCount.textContent = '0 Photos';
+            photoCount.textContent = '0';
         }
 
         function initPhotoSwipe() {
@@ -152,27 +172,18 @@ if (!isset($_SESSION["userId"]) || !isset($_SESSION["role"]) || $_SESSION["role"
                 gallery: '#photoGrid',
                 children: 'a',
                 pswpModule: PhotoSwipe,
-                bgOpacity: 0.9,
-                padding: { top: 50, bottom: 50, left: 50, right: 50 },
+                bgOpacity: 0.95,
+                padding: { top: 20, bottom: 20, left: 20, right: 20 },
+                mainClass: 'pswp-luxury',
+                
+                // UI options
                 zoom: true,
                 close: true,
                 arrowKeys: true,
-                returnFocus: false,
-                clickToCloseNonZoomable: false,
-                imageClickAction: 'zoom',
-                tapAction: 'zoom',
-                doubleTapAction: 'zoom',
-                pinchToClose: true,
-                closeOnVerticalDrag: true,
-                escKey: true,
-                arrowPrev: true,
-                arrowNext: true,
-                zoom: true,
                 counter: true,
-                closeTitle: 'Close (Esc)',
-                zoomTitle: 'Zoom in/out',
-                arrowPrevTitle: 'Previous',
-                arrowNextTitle: 'Next',
+                
+                // Animation
+                showHideAnimationType: 'zoom',
             });
 
             lightbox.on('uiRegister', function() {
@@ -186,7 +197,14 @@ if (!isset($_SESSION["userId"]) || !isset($_SESSION["role"]) || $_SESSION["role"
                         el.setAttribute('download', '');
                         el.setAttribute('target', '_blank');
                         el.setAttribute('rel', 'noopener');
-                        el.style.cssText = 'color: white; font-size: 1.2rem; padding: 0.5rem;';
+                        el.style.cssText = 'color: var(--gold-main); font-size: 1.5rem; padding: 10px; transition: color 0.3s ease;';
+                        
+                        el.addEventListener('mouseenter', () => {
+                            el.style.color = '#fff';
+                        });
+                        el.addEventListener('mouseleave', () => {
+                            el.style.color = 'var(--gold-main)';
+                        });
 
                         pswp.on('change', () => {
                             const currentSlide = pswp.currSlide;
@@ -202,5 +220,34 @@ if (!isset($_SESSION["userId"]) || !isset($_SESSION["role"]) || $_SESSION["role"
         // Load photos on page load
         loadPhotos();
     </script>
+
+    <style>
+        /* Additional styles for photo hover effects */
+        .photo-card-luxury img:hover {
+            transform: scale(1.05);
+        }
+        .photo-overlay-luxury {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.4);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+        .photo-card-luxury a:hover .photo-overlay-luxury {
+            opacity: 1;
+        }
+        
+        /* PhotoSwipe Customization */
+        .pswp-luxury .pswp__bg {
+            background: rgba(10, 10, 10, 0.95) !important;
+            backdrop-filter: blur(10px);
+        }
+    </style>
 </body>
 </html>

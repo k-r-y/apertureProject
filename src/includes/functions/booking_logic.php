@@ -2,9 +2,16 @@
 
 function validateBookingDate($date) {
     $minDate = date('Y-m-d', strtotime('+5 days'));
+    $maxDate = date('Y-m-d', strtotime('+3 years'));
+    
     if (strtotime($date) < strtotime($minDate)) {
         throw new Exception("Bookings must be made at least 5 days in advance.");
     }
+    
+    if (strtotime($date) > strtotime($maxDate)) {
+        throw new Exception("Bookings cannot be made more than 3 years in advance.");
+    }
+    
     return true;
 }
 
@@ -63,4 +70,70 @@ function getPackageData($conn, $packageId) {
     }
     return $result->fetch_assoc();
 }
+
+function getBookingCount($userId) {
+    global $conn;
+    $stmt = $conn->prepare("SELECT COUNT(*) FROM bookings WHERE userID = ?");
+    $stmt->bind_param("s", $userId);
+    $stmt->execute();
+    $result = $stmt->get_result();
+    return $result->fetch_row()[0];
+}
+
+
+function getUpcomingBookingsCount($userId) {
+    global $conn;
+    $stmt = $conn->prepare("SELECT COUNT(*) FROM bookings WHERE userID = ? AND booking_status = 'Confirmed' AND event_date >= CURRENT_DATE() ORDER BY event_date ASC");
+    $stmt->bind_param("s", $userId);
+    $stmt->execute();
+    $result = $stmt->get_result();
+    return $result->fetch_row()[0];
+}   
+
+function getTotalSpent($userId) {
+    global $conn;
+    $stmt = $conn->prepare("SELECT SUM(total_amount) FROM bookings WHERE userID = ?");
+    $stmt->bind_param("s", $userId);
+    $stmt->execute();
+    $result = $stmt->get_result();
+    return $result->fetch_row()[0];
+}
+
+function getAllBookingsCount() {
+    global $conn;
+    $stmt = $conn->prepare("SELECT COUNT(*) FROM bookings");
+    $stmt->execute();
+    $result = $stmt->get_result();
+    return $result->fetch_row()[0];
+}
+
+function getAllBookings() {
+    global $conn;
+    $stmt = $conn->prepare("SELECT * FROM bookings");
+    $stmt->execute();
+    $result = $stmt->get_result();
+    return $result->fetch_all(MYSQLI_ASSOC);
+}
+
+function getTotalRevenue() {
+    global $conn;
+    $stmt = $conn->prepare("SELECT SUM(total_amount) FROM bookings");
+    $stmt->execute();
+    $result = $stmt->get_result();
+    return $result->fetch_row()[0];
+}
+
+function getAverageBookingDuration() {
+    global $conn;
+    $stmt = $conn->prepare("SELECT AVG(event_duration) FROM bookings");
+    $stmt->execute();
+    $result = $stmt->get_result();
+    return $result->fetch_row()[0];
+}
+
+// function 
+
 ?>
+
+
+

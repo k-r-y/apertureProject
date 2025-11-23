@@ -25,6 +25,46 @@ if (isset($_GET['action']) and $_GET['action'] === 'logout') {
     require_once '../includes/functions/auth.php';
     logout();
 }
+
+// Handle Package Update
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['update_package'])) {
+    $pkgId = $_POST['package_id'];
+    $name = sanitizeInput($_POST['name']);
+    $price = sanitizeInput($_POST['price']);
+    $desc = sanitizeInput($_POST['description']);
+
+    $stmt = $conn->prepare("UPDATE packages SET PackageName = ?, Price = ?, Description = ? WHERE packageID = ?");
+    $stmt->bind_param("sdss", $name, $price, $desc, $pkgId);
+    
+    if ($stmt->execute()) {
+        $successMsg = "Package updated successfully.";
+    } else {
+        $errorMsg = "Failed to update package.";
+    }
+    $stmt->close();
+}
+
+// Fetch Packages
+$packages = [];
+$query = "SELECT * FROM packages";
+$result = $conn->query($query);
+if ($result) {
+    while ($row = $result->fetch_assoc()) {
+        // Fetch Inclusions for this package
+        $incQuery = "SELECT Description FROM inclusion WHERE packageID = ?";
+        $incStmt = $conn->prepare($incQuery);
+        $incStmt->bind_param("s", $row['packageID']);
+        $incStmt->execute();
+        $incResult = $incStmt->get_result();
+        $inclusions = [];
+        while ($inc = $incResult->fetch_assoc()) {
+            $inclusions[] = $inc['Description'];
+        }
+        $row['inclusions'] = $inclusions;
+        $packages[] = $row;
+        $incStmt->close();
+    }
+}
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -38,6 +78,7 @@ if (isset($_GET['action']) and $_GET['action'] === 'logout') {
     <link rel="stylesheet" href="../../bootstrap-5.3.8-dist/font/bootstrap-icons.css">
     <link rel="stylesheet" href="../style.css">
     <link rel="stylesheet" href="admin.css">
+    <link rel="stylesheet" href="../luxuryDesignSystem.css">
     <link rel="icon" href="../assets/camera.png" type="image/x-icon">
 
     <!-- ApexCharts -->
@@ -55,34 +96,44 @@ if (isset($_GET['action']) and $_GET['action'] === 'logout') {
 
                 <div class="d-flex justify-content-between align-items-center mb-4">
                     <h1 class="header-title m-0">Services & Packages</h1>
-                    <a href="#" class="btn btn-gold">+ Add New Package</a>
+                    <!-- Add Button Removed as requested -->
                 </div>
 
+                <?php if (isset($successMsg)): ?>
+                    <div class="alert alert-gold mb-4"><?= $successMsg ?></div>
+                <?php endif; ?>
+
                 <div class="row g-4">
-                    <?php
-                    $packages = [
-                        ['name' => 'Essential', 'price' => '7,500', 'desc' => 'Perfect for small celebrations or short events.'],
-                        ['name' => 'Premium', 'price' => '15,000', 'desc' => 'A balanced package for most events.'],
-                        ['name' => 'Elite', 'price' => '25,000', 'desc' => 'A full cinematic experience and top-tier service.'],
-                    ];
-                    foreach ($packages as $pkg) :
-                    ?>
+                    <?php foreach ($packages as $pkg) : ?>
                         <div class="col-lg-4 col-md-6">
-                            <div class="stat-card package-card p-4 d-flex flex-column">
+                            <div class="neo-card h-100 d-flex flex-column">
                                 <div class="flex-grow-1">
-                                    <div class="d-flex justify-content-between align-items-start mb-2">
-                                        <h4 class=" mb-0 serif"><?= $pkg['name'] ?> Package</h4>
-                                        <span class="text-light fs-5 fw-bold">₱<?= $pkg['price'] ?></span>
+                                    <div class="d-flex justify-content-between align-items-start mb-3">
+                                        <h4 class="text-gold font-serif mb-0"><?= htmlspecialchars($pkg['packageName']) ?></h4>
+                                        <span class="text-light fs-5 fw-bold">₱<?= number_format($pkg['Price']) ?></span>
                                     </div>
-                                    <p class="text-secondary small"><?= $pkg['desc'] ?></p>
-                                    <ul class="text-secondary small p-0" style="list-style-type: none;">
-                                        <li><i class="bi bi-check-circle-fill text-gold me-2"></i>Feature one</li>
-                                        <li><i class="bi bi-check-circle-fill text-gold me-2"></i>Feature two</li>
-                                        <li><i class="bi bi-check-circle-fill text-gold me-2"></i>Feature three</li>
-                                    </ul>
+                                    <p class="text-muted small mb-4"><?= htmlspecialchars($pkg['description']) ?></p>
+                                    
+                                    <div class="mb-3">
+                                        <h6 class="text-gold small text-uppercase letter-spacing-1 mb-2">Inclusions</h6>
+                                        <ul class="text-muted small p-0" style="list-style-type: none;">
+                                            <?php foreach ($pkg['inclusions'] as $inc) : ?>
+                                                <li class="mb-2"><i class="bi bi-check-circle-fill text-gold me-2"></i><?= htmlspecialchars($inc) ?></li>
+                                            <?php endforeach; ?>
+                                        </ul>
+                                    </div>
                                 </div>
-                                <div class="mt-3">
-                                    <a href="#" class="btn btn-sm btn-outline-secondary w-100">Edit Package</a>
+                                <div class="mt-3 pt-3 border-top border-secondary">
+                                    <button type="button" 
+                                            class="btn btn-sm btn-outline-gold w-100" 
+                                            data-bs-toggle="modal" 
+                                            data-bs-target="#editPackageModal"
+                                            data-id="<?= $pkg['packageID'] ?>"
+                                            data-name="<?= htmlspecialchars($pkg['packageName']) ?>"
+                                            data-price="<?= $pkg['Price'] ?>"
+                                            data-desc="<?= htmlspecialchars($pkg['description']) ?>">
+                                        Edit Package
+                                    </button>
                                 </div>
                             </div>
                         </div>
@@ -93,8 +144,62 @@ if (isset($_GET['action']) and $_GET['action'] === 'logout') {
         </main>
     </div>
 
+    <!-- Edit Package Modal -->
+    <div class="modal fade" id="editPackageModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content glass-panel border-0">
+                <div class="modal-header border-bottom border-secondary">
+                    <h5 class="modal-title text-gold font-serif">Edit Package</h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <form method="POST">
+                    <div class="modal-body">
+                        <input type="hidden" name="package_id" id="edit_package_id">
+                        <input type="hidden" name="update_package" value="1">
+                        
+                        <div class="mb-3">
+                            <label class="text-muted small mb-2">Package Name</label>
+                            <input type="text" name="name" id="edit_name" class="neo-input" required>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label class="text-muted small mb-2">Price (₱)</label>
+                            <input type="number" name="price" id="edit_price" class="neo-input" required>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label class="text-muted small mb-2">Description</label>
+                            <textarea name="description" id="edit_desc" class="neo-input" rows="3" required></textarea>
+                        </div>
+                    </div>
+                    <div class="modal-footer border-top border-secondary">
+                        <button type="button" class="btn btn-ghost" data-bs-dismiss="modal">Cancel</button>
+                        <button type="submit" class="btn btn-gold">Save Changes</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
     <script src="../../bootstrap-5.3.8-dist/js/bootstrap.bundle.min.js"></script>
     <script src="admin.js"></script>
+    <script>
+        // Handle Modal Data
+        const editModal = document.getElementById('editPackageModal');
+        editModal.addEventListener('show.bs.modal', function (event) {
+            const button = event.relatedTarget;
+            
+            const id = button.getAttribute('data-id');
+            const name = button.getAttribute('data-name');
+            const price = button.getAttribute('data-price');
+            const desc = button.getAttribute('data-desc');
+            
+            editModal.querySelector('#edit_package_id').value = id;
+            editModal.querySelector('#edit_name').value = name;
+            editModal.querySelector('#edit_price').value = price;
+            editModal.querySelector('#edit_desc').value = desc;
+        });
+    </script>
 </body>
 
 </html>

@@ -1,0 +1,424 @@
+/* LUXURY DESIGN SYSTEM 
+   Theme: Dark Glassmorphism + Gold Neomorphism
+*/
+
+/* --- 1. Imports --- */
+@import url("https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600;700&family=Poppins:wght@300;400;500;600&display=swap");
+
+/* --- 2. Global Variables --- */
+:root {
+  /* Color Palette */
+  --bg-dark: #0f0f0f;
+  --bg-dark-lighter: #141414;
+
+  /* Gold Accents */
+  --gold-main: #d4af37;
+  --gold-dim: #8a7120;
+  --gold-hover: #f4cf57;
+  --gold-gradient: linear-gradient(135deg, #d4af37 0%, #aa8c2c 100%);
+  --gold-glow: 0 0 15px rgba(212, 175, 55, 0.2);
+
+  /* Text Colors - Improved Contrast */
+  --text-light: #f8f9fa;
+  --text-muted: #b0b0b0;
+  --text-dark: #111111;
+
+  /* Glassmorphism Tokens */
+  --glass-bg: rgba(20, 20, 20, 0.65);
+  --glass-bg-heavy: rgba(30, 30, 30, 0.85);
+  --glass-border: rgba(212, 175, 55, 0.15);
+  --glass-blur: blur(20px);
+
+  /* Neomorphism Tokens */
+  --neo-card-bg: rgba(25, 25, 25, 0.6);
+  --neo-shadow-out: 8px 8px 16px #080808,
+    -8px -8px 16px rgba(255, 255, 255, 0.03);
+  --neo-shadow-in: inset 2px 2px 5px #080808,
+    inset -2px -2px 5px rgba(255, 255, 255, 0.03);
+  --card-shadow-float: 0 25px 50px -12px rgba(0, 0, 0, 0.9);
+
+  /* Layout */
+  --radius-lg: 24px;
+  --radius-md: 16px;
+  --radius-sm: 8px;
+}
+
+/* --- 3. Base Reset & Typography --- */
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  font-family: "Poppins", sans-serif;
+  background-color: var(--bg-dark);
+  color: var(--text-light);
+  line-height: 1.6;
+
+  /* Ambient luxury background texture */
+  background-image: radial-gradient(
+      circle at 5% 10%,
+      rgba(212, 175, 55, 0.08) 0%,
+      transparent 45%
+    ),
+    radial-gradient(
+      circle at 95% 90%,
+      rgba(255, 255, 255, 0.03) 0%,
+      transparent 45%
+    );
+  background-attachment: fixed; /* Keeps gradient fixed on scroll */
+  min-height: 100vh;
+}
+
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
+  font-family: "Playfair Display", serif;
+  color: var(--gold-main);
+  margin-bottom: 0.5em;
+  line-height: 1.2;
+}
+
+/* --- 4. Layout Containers --- */
+
+/* The main glass container (Sidebar, Modals, Main Panels) */
+.glass-panel {
+  background: var(--glass-bg);
+  backdrop-filter: var(--glass-blur);
+  -webkit-backdrop-filter: var(--glass-blur);
+  border: 1px solid var(--glass-border);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--card-shadow-float);
+}
+
+/* The Sidebar specific style */
+.glass-sidebar {
+  background: var(--glass-bg);
+  backdrop-filter: var(--glass-blur);
+  border-right: 1px solid var(--glass-border);
+  height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+/* --- 5. Component: Cards (Neomorphic) --- */
+.neo-card {
+  background: var(--neo-card-bg);
+  border-radius: var(--radius-md);
+  padding: 25px;
+  border: 1px solid rgba(255, 255, 255, 0.03);
+  box-shadow: var(--neo-shadow-out);
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.neo-card:hover {
+  transform: translateY(-3px); /* Reduced from -5px */
+  box-shadow: 12px 12px 20px #050505, -10px -10px 20px rgba(255, 255, 255, 0.04);
+}
+
+/* Light Neomorphic Card (for White/Light Backgrounds) */
+.neo-card-light {
+  background: #ffffff;
+  border-radius: var(--radius-md);
+  padding: 25px;
+  border: 1px solid #e0e0e0;
+  color: var(--text-dark);
+}
+
+.neo-card-light:hover {
+  transform: translateY(-3px);
+}
+
+/* --- 6. Component: Inputs (Neomorphic Inset) --- */
+.neo-input {
+  width: 100%;
+  background: rgba(10, 10, 10, 0.5);
+  border: 1px solid transparent;
+  border-radius: var(--radius-md);
+  padding: 12px 20px;
+  color: var(--text-light);
+  font-family: "Poppins", sans-serif;
+  outline: none;
+  box-shadow: var(--neo-shadow-in);
+  transition: all 0.3s ease;
+}
+
+.neo-input:focus {
+  border-color: var(--gold-dim);
+  box-shadow: inset 5px 5px 10px #050505,
+    inset -5px -5px 10px rgba(255, 255, 255, 0.05),
+    0 0 0 1px rgba(212, 175, 55, 0.2);
+}
+
+.neo-input::placeholder {
+  color: #666; /* Slightly lighter placeholder */
+}
+
+/* Fix Select Option Visibility */
+.neo-input select option {
+  background-color: #1a1a1a; /* Dark background */
+  color: var(--text-light); /* Light text */
+}
+
+/* --- 7. Component: Buttons --- */
+.btn {
+  padding: 12px 24px;
+  border-radius: var(--radius-md);
+  border: none;
+  font-family: "Poppins", sans-serif;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  text-decoration: none;
+}
+
+/* Primary Gold Action */
+.btn-gold {
+  background: var(--gold-gradient);
+  color: var(--text-dark);
+  box-shadow: 0 8px 20px -5px rgba(212, 175, 55, 0.3);
+}
+
+.btn-gold:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 12px 25px -5px rgba(212, 175, 55, 0.5);
+  filter: brightness(1.1);
+}
+
+.btn-gold:active {
+  transform: scale(0.98);
+}
+
+/* Secondary / Ghost Button */
+.btn-ghost {
+  background: transparent;
+  color: var(--text-muted);
+  border: 1px solid transparent;
+}
+
+.btn-ghost:hover {
+  color: var(--text-light);
+  background: rgba(255, 255, 255, 0.05);
+  border-color: rgba(255, 255, 255, 0.1);
+}
+
+/* --- 8. Utility Classes --- */
+
+/* Typography Utils */
+.text-gold {
+  color: var(--gold-main) !important;
+}
+.text-muted {
+  color: var(--text-muted) !important;
+}
+.text-light {
+  color: var(--text-light) !important;
+}
+.font-serif {
+  font-family: "Playfair Display", serif;
+}
+
+.letter-spacing-1 {
+  letter-spacing: 1px;
+}
+
+/* Gradient Text Effect */
+.text-gradient-gold {
+  background: var(--gold-gradient);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  color: transparent; /* Fallback */
+}
+
+/* Icons */
+.icon-box {
+  width: 45px;
+  height: 45px;
+  border-radius: 12px;
+  background: rgba(212, 175, 55, 0.1);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--gold-main);
+  border: 1px solid rgba(212, 175, 55, 0.2);
+  font-size: 1.2rem;
+}
+
+/* Helper: Divider */
+.divider {
+  height: 1px;
+  background: linear-gradient(
+    90deg,
+    transparent,
+    rgba(255, 255, 255, 0.1),
+    transparent
+  );
+  margin: 20px 0;
+  width: 100%;
+}
+
+/* Scrollbar Customization (for Webkit) */
+::-webkit-scrollbar {
+  width: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: rgba(0, 0, 0, 0.1);
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--gold-dim);
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--gold-main);
+}
+
+/* --- 9. New Refinement Classes --- */
+
+/* Gold Alert */
+.alert-gold {
+  background: rgba(212, 175, 55, 0.1);
+  border: 1px solid rgba(212, 175, 55, 0.3);
+  color: var(--gold-main);
+  border-radius: var(--radius-sm);
+  padding: 1rem;
+  display: flex;
+  align-items: center;
+}
+
+.alert-gold a {
+  color: var(--gold-hover);
+  text-decoration: underline;
+  font-weight: 600;
+}
+
+/* Soft Gold Background */
+.bg-soft-gold {
+  background: rgba(212, 175, 55, 0.08);
+  border: 1px solid rgba(212, 175, 55, 0.15);
+  border-radius: var(--radius-sm);
+}
+
+/* Luxury Table */
+.table-luxury {
+  width: 100%;
+  border-collapse: separate;
+  border-spacing: 0 0.5rem;
+}
+
+.table-luxury thead th {
+  background: transparent;
+  color: var(--gold-dim);
+  font-family: "Playfair Display", serif;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  font-size: 0.85rem;
+  padding: 1rem;
+  border: none;
+}
+
+.table-luxury tbody tr {
+  background: rgba(255, 255, 255, 0.02);
+  transition: all 0.3s ease;
+}
+
+.table-luxury tbody tr:hover {
+  background: rgba(255, 255, 255, 0.05);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+}
+
+.table-luxury td {
+  padding: 1rem;
+  vertical-align: middle;
+  color: var(--text-light);
+  border-top: 1px solid rgba(255, 255, 255, 0.05);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.table-luxury td:first-child {
+  border-top-left-radius: var(--radius-sm);
+  border-bottom-left-radius: var(--radius-sm);
+  border-left: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.table-luxury td:last-child {
+  border-top-right-radius: var(--radius-sm);
+  border-bottom-right-radius: var(--radius-sm);
+  border-right: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+/* Luxury Calendar (FullCalendar Customization) */
+.calendar-luxury {
+  background: var(--neo-card-bg);
+  border-radius: var(--radius-md);
+  border: 1px solid rgba(255, 255, 255, 0.03);
+  padding: 1.5rem;
+}
+
+.fc-theme-bootstrap5 .fc-scrollgrid {
+  border-color: rgba(255, 255, 255, 0.05);
+}
+
+.fc-theme-bootstrap5 td,
+.fc-theme-bootstrap5 th {
+  border-color: rgba(255, 255, 255, 0.05);
+}
+
+.fc .fc-toolbar-title {
+  font-family: "Playfair Display", serif;
+  color: var(--gold-main);
+}
+
+.fc .fc-button-primary {
+  background: rgba(255, 255, 255, 0.05);
+  border-color: rgba(255, 255, 255, 0.1);
+  color: var(--text-muted);
+  font-family: "Poppins", sans-serif;
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.fc .fc-button-primary:hover,
+.fc .fc-button-primary:active,
+.fc .fc-button-primary.fc-button-active {
+  background: var(--gold-dim) !important;
+  border-color: var(--gold-dim) !important;
+  color: #000 !important;
+}
+
+.fc-daygrid-day-number {
+  color: var(--text-muted);
+  text-decoration: none;
+}
+
+.fc-col-header-cell-cushion {
+  color: var(--gold-main);
+  text-decoration: none;
+  text-transform: uppercase;
+  font-size: 0.85rem;
+  letter-spacing: 1px;
+}
+
+/* File Upload Icon Luxury */
+.file-label-luxury i {
+  color: var(--text-dark); /* Dark by default */
+  transition: color 0.3s ease;
+}
+
+.file-label-luxury:hover i {
+  color: var(--gold-main); /* Gold on hover */
+}

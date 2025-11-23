@@ -305,3 +305,15 @@
         $data = htmlspecialchars($data);
         return $data;
     }
+
+
+    function saveContactUsMessage($name, $email, $message) {
+      
+        global $conn;
+        
+        $stmt = $conn->prepare("INSERT INTO contact_us (name, email, message) VALUES (?, ?, ?)");
+        $stmt->bind_param("sss", $name, $email, $message);
+        $stmt->execute();
+        $stmt->close();
+
+    }

@@ -58,20 +58,6 @@ if (isset($_GET['action']) and $_GET['action'] === 'logout') {
         <?php include_once 'components/header.php'; ?>
 
         <main class="main-content">
-            <div class="container-fluid p-0">
-                <div class="d-flex justify-content-between align-items-center mb-4">
-                    <h1 class="header-title m-0">Calendar</h1>
-                    <a href="#" class="btn btn-gold">+ New Appointment</a>
-                </div>
-
-                <div class="card-solid p-4">
-                    <div id='calendar' class=""></div>
-                </div>
-            </div>
-        </main>
-    </div>
-
-    <script src="../../bootstrap-5.3.8-dist/js/bootstrap.bundle.min.js"></script>
     <script src="admin.js"></script>
     <script>
         document.addEventListener('DOMContentLoaded', function() {

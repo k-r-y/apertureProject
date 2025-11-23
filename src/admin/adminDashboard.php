@@ -1,3 +1,4 @@
+
 <?php
 require_once '../includes/functions/config.php';
 require_once '../includes/functions/auth.php';
@@ -37,6 +38,7 @@ if (isset($_GET['action']) and $_GET['action'] === 'logout') {
     <link rel="stylesheet" href="../../bootstrap-5.3.8-dist/font/bootstrap-icons.css">
     <link rel="stylesheet" href="../style.css">
     <link rel="stylesheet" href="admin.css">
+    lin
     <link rel="icon" href="../assets/camera.png" type="image/x-icon">
 
     <!-- ApexCharts -->
@@ -66,7 +68,7 @@ if (isset($_GET['action']) and $_GET['action'] === 'logout') {
                         </div>
                     </div>
                     <div class="col-xl-3 col-md-6">
-                        <div class="stat-card">
+                        <div class="neo-card">
                             <div class="stat-icon"><i class="bi bi-journal-check"></i></div>
                             <div class="stat-title">Total Bookings</div>
                             <div class="stat-value">84</div>

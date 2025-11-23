@@ -42,7 +42,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 
         // Server-side Availability Check
         // Check if date is fully booked (Limit: 1 booking per day)
-        $checkStmt = $conn->prepare("SELECT COUNT(*) as count FROM bookings WHERE event_date = ? AND booking_status IN ('confirmed', 'pending_consultation')");
+        $checkStmt = $conn->prepare("SELECT COUNT(*) as count FROM bookings WHERE event_date = ? AND booking_status IN ('confirmed', 'pending')");
         $checkStmt->bind_param("s", $eventDate);
         $checkStmt->execute();
         $checkResult = $checkStmt->get_result();
@@ -139,12 +139,12 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
             event_time_end, 
             event_location,
             client_message, 
-            gdrive_link, 
+            proof_payment, 
             total_amount, 
             downpayment_amount, 
             booking_status, 
             is_fully_paid
-        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'pending_consultation', 0)";
+        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'pending', 0)";
 
         $stmt = $conn->prepare($query);
         
@@ -188,11 +188,13 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
             // Clear saved form data on success
             unset($_SESSION['booking_form_data']);
             
-            // Set success message in session
-            $_SESSION['booking_success'] = 'Your booking has been submitted successfully! We will review your booking and contact you shortly.';
-
-            // Redirect to appointments page
-            header("Location: appointments.php");
+            // Return JSON response for AJAX
+            header('Content-Type: application/json');
+            echo json_encode([
+                'success' => true,
+                'message' => 'Your booking has been submitted successfully!',
+                'bookingRef' => str_pad($bookingId, 6, '0', STR_PAD_LEFT)
+            ]);
             exit;
         } else {
             throw new Exception("Database error: " . $stmt->error);
@@ -203,11 +205,13 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         error_log("Booking Error: " . $e->getMessage());
         error_log("Stack trace: " . $e->getTraceAsString());
         
-        // Store error message in session (form data already stored)
-        $_SESSION['booking_error'] = $e->getMessage();
-        
-        // Redirect back to form (form data will be preserved)
-        header("Location: bookingForm.php");
+        // Return JSON error response
+        header('Content-Type: application/json');
+        http_response_code(400);
+        echo json_encode([
+            'success' => false,
+            'message' => $e->getMessage()
+        ]);
         exit;
     }
 } else {

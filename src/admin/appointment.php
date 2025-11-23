@@ -89,7 +89,7 @@ if (isset($_GET['action']) and $_GET['action'] === 'logout') {
                 <!-- Appointments Table -->
                 <div class="card-solid">
                     <div class="table-responsive">
-                        <table class="table table-hover mb-0">
+                        <table class="table table-luxury mb-0">
                             <thead>
                                 <tr>
                                     <th class="ps-3">Client</th>

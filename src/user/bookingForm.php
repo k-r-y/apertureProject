@@ -61,30 +61,29 @@ $minBookingDate = date('Y-m-d', strtotime('+5 days'));
     <title>New Booking - Aperture</title>
     <link rel="stylesheet" href="../../bootstrap-5.3.8-dist/css/bootstrap.min.css">
     <link rel="stylesheet" href="../../bootstrap-5.3.8-dist/font/bootstrap-icons.css">
+    <link rel="stylesheet" href="../luxuryDesignSystem.css">
+    <link rel="stylesheet" href="../css/modal.css">
     <link rel="stylesheet" href="user.css">
     <link rel="stylesheet" href="../style.css">
     <link rel="icon" href="../assets/camera.png" type="image/x-icon">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Playfair+Display:wght@400;500;600;700&display=swap" rel="stylesheet">
-    
-    <!-- SweetAlert2 -->
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css">
 </head>
 
-<body class="admin-dashboard dark-luxury-theme">
+<body class="admin-dashboard">
     <?php include_once 'components/sidebar.php'; ?>
 
     <div class="page-wrapper" id="page-wrapper">
         <?php include_once 'components/header.php'; ?>
 
-        <main class="main-content luxury-booking-bg">
+        <main class="main-content">
             <div class="container-fluid px-3 px-lg-5 py-5">
                 
                 <!-- Page Header -->
                 <div class="text-center mb-5">
-                    <h1 class="luxury-title mb-2">Create Your Booking</h1>
-                    <p class="text-muted-luxury">Experience premium photography services</p>
+                    <h1 class="mb-2">Create Your Booking</h1>
+                    <p class="text-muted">Experience premium photography services</p>
                 </div>
 
                 <form action="processBooking.php" method="POST" enctype="multipart/form-data" id="bookingForm">
@@ -94,287 +93,258 @@ $minBookingDate = date('Y-m-d', strtotime('+5 days'));
                         <div class="col-lg-8">
                             
                             <!-- Client Information -->
-                            <div class="glass-card mb-4">
-                                <div class="glass-card-header">
-                                    <i class="bi bi-person-circle me-2"></i>
-                                    <span>Client Information</span>
+                            <div class="neo-card mb-4">
+                                <div class="mb-4 pb-2 border-bottom border-secondary">
+                                    <h4 class="m-0"><i class="bi bi-person-circle me-2 text-gold"></i>Client Information</h4>
                                 </div>
-                                <div class="glass-card-body">
-                                    <div class="row g-3">
-                                        <div class="col-md-6">
-                                            <label class="luxury-label">First Name</label>
-                                            <input type="text" name="fname" class="luxury-input" value="<?= htmlspecialchars($_SESSION["firstName"] ?? '') ?>" readonly>
-                                        </div>
-                                        <div class="col-md-6">
-                                            <label class="luxury-label">Last Name</label>
-                                            <input type="text" name="lname" class="luxury-input" value="<?= htmlspecialchars($_SESSION["lastName"] ?? '') ?>" readonly>
-                                        </div>
-                                        <div class="col-md-6">
-                                            <label class="luxury-label">Email Address</label>
-                                            <input type="email" name="email" class="luxury-input" value="<?= htmlspecialchars($_SESSION["email"] ?? '') ?>" readonly>
-                                        </div>
-                                        <div class="col-md-6">
-                                            <label class="luxury-label">Contact Number</label>
-                                            <input type="text" name="phone" class="luxury-input" value="<?= htmlspecialchars($_SESSION['contact'] ?? ''); ?>" readonly>
-                                        </div>
-                                        <div class="col-12">
-                                            <div class="luxury-alert">
-                                            <i class="bi bi-info-circle me-2 text-light"></i>
-                                            <span class="text-light">To edit this, go to profile settings</span>
-                                        </div>
+                                <div class="row g-3">
+                                    <div class="col-md-6">
+                                        <label class="text-muted small mb-2 text-uppercase letter-spacing-1">First Name</label>
+                                        <input type="text" name="fname" class="neo-input" value="<?= htmlspecialchars($_SESSION["firstName"] ?? '') ?>" readonly>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <label class="text-muted small mb-2 text-uppercase letter-spacing-1">Last Name</label>
+                                        <input type="text" name="lname" class="neo-input" value="<?= htmlspecialchars($_SESSION["lastName"] ?? '') ?>" readonly>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <label class="text-muted small mb-2 text-uppercase letter-spacing-1">Email Address</label>
+                                        <input type="email" name="email" class="neo-input" value="<?= htmlspecialchars($_SESSION["email"] ?? '') ?>" readonly>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <label class="text-muted small mb-2 text-uppercase letter-spacing-1">Contact Number</label>
+                                        <input type="text" name="phone" class="neo-input" value="<?= htmlspecialchars($_SESSION['contact'] ?? ''); ?>" readonly>
+                                    </div>
+                                    <div class="col-12">
+                                        <div class="alert-gold">
+                                            <i class="bi bi-info-circle me-2"></i>
+                                            <span class="text-gold-dark">To edit this, go to <a href="profile.php">profile settings</a></span>
                                         </div>
                                     </div>
                                 </div>
                             </div>
 
                             <!-- Event Details -->
-                            <div class="glass-card mb-4">
-                                <div class="glass-card-header">
-                                    <i class="bi bi-calendar-event me-2"></i>
-                                    <span>Event Details</span>
+                            <div class="neo-card mb-4">
+                                <div class="mb-4 pb-2 border-bottom border-secondary">
+                                    <h4 class="m-0"><i class="bi bi-calendar-event me-2 text-gold"></i>Event Details</h4>
                                 </div>
-                                <div class="glass-card-body">
-                                    <div class="row g-3">
-                                        <div class="col-md-6">
-                                            <label class="luxury-label">Event Date <span class="text-gold">*</span></label>
-                                            <input type="date" name="eventDate" id="eventDate" class="luxury-input" min="<?= $minBookingDate ?>" value="<?= htmlspecialchars($savedData['eventDate'] ?? '') ?>" required>
-                                            <div id="date-availability-feedback" class="invalid-feedback"></div>
-                                        </div>
-                                        <div class="col-md-6">
-                                            <label class="luxury-label">Event Type <span class="text-gold">*</span></label>
-                                            <select name="eventType" class="luxury-input" required>
-                                                <option value="">Select event type</option>
-                                                <option value="Wedding" <?= (isset($savedData['eventType']) && $savedData['eventType'] === 'Wedding') ? 'selected' : '' ?>>Wedding</option>
-                                                <option value="Birthday" <?= (isset($savedData['eventType']) && $savedData['eventType'] === 'Birthday') ? 'selected' : '' ?>>Birthday</option>
-                                                <option value="Corporate" <?= (isset($savedData['eventType']) && $savedData['eventType'] === 'Corporate') ? 'selected' : '' ?>>Corporate Event</option>
-                                                <option value="Portrait" <?= (isset($savedData['eventType']) && $savedData['eventType'] === 'Portrait') ? 'selected' : '' ?>>Portrait Session</option>
-                                                <option value="Other" <?= (isset($savedData['eventType']) && $savedData['eventType'] === 'Other') ? 'selected' : '' ?>>Other</option>
-                                            </select>
-                                        </div>
-                                        <div class="col-md-6">
-                                            <label class="luxury-label">Start Time <span class="text-gold">*</span></label>
-                                            <input type="time" name="startTime" class="luxury-input" value="<?= htmlspecialchars($savedData['startTime'] ?? '') ?>" required>
-                                        </div>
-                                        <div class="col-md-6">
-                                            <label class="luxury-label">End Time <span class="text-gold">*</span></label>
-                                            <input type="time" name="endTime" class="luxury-input" value="<?= htmlspecialchars($savedData['endTime'] ?? '') ?>" required>
-                                        </div>
-                                        <div class="col-12">
-                                            <label class="luxury-label">Event Location <span class="text-gold">*</span></label>
-                                            <input type="text" name="location" class="luxury-input" placeholder="Full address" value="<?= htmlspecialchars($savedData['location'] ?? '') ?>" required>
-                                        </div>
-                                        <div class="col-12">
-                                            <label class="luxury-label">Landmark (Optional)</label>
-                                            <input type="text" name="landmark" class="luxury-input" placeholder="Nearby landmark for easier navigation" value="<?= htmlspecialchars($savedData['landmark'] ?? '') ?>">
-                                        </div>
+                                <div class="row g-3">
+                                    <div class="col-md-6">
+                                        <?php
+                                        $minBookingDate = date('Y-m-d', strtotime('+5 days'));
+                                        $maxBookingDate = date('Y-m-d', strtotime('+3 years'));
+                                        ?>
+                                        <label class="text-muted small mb-2 text-uppercase letter-spacing-1">Event Date <span class="text-gold">*</span></label>
+                                        <input type="date" name="eventDate" id="eventDate" class="neo-input" min="<?= $minBookingDate ?>" max="<?= $maxBookingDate ?>" value="<?= htmlspecialchars($savedData['eventDate'] ?? '') ?>" required>
+                                        <div id="date-availability-feedback" class="invalid-feedback"></div>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <label class="text-muted small mb-2 text-uppercase letter-spacing-1">Event Type <span class="text-gold">*</span></label>
+                                        <select name="eventType" id="eventType" class="neo-input" required>
+                                            <option value="" class="text-light" selected disabled>Select event type</option>
+                                            <option value="Wedding" class="text-light" <?= (isset($savedData['eventType']) && $savedData['eventType'] === 'Wedding') ? 'selected' : '' ?>>Wedding</option>
+                                            <option value="Birthday" class="text-light" <?= (isset($savedData['eventType']) && $savedData['eventType'] === 'Birthday') ? 'selected' : '' ?>>Birthday</option>
+                                            <option value="Corporate" class="text-light" <?= (isset($savedData['eventType']) && $savedData['eventType'] === 'Corporate') ? 'selected' : '' ?>>Corporate Event</option>
+                                            <option value="Portrait" class="text-light" <?= (isset($savedData['eventType']) && $savedData['eventType'] === 'Portrait') ? 'selected' : '' ?>>Portrait Session</option>
+                                            <option value="Other" class="text-light" <?= (isset($savedData['eventType']) && $savedData['eventType'] === 'Other') ? 'selected' : '' ?>>Other (Please Specify)</option>
+                                        </select>
+                                    </div>
+                                    <!-- Hidden input for custom event type -->
+                                    <div class="col-12" id="customEventTypeContainer" style="display: none;">
+                                        <label class="text-muted small mb-2 text-uppercase letter-spacing-1">Specify Event Type <span class="text-gold">*</span></label>
+                                        <input type="text" name="customEventType" id="customEventType" class="neo-input" placeholder="Enter your event type" value="<?= htmlspecialchars($savedData['customEventType'] ?? '') ?>">
+                                    </div>
+                                    <div class="col-md-6">
+                                        <label class="text-muted small mb-2 text-uppercase letter-spacing-1">Start Time <span class="text-gold">*</span></label>
+                                        <input type="time" name="startTime" class="neo-input" value="<?= htmlspecialchars($savedData['startTime'] ?? '') ?>" required>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <label class="text-muted small mb-2 text-uppercase letter-spacing-1">End Time <span class="text-gold">*</span></label>
+                                        <input type="time" name="endTime" class="neo-input" value="<?= htmlspecialchars($savedData['endTime'] ?? '') ?>" required>
+                                    </div>
+                                    <div class="col-12">
+                                        <label class="text-muted small mb-2 text-uppercase letter-spacing-1">Event Location <span class="text-gold">*</span></label>
+                                        <input type="text" name="location" class="neo-input" placeholder="Full address" value="<?= htmlspecialchars($savedData['location'] ?? '') ?>" required>
+                                    </div>
+                                    <div class="col-12">
+                                        <label class="text-muted small mb-2 text-uppercase letter-spacing-1">Landmark (Optional)</label>
+                                        <input type="text" name="landmark" class="neo-input" placeholder="Nearby landmark for easier navigation" value="<?= htmlspecialchars($savedData['landmark'] ?? '') ?>">
                                     </div>
                                 </div>
                             </div>
 
                             <!-- Package Selection -->
-                            <div class="glass-card mb-4">
-                                <div class="glass-card-header">
-                                    <i class="bi bi-box-seam me-2"></i>
-                                    <span>Select Your Package</span>
+                            <div class="neo-card mb-4">
+                                <div class="mb-4 pb-2 border-bottom border-secondary">
+                                    <h4 class="m-0"><i class="bi bi-box-seam me-2 text-gold"></i>Select Your Package</h4>
                                 </div>
-                                <div class="glass-card-body">
-                                    <div class="row g-3">
-                                        <?php foreach ($packages as $pkg): ?>
-                                        <div class="col-12">
-                                            <input type="radio" name="packageID" id="luxury-pkg-<?= $pkg['packageID'] ?>" value="<?= $pkg['packageID'] ?>" class="luxury-radio" <?= (isset($savedData['packageID']) && $savedData['packageID'] === $pkg['packageID']) ? 'checked' : '' ?> required>
-                                            <label for="luxury-pkg-<?= $pkg['packageID'] ?>" class="luxury-package-card" 
+                                <div class="row g-3">
+                                    <?php foreach ($packages as $pkg): ?>
+                                    <div class="col-12">
+                                        <div class="form-check p-0">
+                                            <input type="radio" name="packageID" id="luxury-pkg-<?= $pkg['packageID'] ?>" value="<?= $pkg['packageID'] ?>" class="btn-check luxury-radio" <?= (isset($savedData['packageID']) && $savedData['packageID'] === $pkg['packageID']) ? 'checked' : '' ?> required>
+                                            <label for="luxury-pkg-<?= $pkg['packageID'] ?>" class="neo-card d-flex justify-content-between align-items-center w-100 cursor-pointer package-label" 
                                                 data-price="<?= $pkg['Price'] ?>" 
                                                 data-name="<?= htmlspecialchars($pkg['packageName']) ?>"
                                                 data-coverage-hours="<?= isset($pkg['coverage_hours']) ? $pkg['coverage_hours'] : 4 ?>"
-                                                data-hourly-rate="<?= isset($pkg['extra_hour_rate']) ? $pkg['extra_hour_rate'] : 1000 ?>">
-                                                <div class="package-content">
-                                                    <div class="package-info">
-                                                        <h5 class="package-name text-light"><?= htmlspecialchars($pkg['packageName']) ?></h5>
-                                                        <p class="package-desc"><?= htmlspecialchars($pkg['description']) ?></p>
-                                                    </div>
-                                                    <div class="package-price">
-                                                        <span class="price-amount">₱<?= number_format($pkg['Price']) ?></span>
-                                                    </div>
+                                                data-hourly-rate="<?= isset($pkg['extra_hour_rate']) ? $pkg['extra_hour_rate'] : 1000 ?>"
+                                                style="cursor: pointer;">
+                                                <div class="d-flex flex-column">
+                                                    <h5 class="text-gold mb-1"><?= htmlspecialchars($pkg['packageName']) ?></h5>
+                                                    <p class="text-muted small mb-0"><?= htmlspecialchars($pkg['description']) ?></p>
                                                 </div>
-                                                <div class="package-check"><i class="bi bi-check-circle-fill"></i></div>
+                                                <div class="text-end">
+                                                    <span class="h5 text-light d-block mb-0">₱<?= number_format($pkg['Price']) ?></span>
+                                                    <i class="bi bi-check-circle-fill text-gold opacity-0 check-icon transition-all"></i>
+                                                </div>
                                             </label>
-                                            <div id="details-<?= $pkg['packageID'] ?>" class="package-details-luxury" style="display: none;"></div>
                                         </div>
-                                        <?php endforeach; ?>
+                                        <div id="details-<?= $pkg['packageID'] ?>" class="mt-3 ps-4 border-start border-gold" style="display: none;"></div>
                                     </div>
+                                    <?php endforeach; ?>
                                 </div>
                             </div>
 
                             <!-- Payment Method -->
-                            <div class="glass-card mb-4">
-                                <div class="glass-card-header">
-                                    <i class="bi bi-credit-card me-2"></i>
-                                    <span>Payment Method</span>
+                            <div class="neo-card mb-4">
+                                <div class="mb-4 pb-2 border-bottom border-secondary">
+                                    <h4 class="m-0"><i class="bi bi-credit-card me-2 text-gold"></i>Payment Method</h4>
                                 </div>
-                                <div class="glass-card-body">
-                                    <div class="row g-3">
-                                        <div class="col-md-6 col-lg-3">
-                                            <input type="radio" name="paymentMethod" id="luxury-pm-gcash" value="GCash" class="luxury-radio" required>
-                                            <label for="luxury-pm-gcash" class="luxury-payment-card">
-                                                <i class="bi bi-phone payment-icon"></i>
-                                                <span class="payment-name">GCash</span>
-                                            </label>
-                                        </div>
-                                        <div class="col-md-6 col-lg-3">
-                                            <input type="radio" name="paymentMethod" id="luxury-pm-paymaya" value="PayMaya" class="luxury-radio">
-                                            <label for="luxury-pm-paymaya" class="luxury-payment-card">
-                                                <i class="bi bi-wallet2 payment-icon"></i>
-                                                <span class="payment-name">PayMaya</span>
-                                            </label>
-                                        </div>
-                                        <div class="col-md-6 col-lg-3">
-                                            <input type="radio" name="paymentMethod" id="luxury-pm-bank" value="Bank Transfer" class="luxury-radio">
-                                            <label for="luxury-pm-bank" class="luxury-payment-card">
-                                                <i class="bi bi-bank payment-icon"></i>
-                                                <span class="payment-name">Bank</span>
-                                            </label>
-                                        </div>
-                                        <div class="col-md-6 col-lg-3">
-                                            <input type="radio" name="paymentMethod" id="luxury-pm-cash" value="Cash" class="luxury-radio">
-                                            <label for="luxury-pm-cash" class="luxury-payment-card">
-                                                <i class="bi bi-cash payment-icon"></i>
-                                                <span class="payment-name">Cash</span>
-                                            </label>
-                                        </div>
+                                <div class="row g-3">
+                                    <?php 
+                                    $methods = [
+                                        'GCash' => 'phone',
+                                        'PayMaya' => 'wallet2',
+                                        'Bank Transfer' => 'bank',
+                                        'Cash' => 'cash'
+                                    ];
+                                    foreach($methods as $name => $icon):
+                                        $id = 'pm-' . strtolower(str_replace(' ', '-', $name));
+                                    ?>
+                                    <div class="col-md-6 col-lg-3">
+                                        <input type="radio" name="paymentMethod" id="<?= $id ?>" value="<?= $name ?>" class="btn-check" required>
+                                        <label for="<?= $id ?>" class="neo-card w-100 text-center p-3 cursor-pointer payment-label" style="cursor: pointer;">
+                                            <i class="bi bi-<?= $icon ?> fs-3 text-gold mb-2 d-block"></i>
+                                            <span class="text-light"><?= $name ?></span>
+                                        </label>
                                     </div>
+                                    <?php endforeach; ?>
+                                </div>
 
-                                    <!-- Payment Details -->
-                                    <div id="paymentDetails" class="mt-4" style="display: none;">
-                                        <div class="payment-info-box">
-                                            <div id="paymentInfo"></div>
-                                        </div>
-                                    </div>
+                                <!-- Payment Details -->
+                                <div id="paymentDetails" class="mt-4 p-3 rounded bg-soft-gold" style="display: none;">
+                                    <div id="paymentInfo"></div>
+                                </div>
 
-                                    <!-- Proof Upload -->
-                                    <div id="proofUploadSection" class="mt-4" style="display: none;">
-                                        <label class="luxury-label">Proof of Payment <span class="text-gold">*</span></label>
-                                        <div class="file-upload-luxury">
-                                            <input type="file" name="paymentProof" id="paymentProof" class="file-input-luxury" accept="image/*,.pdf">
-                                            <label for="paymentProof" class="file-label-luxury">
-                                                <i class="bi bi-cloud-upload me-2"></i>
-                                                <span>Choose file or drag here</span>
-                                            </label>
-                                        </div>
-                                        <small class="text-muted-luxury d-block mt-2">Max 5MB • JPG, PNG, or PDF</small>
-                                        <div id="proofPreview" class="mt-3"></div>
+                                <!-- Proof Upload -->
+                                <div id="proofUploadSection" class="mt-4" style="display: none;">
+                                    <label class="text-muted small mb-2 text-uppercase letter-spacing-1">Proof of Payment <span class="text-gold">*</span></label>
+                                    <div class="neo-input p-1 d-flex align-items-center">
+                                        <input type="file" name="paymentProof" id="paymentProof" class="form-control bg-transparent border-0 text-light" accept="image/*,.pdf">
                                     </div>
+                                    <small class="text-muted d-block mt-2">Max 5MB • JPG, PNG, or PDF</small>
+                                    <div id="proofPreview" class="mt-3"></div>
                                 </div>
                             </div>
 
                             <!-- Special Requests -->
-                            <div class="glass-card mb-4">
-                                <div class="glass-card-header">
-                                    <i class="bi bi-chat-left-text me-2"></i>
-                                    <span>Special Requests</span>
+                            <div class="neo-card mb-4">
+                                <div class="mb-4 pb-2 border-bottom border-secondary">
+                                    <h4 class="m-0"><i class="bi bi-chat-left-text me-2 text-gold"></i>Special Requests</h4>
                                 </div>
-                                <div class="glass-card-body">
-                                    <label class="luxury-label">Additional Notes (Optional)</label>
-                                    <textarea name="specialRequests" class="luxury-textarea" rows="4" placeholder="Any special requirements or requests..."><?= htmlspecialchars($savedData['specialRequests'] ?? '') ?></textarea>
-                                </div>
+                                <label class="text-muted small mb-2 text-uppercase letter-spacing-1">Additional Notes (Optional)</label>
+                                <textarea name="specialRequests" class="neo-input" rows="4" placeholder="Any special requirements or requests..."><?= htmlspecialchars($savedData['specialRequests'] ?? '') ?></textarea>
                             </div>
 
                         </div>
 
                         <!-- Right Column: Real-time Summary -->
                         <div class="col-lg-4">
-                            <div class="sticky-luxury-summary">
-                                <div class="glass-card summary-card">
-                                    <div class="glass-card-header">
-                                        <i class="bi bi-receipt me-2"></i>
-                                        <span>Booking Summary</span>
+                            <div class="sticky-top" style="top: 20px; z-index: 100;">
+                                <div class="neo-card-light shadow-lg shadow-light">
+                                    <div class="mb-4 pb-2 border-bottom border-secondary">
+                                        <h4 class="m-0"><i class="bi bi-receipt me-2 text-gold"></i>Booking Summary</h4>
                                     </div>
-                                    <div class="glass-card-body">
-                                        
-                                        <!-- User Information -->
-                                        <div class="summary-section">
-                                            <div class="summary-label"><i class="bi bi-person me-1"></i> Client Information</div>
-                                            <div id="summary-client-name" class="summary-value text-truncate">-</div>
-                                            <div id="summary-client-email" class="summary-detail">-</div>
-                                            <div id="summary-client-phone" class="summary-detail">-</div>
+                                    
+                                    <!-- User Information -->
+                                    <div class="mb-3">
+                                        <div class="text-muted small mb-1"><i class="bi bi-person me-1"></i> Client Information</div>
+                                        <div id="summary-client-name" class="text-muted-luxury fw-bold text-truncate">-</div>
+                                        <div id="summary-client-email" class="text-muted small">-</div>
+                                        <div id="summary-client-phone" class="text-muted small">-</div>
+                                    </div>
+
+                                    <div class="divider"></div>
+
+                                    <!-- Event Details -->
+                                    <div class="mb-3">
+                                        <div class="text-muted small mb-1"><i class="bi bi-calendar-event me-1"></i> Event Details</div>
+                                        <div id="summary-event-date" class="text-muted-luxury fw-bold">-</div>
+                                        <div id="summary-event-time" class="text-muted small">-</div>
+                                        <div id="summary-event-venue" class="text-muted small text-truncate">-</div>
+                                    </div>
+
+                                    <div class="divider"></div>
+
+                                    <!-- Package Selection -->
+                                    <div class="mb-3">
+                                        <div class="text-muted small mb-1"><i class="bi bi-box-seam me-1"></i> Package</div>
+                                        <div id="summary-package-name" class="text-muted-luxury">Not selected</div>
+                                    </div>
+
+                                    <!-- Add-ons -->
+                                    <div id="summary-addons-container" class="mb-3" style="display: none;">
+                                        <div class="text-muted small mb-1"><i class="bi bi-plus-circle me-1"></i> Add-ons</div>
+                                        <div id="summary-addons-list"></div>
+                                    </div>
+
+                                    <div class="divider"></div>
+
+                                    <!-- Payment Method -->
+                                    <div id="summary-payment-container" class="mb-3" style="display: none;">
+                                        <div class="text-muted small mb-1"><i class="bi bi-credit-card me-1"></i> Payment Method</div>
+                                        <div id="summary-payment-method" class="text-muted-luxury">-</div>
+                                    </div>
+
+                                    <!-- Special Requests -->
+                                    <div id="summary-requests-container" class="mb-3" style="display: none;">
+                                        <div class="text-muted small mb-1"><i class="bi bi-chat-left-text me-1"></i> Special Requests</div>
+                                        <div id="summary-special-requests" class="text-muted small fst-italic">-</div>
+                                    </div>
+
+                                    <div class="divider"></div>
+
+                                    <!-- Pricing -->
+                                    <div class="mt-4">
+                                        <div id="extra-hours-row" class="d-flex justify-content-between mb-2" style="display: none !important;">
+                                            <span class="text-muted small text-uppercase letter-spacing-1">Extra Hours <small id="extra-hours-detail"></small></span>
+                                            <span id="extraHoursPrice" class="text-muted-luxury font-serif">₱0</span>
                                         </div>
-
-                                        <div class="summary-divider"></div>
-
-                                        <!-- Event Details -->
-                                        <div class="summary-section">
-                                            <div class="summary-label"><i class="bi bi-calendar-event me-1"></i> Event Details</div>
-                                            <div id="summary-event-date" class="summary-value">-</div>
-                                            <div id="summary-event-time" class="summary-detail">-</div>
-                                            <div id="summary-event-venue" class="summary-detail text-truncate">-</div>
+                                        <div class="d-flex justify-content-between mb-2">
+                                            <span class="text-muted small text-uppercase letter-spacing-1">Subtotal</span>
+                                            <span id="totalPrice" class="text-muted-luxury fw-bold font-serif fs-5">₱0</span>
                                         </div>
-
-                                        <div class="summary-divider"></div>
-
-                                        <!-- Package Selection -->
-                                        <div class="summary-section">
-                                            <div class="summary-label"><i class="bi bi-box-seam me-1"></i> Package</div>
-                                            <div id="summary-package-name" class="summary-value">Not selected</div>
+                                        <div class="d-flex justify-content-between mt-3 pt-3 border-top border-secondary">
+                                            <span class="text-gold fw-bold small text-uppercase letter-spacing-1">Downpayment (25%)</span>
+                                            <span id="downpaymentAmount" class="text-gold fw-bold fs-4 font-serif">₱0</span>
                                         </div>
+                                    </div>
 
-                                        <!-- Add-ons -->
-                                        <div id="summary-addons-container" class="summary-section" style="display: none;">
-                                            <div class="summary-label"><i class="bi bi-plus-circle me-1"></i> Add-ons</div>
-                                            <div id="summary-addons-list" class="summary-addons"></div>
-                                        </div>
+                                    <!-- Terms & Conditions -->
+                                    <div class="form-check mt-4 mb-4">
+                                        <input class="form-check-input" type="checkbox" id="termsConfirm" required>
+                                        <label class="form-check-label text-muted small" for="termsConfirm">
+                                            I agree to the <a href="#" data-bs-toggle="modal" data-bs-target="#termsModal" class="text-gold text-decoration-none">Terms</a>, <a href="#" data-bs-toggle="modal" data-bs-target="#privacyModal" class="text-gold text-decoration-none">Privacy</a>, and <a href="#" data-bs-toggle="modal" data-bs-target="#refundModal" class="text-gold text-decoration-none">Refund Policy</a>
+                                        </label>
+                                    </div>
 
-                                        <div class="summary-divider"></div>
+                                    <!-- Submit Button -->
+                                     <input type="submit" value="Confirm Booking" class="btn btn-gold w-100 luxury-submit-btn">
+                                   
 
-                                        <!-- Payment Method -->
-                                        <div id="summary-payment-container" class="summary-section" style="display: none;">
-                                            <div class="summary-label"><i class="bi bi-credit-card me-1"></i> Payment Method</div>
-                                            <div id="summary-payment-method" class="summary-value">-</div>
-                                        </div>
-
-                                        <!-- Special Requests -->
-                                        <div id="summary-requests-container" class="summary-section" style="display: none;">
-                                            <div class="summary-label"><i class="bi bi-chat-left-text me-1"></i> Special Requests</div>
-                                            <div id="summary-special-requests" class="summary-detail">-</div>
-                                        </div>
-
-                                        <div class="summary-divider"></div>
-
-                                        <!-- Pricing -->
-                                        <div class="summary-pricing">
-                                            <div id="extra-hours-row" class="pricing-row" style="display: none;">
-                                                <span>
-                                                    Extra Hours <small class="text-muted" id="extra-hours-detail"></small>
-                                                </span>
-                                                <span id="extraHoursPrice" class="price-value">₱0</span>
-                                            </div>
-                                            <div class="pricing-row">
-                                                <span>Subtotal</span>
-                                                <span id="totalPrice" class="price-value">₱0</span>
-                                            </div>
-                                            <div class="pricing-row downpayment-row">
-                                                <span>Downpayment (25%)</span>
-                                                <span id="downpaymentAmount" class="price-value">₱0</span>
-                                            </div>
-                                        </div>
-
-                                        <!-- Terms & Conditions -->
-                                        <div class="form-check mb-4 d-flex align-items-start justify-content-start gap-2">
-                                            <input class="form-check-input luxury-checkbox border" type="checkbox" id="termsConfirm" required>
-                                            <label class="form-check-label text-muted-luxury" for="termsConfirm" style="font-size: 0.85rem;">
-                                                I agree to the <a href="#" data-bs-toggle="modal" data-bs-target="#termsModal" class="text-gold text-decoration-none">Terms of Service</a>, <a href="#" data-bs-toggle="modal" data-bs-target="#privacyModal" class="text-gold text-decoration-none">Privacy Policy</a>, and <a href="#" data-bs-toggle="modal" data-bs-target="#refundModal" class="text-gold text-decoration-none">Refund Policy</a>
-                                            </label>
-                                        </div>
-
-                                        <!-- Submit Button -->
-                                        <button type="submit" class="luxury-submit-btn">
-                                            <span>Confirm Booking</span>
-                                            <i class="bi bi-arrow-right ms-2"></i>
-                                        </button>
-
-                                        <!-- Info Alert -->
-                                        <div class="luxury-alert">
-                                            <i class="bi bi-info-circle me-2"></i>
-                                            <span>25% downpayment required to secure your booking</span>
-                                        </div>
+                                    <!-- Info Alert -->
+                                    <div class="mt-3 p-2 rounded border   bg-opacity-50 text-center">
+                                        <small class="text-muted"><i class="bi bi-info-circle me-1"></i> 25% downpayment required</small>
                                     </div>
                                 </div>
                             </div>
@@ -391,69 +361,54 @@ $minBookingDate = date('Y-m-d', strtotime('+5 days'));
     <?php include "../includes/modals/privacy.php" ?>
     <?php include "../includes/modals/refund.php" ?>
     
-    <!-- SweetAlert2 JS -->
-    <!-- SweetAlert2 JS (Local) -->
-    <script src="../libs/sweetalert2/sweetalert2.all.min.js"></script>
+    <!-- Custom Modal Component -->
+    <?php include '../includes/components/modal.php'; ?>
+    
+    <script src="../../bootstrap-5.3.8-dist/js/bootstrap.bundle.min.js"></script>
+    <script src="../js/modal.js"></script>
     
     <!-- Restore saved form state -->
     <?php if (!empty($savedData)): ?>
     <script>
         // Wait for booking.js to fully load before restoring state
         window.addEventListener('load', function() {
-            // Longer delay to ensure all event listeners are attached
             setTimeout(function() {
                 console.log('Restoring saved form state...');
                 
                 <?php if (isset($savedData['packageID'])): ?>
-                // Trigger package selection if saved
                 const savedPackageId = '<?= htmlspecialchars($savedData['packageID']) ?>';
                 const savedPackage = document.querySelector(`input[name="packageID"][value="${savedPackageId}"]`);
                 
                 if (savedPackage) {
-                    console.log('Found saved package:', savedPackageId);
                     savedPackage.checked = true;
-                    
-                    // Manually trigger package details fetch
                     const detailsContainer = document.getElementById(`details-${savedPackageId}`);
                     if (detailsContainer && typeof fetchAndDisplayPackageDetails === 'function') {
                         fetchAndDisplayPackageDetails(savedPackageId, detailsContainer);
                     }
-                    
-                    // Trigger change event to update summary
                     savedPackage.dispatchEvent(new Event('change', { bubbles: true }));
-                    
-                    console.log('Package selection restored and details loaded');
-                } else {
-                    console.error('Saved package not found:', savedPackageId);
                 }
                 <?php endif; ?>
                 
                 <?php if (isset($savedData['paymentMethod'])): ?>
-                // Trigger payment method selection if saved
                 const paymentMethod = document.querySelector('input[name="paymentMethod"][value="<?= htmlspecialchars($savedData['paymentMethod']) ?>"]');
-                if (paymentMethod && !paymentMethod.checked) {
+                if (paymentMethod) {
                     paymentMethod.checked = true;
                     paymentMethod.dispatchEvent(new Event('change', { bubbles: true }));
-                    console.log('Payment method restored');
                 }
                 <?php endif; ?>
 
                 <?php if (isset($savedData['addons']) && is_array($savedData['addons'])): ?>
-                // Restore selected addons after package details are loaded
                 setTimeout(function() {
-                    console.log('Restoring addons...');
                     <?php foreach ($savedData['addons'] as $addonId): ?>
                     const addon_<?= $addonId ?> = document.querySelector('input[name="addons[]"][value="<?= htmlspecialchars($addonId) ?>"]');
                     if (addon_<?= $addonId ?>) {
                         addon_<?= $addonId ?>.checked = true;
                         addon_<?= $addonId ?>.dispatchEvent(new Event('change', { bubbles: true }));
-                        console.log('Addon restored:', <?= $addonId ?>);
                     }
                     <?php endforeach; ?>
-                }, 1500); // Wait longer for package details to fully load
+                }, 1500);
                 <?php endif; ?>
 
-                // Trigger validation for saved date and times
                 <?php if (isset($savedData['eventDate'])): ?>
                 const eventDateInput = document.getElementById('eventDate');
                 if (eventDateInput && eventDateInput.value) {
@@ -475,62 +430,41 @@ $minBookingDate = date('Y-m-d', strtotime('+5 days'));
                 }
                 <?php endif; ?>
                 
-                console.log('Form state restoration complete');
-            }, 1000); // Increased from 300ms to 1000ms
+            }, 1000);
         });
     </script>
     <?php endif; ?>
     
     <script src="booking.js"></script>
     <script src="user.js"></script>
-    <script src="../../bootstrap-5.3.8-dist/js/bootstrap.bundle.min.js"></script>
     
     <!-- Booking Status Notifications -->
     <?php if ($bookingStatus): ?>
     <script>
         document.addEventListener('DOMContentLoaded', function() {
             <?php if ($bookingStatus === 'success'): ?>
-                Swal.fire({
-                    icon: 'success',
+                LuxuryModal.show({
                     title: 'Booking Submitted!',
-                    text: '<?= addslashes($bookingMessage) ?>',
-                    confirmButtonText: 'View My Bookings',
-                    showCancelButton: true,
-                    cancelButtonText: 'Stay Here',
-                    confirmButtonColor: '#d4af37',
-                    cancelButtonColor: '#6c757d',
-                    background: '#1a1a1a',
-                    color: '#ffffff',
-                    customClass: {
-                        popup: 'luxury-swal-popup',
-                        confirmButton: 'luxury-swal-confirm',
-                        cancelButton: 'luxury-swal-cancel'
-                    }
+                    message: '<?= addslashes($bookingMessage) ?>',
+                    icon: 'success',
+                    confirmText: 'View My Bookings',
+                    cancelText: 'Stay Here'
                 }).then((result) => {
                     if (result.isConfirmed) {
                         window.location.href = 'appointments.php';
                     } else {
-                        // Clear URL parameters
                         const url = new URL(window.location);
                         url.searchParams.delete('booking');
                         window.history.replaceState({}, '', url);
                     }
                 });
             <?php elseif ($bookingStatus === 'error'): ?>
-                Swal.fire({
-                    icon: 'error',
+                LuxuryModal.show({
                     title: 'Booking Failed',
-                    text: '<?= addslashes($bookingMessage) ?>',
-                    confirmButtonText: 'Try Again',
-                    confirmButtonColor: '#d4af37',
-                    background: '#1a1a1a',
-                    color: '#ffffff',
-                    customClass: {
-                        popup: 'luxury-swal-popup',
-                        confirmButton: 'luxury-swal-confirm'
-                    }
+                    message: '<?= addslashes($bookingMessage) ?>',
+                    icon: 'error',
+                    confirmText: 'Try Again'
                 }).then(() => {
-                    // Clear URL parameters
                     const url = new URL(window.location);
                     url.searchParams.delete('error');
                     window.history.replaceState({}, '', url);
@@ -540,26 +474,17 @@ $minBookingDate = date('Y-m-d', strtotime('+5 days'));
     </script>
     <?php endif; ?>
     
-    <!-- Custom SweetAlert Styles -->
     <style>
-        .luxury-swal-popup {
-            border: 1px solid rgba(212, 175, 55, 0.3);
-            border-radius: 12px;
+        /* Additional styles for radio button active states */
+        .btn-check:checked + .neo-card {
+            border-color: var(--gold-main);
+            box-shadow: 0 0 15px rgba(212, 175, 55, 0.1);
         }
-        .luxury-swal-confirm,
-        .luxury-swal-cancel {
-            border-radius: 8px;
-            padding: 10px 24px;
-            font-weight: 600;
-            transition: all 0.3s ease;
+        .btn-check:checked + .neo-card .check-icon {
+            opacity: 1 !important;
         }
-        .luxury-swal-confirm:hover {
-            background-color: #c49b2e !important;
-            transform: translateY(-2px);
-            box-shadow: 0 4px 12px rgba(212, 175, 55, 0.4);
-        }
-        .luxury-swal-cancel:hover {
-            background-color: #5a6268 !important;
+        .btn-check:checked + .neo-card .text-gold {
+            text-shadow: 0 0 10px rgba(212, 175, 55, 0.3);
         }
     </style>
 </body>

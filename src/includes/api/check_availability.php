@@ -40,9 +40,9 @@ try {
         throw new Exception("Database connection failed: " . ($conn->connect_error ?? 'Connection not established'));
     }
     
-    // Check for existing confirmed or pending bookings on this date
-    // Limit to 2 events per day
-    $stmt = $conn->prepare("SELECT COUNT(*) as count FROM bookings WHERE event_date = ? AND booking_status IN ('confirmed', 'pending_consultation')");
+    // Check for existing bookings on this date (excluding cancelled bookings)
+    // Only 1 booking allowed per day
+    $stmt = $conn->prepare("SELECT COUNT(*) as count FROM bookings WHERE event_date = ? AND booking_status != 'Cancelled'");
     
     if (!$stmt) {
         throw new Exception("Prepare failed: " . $conn->error);
@@ -58,11 +58,11 @@ try {
     $row = $result->fetch_assoc();
     $stmt->close();
     
-    // Limit to 1 event per day
+    // Enforce 1 booking per day limit
     $limit = 1;
     
     if ($row['count'] >= $limit) {
-        echo json_encode(['available' => false, 'message' => 'Date is fully booked. Only 1 booking allowed per day.']);
+        echo json_encode(['available' => false, 'message' => 'This date is already booked. Only 1 booking is allowed per day.']);
     } else {
         echo json_encode([
             'available' => true, 
