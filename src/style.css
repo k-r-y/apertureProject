@@ -691,7 +691,7 @@ a.btn {
   transition: ease 0.3s;
 }
 a.btn:hover {
-  transform: translateY(-3px);
+  transform: translateY(-2px);
 }
 
 .galPhotos {
@@ -790,8 +790,10 @@ li {
   left: 0;
   height: 100vh;
   width: var(--sidebar-width);
-  background-color: var(--admin-bg);
-  border-right: 1px solid var(--border-color);
+  background: var(--glass-bg); /* Updated to glass background */
+  backdrop-filter: var(--glass-blur); /* Added blur */
+  -webkit-backdrop-filter: var(--glass-blur);
+  border-right: 1px solid var(--glass-border); /* Updated border */
   z-index: 1000;
   transition: all 0.3s ease;
   overflow: hidden;
@@ -1115,13 +1117,13 @@ body.sidebar-mini .user-profile {
 
 .package-card:hover,
 .addon-card:hover {
-  transform: translateY(-4px);
+  transform: translateY(-2px);
   box-shadow: 0 20px 60px rgba(0, 0, 0, 0.12) !important;
   border-color: rgba(212, 175, 55, 0.3) !important;
 }
 
 .package-card-featured:hover {
-  transform: scale(1.07);
+  transform: scale(1.01);
   box-shadow: 0 25px 70px rgba(212, 175, 55, 0.25) !important;
 }
 
@@ -1172,7 +1174,7 @@ body.sidebar-mini .user-profile {
   }
 
   .package-card-featured:hover {
-    transform: scale(1.02) !important;
+    transform: scale(1.01) !important;
   }
 
   .gallery-item {
@@ -1454,20 +1456,20 @@ body.sidebar-mini .user-profile {
 }
 
 .stat-card {
-  background: rgba(38, 38, 38, 0.4);
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  border-radius: 12px;
+  background: var(--neo-card-bg);
+  border-radius: var(--radius-md);
   padding: 1.5rem;
-  transition: all 0.3s ease;
+  border: 1px solid rgba(255, 255, 255, 0.03);
+  box-shadow: var(--neo-shadow-out);
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
   color: var(--light);
 }
 
+/* Removed hover effect as requested */
 .stat-card:hover {
-  transform: translateY(-2px);
-  border-color: rgba(212, 175, 55, 0.5);
-  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+  transform: none;
+  box-shadow: var(--neo-shadow-out);
+  border-color: rgba(255, 255, 255, 0.03);
 }
 
 .stat-card .stat-icon {
@@ -1915,4 +1917,115 @@ li {
   filter: invert(1) !important;
   cursor: pointer;
   opacity: 1;
+}
+
+.feature-card-black {
+  background: linear-gradient(135deg, #1a1a1a 0%, #2a2a2a 100%);
+  border: 2px solid var(--gold);
+  border-radius: 8px;
+  padding: 2rem 1.75rem;
+  transition: all 0.4s ease;
+  transform: scale(1.05);
+}
+.feature-card-light {
+  background: #ffffff;
+  border: 1px solid rgba(0, 0, 0, 0.08);
+  border-radius: 8px;
+  padding: 2rem 1.75rem;
+  transition: all 0.4s ease;
+}
+.gold-btn {
+  background: var(--gold);
+  color: #000;
+  font-size: 0.75rem;
+  letter-spacing: 1.5px;
+  font-weight: 600;
+  border-radius: 6px;
+  transition: all 0.3s ease;
+}
+.normal-btn {
+  background: transparent;
+  color: #1a1a1a;
+  border: 1px solid #1a1a1a;
+  font-size: 0.75rem;
+  letter-spacing: 1.5px;
+  font-weight: 500;
+  border-radius: 6px;
+  transition: all 0.3s ease;
+}
+
+.normal-btn:hover {
+  transform: none !important;
+  box-shadow: none !important;
+  border: 1px solid #1a1a1a !important;
+}
+.gold-btn:hover {
+  transform: none !important;
+  box-shadow: none !important;
+  border: 1px solid #1a1a1a !important;
+  background: var(--gold) !important;
+  color: #000 !important;
+}
+
+/* --- Luxury Design Utilities --- */
+.serif {
+  font-family: "Playfair Display", serif;
+}
+
+.text-gold {
+  color: var(--gold) !important;
+}
+
+.bg-gold-light {
+  background: rgba(212, 175, 55, 0.08);
+}
+
+.border-gold-light {
+  border: 1px solid rgba(212, 175, 55, 0.2) !important;
+}
+
+.btn-gold {
+  background-color: var(--gold);
+  color: #000;
+  border: 1px solid var(--gold);
+  font-weight: 500;
+  transition: all 0.3s ease;
+}
+
+.btn-gold:hover {
+  background-color: #c5a028;
+  border-color: #c5a028;
+  color: #000;
+  transform: translateY(-2px);
+}
+
+.btn-outline-gold {
+  background: transparent;
+  color: var(--gold);
+  border: 1px solid var(--gold);
+  font-weight: 500;
+  transition: all 0.3s ease;
+}
+
+.btn-outline-gold:hover {
+  background: var(--gold);
+  color: #000;
+  transform: translateY(-2px);
+}
+
+.hover-lift {
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.hover-lift:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1) !important;
+}
+
+.pill-gold {
+  background: rgba(212, 175, 55, 0.1);
+  border: 1px solid rgba(212, 175, 55, 0.3);
+  color: var(--gold);
+  font-weight: 600;
+  letter-spacing: 1px;
 }

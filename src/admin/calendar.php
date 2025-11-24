@@ -36,19 +36,17 @@ if (isset($_GET['action']) and $_GET['action'] === 'logout') {
 
     <link rel="stylesheet" href="../../bootstrap-5.3.8-dist/css/bootstrap.min.css">
     <link rel="stylesheet" href="../../bootstrap-5.3.8-dist/font/bootstrap-icons.css">
-    <link rel="stylesheet" href="../style.css">
+    <link rel="stylesheet" href="../luxuryDesignSystem.css">
+    <link rel="stylesheet" href="../css/modal.css">
     <link rel="stylesheet" href="admin.css">
+    <link rel="stylesheet" href="../style.css">
     <link rel="icon" href="../assets/camera.png" type="image/x-icon">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Playfair+Display:wght@400;500;600;700&display=swap" rel="stylesheet">
 
-    <!-- ApexCharts -->
-    <script src="https://cdn.jsdelivr.net/npm/apexcharts"></script>
-
-    <!-- FullCalendar CSS -->
-    <script src='https://cdn.jsdelivr.net/npm/fullcalendar@6.1.14/index.global.min.js'></script>
-
-    <style>
-        /* FullCalendar Customizations */
-    </style>
+    <!-- FullCalendar -->
+    <script src='https://cdn.jsdelivr.net/npm/fullcalendar@6.1.10/index.global.min.js'></script>
 </head>
 
 <body class="admin-dashboard">
@@ -58,31 +56,37 @@ if (isset($_GET['action']) and $_GET['action'] === 'logout') {
         <?php include_once 'components/header.php'; ?>
 
         <main class="main-content">
+            <div class="container-fluid p-0">
+
+                <div class="d-flex justify-content-between align-items-center mb-4">
+                    <h1 class="header-title m-0">Booking Calendar</h1>
+                    <a href="appointment.php" class="btn btn-gold">+ New Appointment</a>
+                </div>
+
+                <div class="calendar-luxury" id="calendar"></div>
+
+            </div>
+        </main>
+    </div>
+
+    <script src="../../bootstrap-5.3.8-dist/js/bootstrap.bundle.min.js"></script>
     <script src="admin.js"></script>
     <script>
         document.addEventListener('DOMContentLoaded', function() {
             var calendarEl = document.getElementById('calendar');
             var calendar = new FullCalendar.Calendar(calendarEl, {
-                initialView: 'dayGridMonth',
                 themeSystem: 'bootstrap5',
+                initialView: 'dayGridMonth',
                 headerToolbar: {
                     left: 'prev,next today',
                     center: 'title',
                     right: 'dayGridMonth,timeGridWeek,timeGridDay'
                 },
-                events: [{
-                        title: 'Stark Industries - Wedding',
-                        start: '2025-11-18T14:00:00'
-                    },
-                    {
-                        title: 'Wayne Enterprises - Corporate Event',
-                        start: '2025-11-22'
-                    },
-                    {
-                        title: 'Aperture Science - Product Shoot',
-                        start: '2025-12-02'
-                    }
-                ]
+                events: 'get_bookings.php', // Fetch events from this endpoint
+                eventClick: function(info) {
+                    // Optional: Open modal with details
+                    alert('Booking: ' + info.event.title);
+                }
             });
             calendar.render();
         });

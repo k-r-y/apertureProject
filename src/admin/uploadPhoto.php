@@ -42,29 +42,46 @@ $allowedTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/gif'];
 $maxFileSize = 5 * 1024 * 1024; // 5MB
 $uploadedCount = 0;
 $errors = [];
+$successful = [];
+$failed = [];
 
 // Process each uploaded file
 foreach ($_FILES['photos']['tmp_name'] as $index => $tmpName) {
+    $originalName = $_FILES['photos']['name'][$index];
+    
     if ($_FILES['photos']['error'][$index] !== UPLOAD_ERR_OK) {
-        $errors[] = "Error uploading " . $_FILES['photos']['name'][$index];
+        $failed[] = [
+            'index' => $index,
+            'filename' => $originalName,
+            'reason' => 'Upload error occurred'
+        ];
         continue;
     }
 
     // Validate file type
     $fileType = $_FILES['photos']['type'][$index];
     if (!in_array($fileType, $allowedTypes)) {
-        $errors[] = $_FILES['photos']['name'][$index] . " is not a valid image type";
+        $failed[] = [
+            'index' => $index,
+            'filename' => $originalName,
+            'reason' => 'Invalid file type (only JPG, PNG, GIF allowed)'
+        ];
         continue;
     }
 
     // Validate file size
-    if ($_FILES['photos']['size'][$index] > $maxFileSize) {
-        $errors[] = $_FILES['photos']['name'][$index] . " exceeds 5MB limit";
+    $fileSize = $_FILES['photos']['size'][$index];
+    if ($fileSize > $maxFileSize) {
+        $fileSizeMB = round($fileSize / (1024 * 1024), 1);
+        $failed[] = [
+            'index' => $index,
+            'filename' => $originalName,
+            'reason' => "File too large ({$fileSizeMB}MB, max 5MB)"
+        ];
         continue;
     }
 
     // Generate unique filename
-    $originalName = $_FILES['photos']['name'][$index];
     $extension = pathinfo($originalName, PATHINFO_EXTENSION);
     $fileName = uniqid('photo_' . time() . '_') . '.' . $extension;
     $filePath = $uploadDir . $fileName;
@@ -79,33 +96,53 @@ foreach ($_FILES['photos']['tmp_name'] as $index => $tmpName) {
         $stmt->bind_param("issis", $userID, $fileName, $originalName, $uploadedBy, $caption);
 
         if ($stmt->execute()) {
+            $photoID = $conn->insert_id;
             $uploadedCount++;
+            $successful[] = [
+                'index' => $index,
+                'filename' => $originalName,
+                'photoID' => $photoID
+            ];
         } else {
-            $errors[] = "Database error for " . $originalName;
+            $failed[] = [
+                'index' => $index,
+                'filename' => $originalName,
+                'reason' => 'Database error'
+            ];
             // Delete the uploaded file if database insert fails
             unlink($filePath);
         }
         $stmt->close();
     } else {
-        $errors[] = "Failed to save " . $originalName;
+        $failed[] = [
+            'index' => $index,
+            'filename' => $originalName,
+            'reason' => 'Failed to save file to server'
+        ];
     }
 }
 
+$totalFiles = count($_FILES['photos']['name']);
+
 if ($uploadedCount > 0) {
-    $message = "Successfully uploaded $uploadedCount photo(s)";
-    if (!empty($errors)) {
-        $message .= ". Some files failed: " . implode(', ', $errors);
-    }
+    $message = "Successfully uploaded $uploadedCount of $totalFiles photo(s)";
     echo json_encode([
         'success' => true,
         'uploaded' => $uploadedCount,
+        'total' => $totalFiles,
         'message' => $message,
-        'errors' => $errors
+        'successful' => $successful,
+        'failed' => $failed
     ]);
 } else {
     echo json_encode([
         'success' => false,
-        'message' => 'No photos were uploaded. ' . implode(', ', $errors)
+        'uploaded' => 0,
+        'total' => $totalFiles,
+        'message' => 'No photos were uploaded',
+        'successful' => [],
+        'failed' => $failed
     ]);
 }
 ?>
+

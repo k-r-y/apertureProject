@@ -36,10 +36,14 @@ if (isset($_GET['action']) and $_GET['action'] === 'logout') {
     <title>Admin Dashboard - Aperture</title>
     <link rel="stylesheet" href="../../bootstrap-5.3.8-dist/css/bootstrap.min.css">
     <link rel="stylesheet" href="../../bootstrap-5.3.8-dist/font/bootstrap-icons.css">
-    <link rel="stylesheet" href="../style.css">
+    <link rel="stylesheet" href="../luxuryDesignSystem.css">
+    <link rel="stylesheet" href="../css/modal.css">
     <link rel="stylesheet" href="admin.css">
-    lin
+    <link rel="stylesheet" href="../style.css">
     <link rel="icon" href="../assets/camera.png" type="image/x-icon">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Playfair+Display:wght@400;500;600;700&display=swap" rel="stylesheet">
 
     <!-- ApexCharts -->
     <script src="https://cdn.jsdelivr.net/npm/apexcharts"></script>
@@ -61,7 +65,7 @@ if (isset($_GET['action']) and $_GET['action'] === 'logout') {
                 <!-- Stat Cards Row -->
                 <div class="row g-4 mb-5">
                     <div class="col-xl-3 col-md-6">
-                        <div class="stat-card">
+                        <div class="neo-card">
                             <div class="stat-icon"><i class="bi bi-cash-coin"></i></div>
                             <div class="stat-title">Total Revenue</div>
                             <div class="stat-value">₱125,680</div>
@@ -75,14 +79,14 @@ if (isset($_GET['action']) and $_GET['action'] === 'logout') {
                         </div>
                     </div>
                     <div class="col-xl-3 col-md-6">
-                        <div class="stat-card">
+                        <div class="neo-card">
                             <div class="stat-icon"><i class="bi bi-calendar-event"></i></div>
                             <div class="stat-title">Upcoming Events</div>
                             <div class="stat-value">12</div>
                         </div>
                     </div>
                     <div class="col-xl-3 col-md-6">
-                        <div class="stat-card">
+                        <div class="neo-card">
                             <div class="stat-icon"><i class="bi bi-people"></i></div>
                             <div class="stat-title">New Clients</div>
                             <div class="stat-value">23</div>
@@ -93,13 +97,13 @@ if (isset($_GET['action']) and $_GET['action'] === 'logout') {
                 <!-- Charts Row -->
                 <div class="row g-4">
                     <div class="col-lg-8">
-                        <div class="chart-card h-100 stat-card">
+                        <div class="neo-card h-100">
                             <h4 class="card-header-title mb-4">Monthly Bookings</h4>
                             <div id="monthlyBookingsChart"></div>
                         </div>
                     </div>
                     <div class="col-lg-4">
-                        <div class="chart-card h-100 stat-card">
+                        <div class="neo-card h-100">
                             <h4 class="card-header-title mb-4">Service Popularity</h4>
                             <div id="servicePopularityChart"></div>
                         </div>

@@ -1,7 +1,7 @@
 <header>
   <nav class="navbar navbar-expand-lg position-fixed px-1 px-md-1 px-lg-3 z-5 shadow-sm">
 
-    <div class="container-fluid d-flex justify-content-between align-items-center">
+    <div class="container-fluid">
 
       <div class="d-flex gap-1 align-items-center">
         

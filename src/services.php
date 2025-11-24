@@ -1,6 +1,31 @@
 <?php
 
+require_once 'includes/functions/config.php';
+require_once 'includes/functions/auth.php';
+require_once 'includes/functions/function.php';
+require_once 'includes/functions/csrf.php';
 require_once 'includes/functions/session.php';
+
+$packages = [];
+$query = "SELECT * FROM packages";
+$result = $conn->query($query);
+if ($result) {
+    while ($row = $result->fetch_assoc()) {
+        // Fetch Inclusions for this package
+        $incQuery = "SELECT Description FROM inclusion WHERE packageID = ?";
+        $incStmt = $conn->prepare($incQuery);
+        $incStmt->bind_param("s", $row['packageID']);
+        $incStmt->execute();
+        $incResult = $incStmt->get_result();
+        $inclusions = [];
+        while ($inc = $incResult->fetch_assoc()) {
+            $inclusions[] = $inc['Description'];
+        }
+        $row['inclusions'] = $inclusions;
+        $packages[] = $row;
+        $incStmt->close();
+    }
+}
 
 
 ?>
@@ -17,6 +42,11 @@ require_once 'includes/functions/session.php';
   <link rel="icon" href="./assets/camera.png" type="image/x-icon">
   <link rel="stylesheet" href="../bootstrap-5.3.8-dist/font/bootstrap-icons.css">
   <title>Our Services - Professional Photography & Videography | Aperture</title>
+
+  <style>
+    
+  </style>
+
 </head>
 
 <body>
@@ -68,180 +98,58 @@ require_once 'includes/functions/session.php';
 
       <div class="row g-4 justify-content-center align-items-stretch">
 
-        <!-- Essential Package -->
+      <?php foreach ($packages as $index => $package): ?>
+
         <div class="col-lg-4 col-md-6">
-          <div class="package-card h-100 position-relative d-flex flex-column" style="background: #ffffff; border: 1px solid rgba(0,0,0,0.08); border-radius: 8px; padding: 2rem 1.75rem; transition: all 0.4s ease;">
+          <div class="package-card h-100 position-relative d-flex flex-column <?= ($index === 1) ? 'feature-card-black' : 'feature-card-light';?>" style="">
             <span class="position-absolute top-0 start-0 mt-3 ms-3 px-2 py-1" style="background: rgba(212, 175, 55, 0.1); font-size: 0.6rem; letter-spacing: 2px; color: var(--gold); font-weight: 600; border-radius: 4px;">INTIMATE</span>
 
-            <div class="mb-3" style="padding-top: 1.5rem;">
-              <h3 class="serif mb-1" style="font-size: 1.5rem; font-weight: 300; letter-spacing: 0.5px; color: #1a1a1a;">Essential</h3>
-              <p class="mb-3" style="font-size: 0.8rem; line-height: 1.5; opacity: 0.6; font-weight: 300;">Perfect for intimate celebrations</p>
-
-              <div class="d-flex align-items-baseline mb-1">
-                <span style="font-size: 0.7rem; color: #999; margin-right: 0.25rem;">₱</span>
-                <span class="serif" style="font-size: 2rem; font-weight: 300; letter-spacing: -1px; color: var(--gold);">7,500</span>
-              </div>
-              <div class="d-flex align-items-center gap-2 mb-2">
-                <span style="font-size: 0.65rem; text-transform: uppercase; letter-spacing: 1px; color: #999; font-weight: 500;">2 hours</span>
-                <span style="font-size: 0.65rem; color: #ccc;">•</span>
-                <span style="font-size: 0.65rem; text-transform: uppercase; letter-spacing: 1px; color: #999; font-weight: 500;">1 Photographer</span>
-              </div>
-              <p style="font-size: 0.7rem; opacity: 0.5; margin: 0;">+ ₱1,000/hr</p>
-            </div>
-
-            <div class="mb-3 flex-grow-1" style="border-top: 1px solid rgba(0,0,0,0.05); padding-top: 1.25rem;">
-              <div class="d-flex align-items-start mb-2">
-                <span style="width: 4px; height: 4px; background: var(--gold); border-radius: 50%; margin-top: 0.45rem; margin-right: 0.65rem; flex-shrink: 0;"></span>
-                <span style="font-size: 0.8rem; line-height: 1.5; font-weight: 300; color: #4a4a4a;">40+ Edited Photos</span>
-              </div>
-              <div class="d-flex align-items-start mb-2">
-                <span style="width: 4px; height: 4px; background: var(--gold); border-radius: 50%; margin-top: 0.45rem; margin-right: 0.65rem; flex-shrink: 0;"></span>
-                <span style="font-size: 0.8rem; line-height: 1.5; font-weight: 300; color: #4a4a4a;">1–2 Min Highlight Video</span>
-              </div>
-              <div class="d-flex align-items-start mb-2">
-                <span style="width: 4px; height: 4px; background: var(--gold); border-radius: 50%; margin-top: 0.45rem; margin-right: 0.65rem; flex-shrink: 0;"></span>
-                <span style="font-size: 0.8rem; line-height: 1.5; font-weight: 300; color: #4a4a4a;">Color Grading & Audio</span>
-              </div>
-              <div class="d-flex align-items-start mb-2">
-                <span style="width: 4px; height: 4px; background: var(--gold); border-radius: 50%; margin-top: 0.45rem; margin-right: 0.65rem; flex-shrink: 0;"></span>
-                <span style="font-size: 0.8rem; line-height: 1.5; font-weight: 300; color: #4a4a4a;">Gallery Access (1 Month)</span>
-              </div>
-              <div class="d-flex align-items-start">
-                <span style="width: 4px; height: 4px; background: var(--gold); border-radius: 50%; margin-top: 0.45rem; margin-right: 0.65rem; flex-shrink: 0;"></span>
-                <span style="font-size: 0.8rem; line-height: 1.5; font-weight: 300; color: #4a4a4a;">Free Consultation</span>
-              </div>
-            </div>
-
-            <div class="mt-auto" style="padding-top: 1.25rem;">
-              <a href="logIn.php" class="btn w-100 py-2 btn-book-package" data-package="Essential" data-price="7500" style="background: transparent; color: #1a1a1a; border: 1px solid #1a1a1a; font-size: 0.75rem; letter-spacing: 1.5px; font-weight: 500; border-radius: 6px; transition: all 0.3s ease;">RESERVE NOW</a>
-              <p class="text-center mt-2 mb-0" style="font-size: 0.65rem; opacity: 0.5;">20% deposit required</p>
-            </div>
-          </div>
-        </div>
-
-        <!-- Premium Package (Featured) -->
-        <div class="col-lg-4 col-md-6">
-          <div class="package-card-featured h-100 position-relative d-flex flex-column" style="background: linear-gradient(135deg, #1a1a1a 0%, #2a2a2a 100%); border: 2px solid var(--gold); border-radius: 8px; padding: 2rem 1.75rem; transition: all 0.4s ease; transform: scale(1.05);">
+            <?php if ($package['packageID'] == 'premium'): ?>
             <span class="position-absolute top-0 end-0 mt-3 me-3 px-2 py-1" style="background: var(--gold); font-size: 0.6rem; letter-spacing: 2px; color: #000; font-weight: 600; border-radius: 4px;">RECOMMENDED</span>
+            <?php endif; ?>
 
             <div class="mb-3" style="padding-top: 1.5rem;">
-              <h3 class="serif mb-1 text-light" style="font-size: 1.5rem; font-weight: 300; letter-spacing: 0.5px;">Premium</h3>
-              <p class="mb-3 text-light" style="font-size: 0.8rem; line-height: 1.5; opacity: 0.6; font-weight: 300;">Most comprehensive coverage</p>
+              <h3 class="serif mb-1 <?= ($index === 1) ? 'text-light' : 'text-dark'; ?>" style="font-size: 1.5rem; font-weight: 300; letter-spacing: 0.5px; color: #1a1a1a;">
+                <?= htmlspecialchars($package['packageName']); ?>
+              </h3>
+              <p class="mb-3 <?= ($index === 1) ? 'text-light' : 'text-dark'; ?>" style="font-size: 0.8rem; line-height: 1.5; opacity: 0.6; font-weight: 300;">
+                <?= htmlspecialchars($package['description']); ?>
+              </p>
 
               <div class="d-flex align-items-baseline mb-1">
-                <span class="text-light" style="font-size: 0.7rem; opacity: 0.6; margin-right: 0.25rem;">₱</span>
-                <span class="serif" style="font-size: 2rem; font-weight: 300; letter-spacing: -1px; color: var(--gold);">15,000</span>
+                <span style="font-size: 0.7rem; color: #999; margin-right: 0.25rem; <?= ($index === 1) ? 'text-light' : 'text-dark'; ?>">₱</span>
+                <span class="serif" style="font-size: 2rem; font-weight: 300; letter-spacing: -1px; color: var(--gold);">
+                  <?= number_format($package['Price'], 2); ?>
+                </span>
               </div>
               <div class="d-flex align-items-center gap-2 mb-2">
-                <span class="text-light" style="font-size: 0.65rem; text-transform: uppercase; letter-spacing: 1px; opacity: 0.6; font-weight: 500;">4 hours</span>
-                <span class="text-light" style="font-size: 0.65rem; opacity: 0.4;">•</span>
-                <span class="text-light" style="font-size: 0.65rem; text-transform: uppercase; letter-spacing: 1px; opacity: 0.6; font-weight: 500;">Dual Coverage</span>
-              </div>
-              <p class="text-light" style="font-size: 0.7rem; opacity: 0.5; margin: 0;">+ ₱1,200/hr</p>
-            </div>
-
-            <div class="mb-3 flex-grow-1" style="border-top: 1px solid rgba(255,255,255,0.1); padding-top: 1.25rem;">
-              <div class="d-flex align-items-start mb-2">
-                <span style="width: 4px; height: 4px; background: var(--gold); border-radius: 50%; margin-top: 0.45rem; margin-right: 0.65rem; flex-shrink: 0;"></span>
-                <span class="text-light" style="font-size: 0.8rem; line-height: 1.5; font-weight: 300;">100+ Edited Photos</span>
-              </div>
-              <div class="d-flex align-items-start mb-2">
-                <span style="width: 4px; height: 4px; background: var(--gold); border-radius: 50%; margin-top: 0.45rem; margin-right: 0.65rem; flex-shrink: 0;"></span>
-                <span class="text-light" style="font-size: 0.8rem; line-height: 1.5; font-weight: 300;">3–5 Min Highlight Film</span>
-              </div>
-              <div class="d-flex align-items-start mb-2">
-                <span style="width: 4px; height: 4px; background: var(--gold); border-radius: 50%; margin-top: 0.45rem; margin-right: 0.65rem; flex-shrink: 0;"></span>
-                <span class="text-light" style="font-size: 0.8rem; line-height: 1.5; font-weight: 300;">Full Event (10–15 min)</span>
-              </div>
-              <div class="d-flex align-items-start mb-2">
-                <span style="width: 4px; height: 4px; background: var(--gold); border-radius: 50%; margin-top: 0.45rem; margin-right: 0.65rem; flex-shrink: 0;"></span>
-                <span class="text-light" style="font-size: 0.8rem; line-height: 1.5; font-weight: 300;">Audio & Speeches</span>
-              </div>
-              <div class="d-flex align-items-start mb-2">
-                <span style="width: 4px; height: 4px; background: var(--gold); border-radius: 50%; margin-top: 0.45rem; margin-right: 0.65rem; flex-shrink: 0;"></span>
-                <span class="text-light" style="font-size: 0.8rem; line-height: 1.5; font-weight: 300;">Professional Lighting</span>
-              </div>
-              <div class="d-flex align-items-start">
-                <span style="width: 4px; height: 4px; background: var(--gold); border-radius: 50%; margin-top: 0.45rem; margin-right: 0.65rem; flex-shrink: 0;"></span>
-                <span class="text-light" style="font-size: 0.8rem; line-height: 1.5; font-weight: 300;">Gallery Access (3 Months)</span>
+                <span style="font-size: 1rem; text-transform: uppercase; letter-spacing: 1px; color: #999; font-weight: 500; <?= ($index === 1) ? 'text-light' : 'text-dark'; ?>">
+                  <?= htmlspecialchars($package['coverage_hours']); ?> hours of coverage
+                </span>
+              
               </div>
             </div>
 
-            <div class="mt-auto" style="padding-top: 1.25rem;">
-              <a href="logIn.php" class="btn w-100 py-2 btn-book-package" data-package="Premium" data-price="15000" style="background: var(--gold); color: #000; font-size: 0.75rem; letter-spacing: 1.5px; font-weight: 600; border-radius: 6px; transition: all 0.3s ease;">RESERVE NOW</a>
-              <p class="text-center mt-2 mb-0 text-light" style="font-size: 0.65rem; opacity: 0.5;">20% deposit required</p>
+            <div class="package-inclusions mb-auto">
+              <h4 class="mb-2 <?= ($index === 1) ? 'text-light' : 'text-dark'; ?>" style="font-size: 0.8rem; font-weight: 500; letter-spacing: 1px; color: #1a1a1a;">What's Included</h4>
+              <ul class="list-unstyled mb-0">
+                <?php foreach ($package['inclusions'] as $inclusion): ?>
+                  <li class="mb-2 <?= ($index === 1) ? 'text-light' : 'text-dark'; ?>" style="font-size: 0.7rem; opacity: 0.8; font-weight: 300; "> <i class="bi bi-check-circle-fill text-gold check-icon transition-all me-2"></i>
+                    <?= htmlspecialchars($inclusion); ?>
+                  </li>
+                <?php endforeach; ?>
+              </ul>
+            </div>
+             <div class="mt-auto" style="padding-top: 1.25rem;">
+              <a href="logIn.php" class="btn w-100 py-2 btn-book-package <?= ($index === 1) ? 'gold-btn' : 'normal-btn'; ?>" data-id="<?= htmlspecialchars($package['packageID']); ?>" data-package="<?= htmlspecialchars($package['packageName']); ?>" data-price="<?= htmlspecialchars($package['Price']); ?>" style="">Book now</a>
+              <p class="text-center mt-2 mb-0 <?= ($index === 1) ? 'text-light' : 'text-dark'; ?>" style="font-size: 0.65rem; opacity: 0.5; ">25% downpayment required</p>
             </div>
           </div>
         </div>
 
-        <!-- Elite Package -->
-        <div class="col-lg-4 col-md-6">
-          <div class="package-card h-100 position-relative d-flex flex-column" style="background: #ffffff; border: 1px solid rgba(0,0,0,0.08); border-radius: 8px; padding: 2rem 1.75rem; transition: all 0.4s ease;">
-            <span class="position-absolute top-0 start-0 mt-3 ms-3 px-2 py-1" style="background: rgba(0,0,0,0.05); font-size: 0.6rem; letter-spacing: 2px; color: #1a1a1a; font-weight: 600; border-radius: 4px;">SIGNATURE</span>
+        <?php endforeach; ?>
 
-            <div class="mb-3" style="padding-top: 1.5rem;">
-              <h3 class="serif mb-1" style="font-size: 1.5rem; font-weight: 300; letter-spacing: 0.5px; color: #1a1a1a;">Elite</h3>
-              <p class="mb-3" style="font-size: 0.8rem; line-height: 1.5; opacity: 0.6; font-weight: 300;">Complete cinematic experience</p>
 
-              <div class="d-flex align-items-baseline mb-1">
-                <span style="font-size: 0.7rem; color: #999; margin-right: 0.25rem;">₱</span>
-                <span class="serif" style="font-size: 2rem; font-weight: 300; letter-spacing: -1px; color: var(--gold);">25,000</span>
-              </div>
-              <div class="d-flex align-items-center gap-2 mb-2">
-                <span style="font-size: 0.65rem; text-transform: uppercase; letter-spacing: 1.5px; color: #999; font-weight: 500;">8 hrs coverage</span>
-                <span style="font-size: 0.65rem; color: #ccc;">•</span>
-                <span style="font-size: 0.65rem; text-transform: uppercase; letter-spacing: 1.5px; color: #999; font-weight: 500;">Full Team</span>
-              </div>
-              <p style="font-size: 0.7rem; opacity: 0.5; margin: 0;">+ ₱1,500 per extra hour</p>
-            </div>
-
-            <div class="mb-3 flex-grow-1" style="border-top: 1px solid rgba(0,0,0,0.05); padding-top: 1.25rem;">
-              <div class="d-flex align-items-start mb-2">
-                <span style="width: 4px; height: 4px; background: var(--gold); border-radius: 50%; margin-top: 0.45rem; margin-right: 0.65rem; flex-shrink: 0;"></span>
-                <span style="font-size: 0.8rem; line-height: 1.5; font-weight: 300; color: #4a4a4a;">200 Edited + Raw Photos</span>
-              </div>
-              <div class="d-flex align-items-start mb-2">
-                <span style="width: 4px; height: 4px; background: var(--gold); border-radius: 50%; margin-top: 0.45rem; margin-right: 0.65rem; flex-shrink: 0;"></span>
-                <span style="font-size: 0.8rem; line-height: 1.5; font-weight: 300; color: #4a4a4a;">7–10 Min Cinematic Film (HD)</span>
-              </div>
-              <div class="d-flex align-items-start mb-2">
-                <span style="width: 4px; height: 4px; background: var(--gold); border-radius: 50%; margin-top: 0.45rem; margin-right: 0.65rem; flex-shrink: 0;"></span>
-                <span style="font-size: 0.8rem; line-height: 1.5; font-weight: 300; color: #4a4a4a;">Full Event Film (20+ min)</span>
-              </div>
-              <div class="d-flex align-items-start mb-2">
-                <span style="width: 4px; height: 4px; background: var(--gold); border-radius: 50%; margin-top: 0.45rem; margin-right: 0.65rem; flex-shrink: 0;"></span>
-                <span style="font-size: 0.8rem; line-height: 1.5; font-weight: 500; color: #1a1a1a;">Drone Coverage Included</span>
-              </div>
-              <div class="d-flex align-items-start mb-2">
-                <span style="width: 4px; height: 4px; background: var(--gold); border-radius: 50%; margin-top: 0.45rem; margin-right: 0.65rem; flex-shrink: 0;"></span>
-                <span style="font-size: 0.8rem; line-height: 1.5; font-weight: 500; color: #1a1a1a;">Same-Day Edit (SDE) Included</span>
-              </div>
-              <div class="d-flex align-items-start mb-2">
-                <span style="width: 4px; height: 4px; background: var(--gold); border-radius: 50%; margin-top: 0.45rem; margin-right: 0.65rem; flex-shrink: 0;"></span>
-                <span style="font-size: 0.8rem; line-height: 1.5; font-weight: 300; color: #4a4a4a;">Premium Color Grading</span>
-              </div>
-              <div class="d-flex align-items-start mb-2">
-                <span style="width: 4px; height: 4px; background: var(--gold); border-radius: 50%; margin-top: 0.45rem; margin-right: 0.65rem; flex-shrink: 0;"></span>
-                <span style="font-size: 0.8rem; line-height: 1.5; font-weight: 300; color: #4a4a4a;">Gallery Access (1 Year)</span>
-              </div>
-              <div class="d-flex align-items-start mb-2">
-                <span style="width: 4px; height: 4px; background: var(--gold); border-radius: 50%; margin-top: 0.45rem; margin-right: 0.65rem; flex-shrink: 0;"></span>
-                <span style="font-size: 0.8rem; line-height: 1.5; font-weight: 300; color: #4a4a4a;">Premium USB + Case</span>
-              </div>
-              <div class="d-flex align-items-start">
-                <span style="width: 4px; height: 4px; background: var(--gold); border-radius: 50%; margin-top: 0.45rem; margin-right: 0.65rem; flex-shrink: 0;"></span>
-                <span style="font-size: 0.8rem; line-height: 1.5; font-weight: 300; color: #4a4a4a;">40-Page Photo Album</span>
-              </div>
-            </div>
-
-            <div class="mt-auto" style="padding-top: 1.25rem;">
-              <a href="logIn.php" class="btn w-100 py-2 btn-book-package" data-package="Elite" data-price="25000" style="background: transparent; color: #1a1a1a; border: 1px solid #1a1a1a; font-size: 0.75rem; letter-spacing: 1.5px; font-weight: 500; border-radius: 6px; transition: all 0.3s ease;">RESERVE NOW</a>
-              <p class="text-center mt-2 mb-0" style="font-size: 0.65rem; opacity: 0.5;">20% deposit required</p>
-            </div>
-          </div>
-        </div>
-
-      </div>
 
       <!-- Comparison Button -->
       <div class="row mt-5">
@@ -258,66 +166,74 @@ require_once 'includes/functions/session.php';
               <thead style="background: #fafafa; border-bottom: 1px solid rgba(0,0,0,0.08);">
                 <tr>
                   <th class="py-4 ps-4" style="font-size: 0.75rem; font-weight: 600; letter-spacing: 1px; text-transform: uppercase; color: #999;">Feature</th>
-                  <th class="text-center py-4" style="font-size: 0.8rem; font-weight: 300; color: #1a1a1a;">Essential<br><small style="font-size: 0.7rem; color: var(--gold);">₱7,500</small></th>
-                  <th class="text-center py-4" style="font-size: 0.8rem; font-weight: 300; color: #1a1a1a; background-color: rgba(212, 175, 55, 0.05);">Premium<br><small style="font-size: 0.7rem; color: var(--gold);">₱15,000</small></th>
-                  <th class="text-center py-4" style="font-size: 0.8rem; font-weight: 300; color: #1a1a1a;">Elite<br><small style="font-size: 0.7rem; color: var(--gold);">₱25,000</small></th>
+                  <?php foreach ($packages as $index => $pkg): ?>
+                    <th class="text-center py-4" style="font-size: 0.8rem; font-weight: 300; color: #1a1a1a; <?= ($index === 1) ? 'background-color: rgba(212, 175, 55, 0.05);' : '' ?>">
+                      <?= htmlspecialchars($pkg['packageName']) ?><br>
+                      <small style="font-size: 0.7rem; color: var(--gold);">₱<?= number_format($pkg['Price']) ?></small>
+                    </th>
+                  <?php endforeach; ?>
                 </tr>
               </thead>
               <tbody>
-                <tr style="border-bottom: 1px solid rgba(0,0,0,0.05);">
-                  <td class="ps-4 py-3" style="font-size: 0.85rem; font-weight: 500; color: #1a1a1a;">Coverage Hours</td>
-                  <td class="text-center py-3" style="font-size: 0.85rem; font-weight: 300; color: #4a4a4a;">2 hours</td>
-                  <td class="text-center py-3" style="font-size: 0.85rem; font-weight: 300; color: #4a4a4a; background-color: rgba(212, 175, 55, 0.03);">4 hours</td>
-                  <td class="text-center py-3" style="font-size: 0.85rem; font-weight: 300; color: #4a4a4a;">8 hours</td>
-                </tr>
-                <tr style="border-bottom: 1px solid rgba(0,0,0,0.05);">
-                  <td class="ps-4 py-3" style="font-size: 0.85rem; font-weight: 500; color: #1a1a1a;">Edited Photos</td>
-                  <td class="text-center py-3" style="font-size: 0.85rem; font-weight: 300; color: #4a4a4a;">40+</td>
-                  <td class="text-center py-3" style="font-size: 0.85rem; font-weight: 300; color: #4a4a4a; background-color: rgba(212, 175, 55, 0.03);">100+</td>
-                  <td class="text-center py-3" style="font-size: 0.85rem; font-weight: 300; color: #4a4a4a;">200+ (+ Raw)</td>
-                </tr>
-                <tr style="border-bottom: 1px solid rgba(0,0,0,0.05);">
-                  <td class="ps-4 py-3" style="font-size: 0.85rem; font-weight: 500; color: #1a1a1a;">Highlight Video</td>
-                  <td class="text-center py-3" style="font-size: 0.85rem; font-weight: 300; color: #4a4a4a;">1-2 min</td>
-                  <td class="text-center py-3" style="font-size: 0.85rem; font-weight: 300; color: #4a4a4a; background-color: rgba(212, 175, 55, 0.03);">3-5 min</td>
-                  <td class="text-center py-3" style="font-size: 0.85rem; font-weight: 300; color: #4a4a4a;">7-10 min (HD)</td>
-                </tr>
-                <tr style="border-bottom: 1px solid rgba(0,0,0,0.05);">
-                  <td class="ps-4 py-3" style="font-size: 0.85rem; font-weight: 500; color: #1a1a1a;">Full Event Film</td>
-                  <td class="text-center py-3" style="font-size: 0.85rem; font-weight: 300; color: #ccc;">—</td>
-                  <td class="text-center py-3" style="font-size: 0.85rem; font-weight: 300; color: #4a4a4a; background-color: rgba(212, 175, 55, 0.03);">10-15 min</td>
-                  <td class="text-center py-3" style="font-size: 0.85rem; font-weight: 300; color: #4a4a4a;">20+ min</td>
-                </tr>
-                <tr style="border-bottom: 1px solid rgba(0,0,0,0.05);">
-                  <td class="ps-4 py-3" style="font-size: 0.85rem; font-weight: 500; color: #1a1a1a;">Drone Coverage</td>
-                  <td class="text-center py-3" style="font-size: 0.75rem; font-weight: 300; color: #999;">Add-on</td>
-                  <td class="text-center py-3" style="font-size: 0.75rem; font-weight: 300; color: #999; background-color: rgba(212, 175, 55, 0.03);">Add-on</td>
-                  <td class="text-center py-3"><span style="width: 6px; height: 6px; background: var(--gold); border-radius: 50%; display: inline-block;"></span></td>
-                </tr>
-                <tr style="border-bottom: 1px solid rgba(0,0,0,0.05);">
-                  <td class="ps-4 py-3" style="font-size: 0.85rem; font-weight: 500; color: #1a1a1a;">Same-Day Edit</td>
-                  <td class="text-center py-3" style="font-size: 0.75rem; font-weight: 300; color: #999;">Add-on</td>
-                  <td class="text-center py-3" style="font-size: 0.75rem; font-weight: 300; color: #999; background-color: rgba(212, 175, 55, 0.03);">Add-on</td>
-                  <td class="text-center py-3"><span style="width: 6px; height: 6px; background: var(--gold); border-radius: 50%; display: inline-block;"></span></td>
-                </tr>
-                <tr style="border-bottom: 1px solid rgba(0,0,0,0.05);">
-                  <td class="ps-4 py-3" style="font-size: 0.85rem; font-weight: 500; color: #1a1a1a;">Photo Album</td>
-                  <td class="text-center py-3" style="font-size: 0.75rem; font-weight: 300; color: #999;">Add-on</td>
-                  <td class="text-center py-3" style="font-size: 0.75rem; font-weight: 300; color: #999; background-color: rgba(212, 175, 55, 0.03);">Add-on</td>
-                  <td class="text-center py-3" style="font-size: 0.85rem; font-weight: 300; color: #4a4a4a;"><span style="width: 6px; height: 6px; background: var(--gold); border-radius: 50%; display: inline-block; margin-right: 0.5rem;"></span>40 pages</td>
-                </tr>
-                <tr style="border-bottom: 1px solid rgba(0,0,0,0.05);">
-                  <td class="ps-4 py-3" style="font-size: 0.85rem; font-weight: 500; color: #1a1a1a;">Gallery Access</td>
-                  <td class="text-center py-3" style="font-size: 0.85rem; font-weight: 300; color: #4a4a4a;">1 month</td>
-                  <td class="text-center py-3" style="font-size: 0.85rem; font-weight: 300; color: #4a4a4a; background-color: rgba(212, 175, 55, 0.03);">3 months</td>
-                  <td class="text-center py-3" style="font-size: 0.85rem; font-weight: 300; color: #4a4a4a;">1 year</td>
-                </tr>
-                <tr>
-                  <td class="ps-4 py-3" style="font-size: 0.85rem; font-weight: 500; color: #1a1a1a;">Team Size</td>
-                  <td class="text-center py-3" style="font-size: 0.85rem; font-weight: 300; color: #4a4a4a;">1 Pro</td>
-                  <td class="text-center py-3" style="font-size: 0.85rem; font-weight: 300; color: #4a4a4a; background-color: rgba(212, 175, 55, 0.03);">2 Pros</td>
-                  <td class="text-center py-3" style="font-size: 0.85rem; font-weight: 300; color: #4a4a4a;">4 Pros</td>
-                </tr>
+                <?php
+                $comparisonFeatures = [
+                    'Coverage Hours' => ['type' => 'regex', 'pattern' => '/(\d+)\s*Hours/i', 'suffix' => ' hours', 'default' => '—'],
+                    'Team Size' => ['type' => 'callback', 'callback' => function($inclusions) {
+                        $photo = 0;
+                        $video = 0;
+                        foreach ($inclusions as $inc) {
+                            if (preg_match('/(\d+)\s*Professional\s*Photographer/i', $inc, $m)) $photo += intval($m[1]);
+                            if (preg_match('/(\d+)\s*Professional\s*Videographer/i', $inc, $m)) $video += intval($m[1]);
+                        }
+                        $parts = [];
+                        if ($photo > 0) $parts[] = "$photo Photo";
+                        if ($video > 0) $parts[] = "$video Video";
+                        return empty($parts) ? '—' : implode(' + ', $parts);
+                    }],
+                    'Edited Photos' => ['type' => 'regex', 'pattern' => '/(\d+\+?)\s*(?:High-Quality|Expertly|Professionally)?\s*Edited Photos/i', 'default' => '—'],
+                    'Highlight Video' => ['type' => 'regex', 'pattern' => '/(\d+[\-–]\d+\s*Minute)\s*(?:Cinematic)?\s*Highlight/i', 'default' => '—'],
+                    'Full Event Film' => ['type' => 'regex', 'pattern' => '/(\d+[\-–]\d+\s*Minute)\s*Full Event/i', 'default' => '—'],
+                    'Drone Coverage' => ['type' => 'bool', 'keyword' => 'Drone', 'true' => '<span style="width: 6px; height: 6px; background: var(--gold); border-radius: 50%; display: inline-block;"></span>', 'false' => '<span style="font-size: 0.75rem; font-weight: 300; color: #999;">Add-on</span>'],
+                    'Same-Day Edit' => ['type' => 'bool', 'keyword' => 'Same-Day', 'true' => '<span style="width: 6px; height: 6px; background: var(--gold); border-radius: 50%; display: inline-block;"></span>', 'false' => '<span style="font-size: 0.75rem; font-weight: 300; color: #999;">Add-on</span>'],
+                    'Gallery Access' => ['type' => 'regex', 'pattern' => '/Gallery\s*\(([^)]+)\)/i', 'default' => '—'],
+                    'Cloud Storage' => ['type' => 'regex', 'pattern' => '/Storage.*?\(([^)]+)\)/i', 'default' => '—'],
+                ];
+
+                foreach ($comparisonFeatures as $label => $config):
+                ?>
+                  <tr style="border-bottom: 1px solid rgba(0,0,0,0.05);">
+                    <td class="ps-4 py-3" style="font-size: 0.85rem; font-weight: 500; color: #1a1a1a;"><?= htmlspecialchars($label) ?></td>
+                    <?php foreach ($packages as $index => $pkg): 
+                        $value = $config['default'] ?? '—';
+                        
+                        if (isset($config['type']) && $config['type'] === 'column') {
+                            $value = htmlspecialchars($pkg[$config['key']]) . ($config['suffix'] ?? '');
+                        } elseif (isset($config['type']) && $config['type'] === 'regex') {
+                            foreach ($pkg['inclusions'] as $inc) {
+                                if (preg_match($config['pattern'], $inc, $matches)) {
+                                    $value = htmlspecialchars($matches[1]) . ($config['suffix'] ?? '');
+                                    break;
+                                }
+                            }
+                        } elseif (isset($config['type']) && $config['type'] === 'bool') {
+                            $found = false;
+                            foreach ($pkg['inclusions'] as $inc) {
+                                if (stripos($inc, $config['keyword']) !== false) {
+                                    $found = true;
+                                    break;
+                                }
+                            }
+                            $value = $found ? $config['true'] : $config['false'];
+                        } elseif (isset($config['type']) && $config['type'] === 'callback') {
+                            $value = $config['callback']($pkg['inclusions']);
+                        }
+                    ?>
+                      <td class="text-center py-3" style="font-size: 0.85rem; font-weight: 300; color: #4a4a4a; <?= ($index === 1) ? 'background-color: rgba(212, 175, 55, 0.03);' : '' ?>">
+                        <?= $value ?>
+                      </td>
+                    <?php endforeach; ?>
+                  </tr>
+                <?php endforeach; ?>
               </tbody>
             </table>
           </div>
@@ -341,96 +257,85 @@ require_once 'includes/functions/session.php';
 
       <div class="row g-4">
 
-        <!-- Add-on 1 -->
-        <div class="col-md-6 col-lg-4">
-          <div class="addon-card h-100 position-relative" style="background: #ffffff; border: 1px solid rgba(0,0,0,0.08); border-radius: 8px; padding: 1.75rem 1.5rem; transition: all 0.4s ease;">
-            <div class="mb-2">
-              <i class="bi bi-camera-video-fill" style="font-size: 1.75rem; color: var(--gold); opacity: 0.8;"></i>
-            </div>
-            <h4 class="serif mb-2" style="font-size: 1.35rem; font-weight: 300; letter-spacing: 0.3px; color: #1a1a1a;">Drone Aerial Shots</h4>
-            <p class="mb-3" style="font-size: 0.8rem; line-height: 1.6; opacity: 0.6; font-weight: 300; color: #4a4a4a;">Cinematic aerial perspectives capturing the grandeur and scale of your event from above.</p>
-            <div class="d-flex align-items-baseline">
-              <span style="font-size: 0.7rem; color: #999; margin-right: 0.25rem;">₱</span>
-              <span class="serif" style="font-size: 1.6rem; font-weight: 300; letter-spacing: -0.5px; color: var(--gold);">2,000</span>
-            </div>
-          </div>
-        </div>
+        <?php
+        // Fetch distinct add-ons from the database
+        $addonsQuery = "SELECT DISTINCT Description, Price FROM addons ORDER BY Price ASC";
+        $addonsResult = $conn->query($addonsQuery);
+        
+        // Mapping for icons and descriptions based on add-on name keywords
+        $addonDetails = [
+            'Drone' => [
+                'icon' => 'bi-camera-video-fill',
+                'desc' => 'Cinematic aerial perspectives capturing the grandeur and scale of your event from above.'
+            ],
+            'Same-Day' => [
+                'icon' => 'bi-lightning-charge-fill',
+                'desc' => "Watch your event's highlight reel during your reception—a truly unforgettable experience."
+            ],
+            'Album' => [
+                'icon' => 'bi-book-fill',
+                'desc' => 'Museum-quality printed album featuring your finest moments. Available in 30 or 40-page editions.'
+            ],
+            'Extended' => [
+                'icon' => 'bi-clock-history',
+                'desc' => 'Additional hours to ensure every moment is documented from beginning to end.'
+            ],
+            'USB' => [
+                'icon' => 'bi-usb-symbol',
+                'desc' => 'All media delivered on a premium USB drive with custom presentation case.'
+            ],
+            'Streaming' => [
+                'icon' => 'bi-broadcast',
+                'desc' => 'Professional streaming service allowing distant loved ones to share in your celebration.'
+            ],
+            'Photographer' => [
+                'icon' => 'bi-camera-fill',
+                'desc' => 'An additional professional photographer to ensure no angle is missed.'
+            ],
+            '4K' => [
+                'icon' => 'bi-film',
+                'desc' => 'Upgrade your video quality to stunning 4K resolution for crystal clear memories.'
+            ]
+        ];
 
-        <!-- Add-on 2 -->
+        if ($addonsResult && $addonsResult->num_rows > 0) {
+            while ($addon = $addonsResult->fetch_assoc()) {
+                $name = htmlspecialchars($addon['Description']);
+                $price = number_format($addon['Price']);
+                
+                // Default values
+                $icon = 'bi-star-fill';
+                $description = 'Enhance your package with this premium addition.';
+                
+                // Find matching details
+                foreach ($addonDetails as $keyword => $details) {
+                    if (stripos($name, $keyword) !== false) {
+                        $icon = $details['icon'];
+                        $description = $details['desc'];
+                        break;
+                    }
+                }
+        ?>
         <div class="col-md-6 col-lg-4">
           <div class="addon-card h-100 position-relative" style="background: #ffffff; border: 1px solid rgba(0,0,0,0.08); border-radius: 8px; padding: 1.75rem 1.5rem; transition: all 0.4s ease;">
             <div class="mb-2">
-              <i class="bi bi-lightning-charge-fill" style="font-size: 1.75rem; color: var(--gold); opacity: 0.8;"></i>
+              <i class="bi <?= $icon ?>" style="font-size: 1.75rem; color: var(--gold); opacity: 0.8;"></i>
             </div>
-            <h4 class="serif mb-2" style="font-size: 1.35rem; font-weight: 300; letter-spacing: 0.3px; color: #1a1a1a;">Same-Day Edit</h4>
-            <p class="mb-3" style="font-size: 0.8rem; line-height: 1.6; opacity: 0.6; font-weight: 300; color: #4a4a4a;">Watch your event's highlight reel during your reception—a truly unforgettable experience.</p>
+            <h4 class="serif mb-2" style="font-size: 1.35rem; font-weight: 300; letter-spacing: 0.3px; color: #1a1a1a;"><?= $name ?></h4>
+            <p class="mb-3" style="font-size: 0.8rem; line-height: 1.6; opacity: 0.6; font-weight: 300; color: #4a4a4a;"><?= $description ?></p>
             <div class="d-flex align-items-baseline">
               <span style="font-size: 0.7rem; color: #999; margin-right: 0.25rem;">₱</span>
-              <span class="serif" style="font-size: 1.6rem; font-weight: 300; letter-spacing: -0.5px; color: var(--gold);">3,500</span>
+              <span class="serif" style="font-size: 1.6rem; font-weight: 300; letter-spacing: -0.5px; color: var(--gold);"><?= $price ?></span>
             </div>
           </div>
         </div>
-
-        <!-- Add-on 3 -->
-        <div class="col-md-6 col-lg-4">
-          <div class="addon-card h-100 position-relative" style="background: #ffffff; border: 1px solid rgba(0,0,0,0.08); border-radius: 8px; padding: 1.75rem 1.5rem; transition: all 0.4s ease;">
-            <div class="mb-2">
-              <i class="bi bi-book-fill" style="font-size: 1.75rem; color: var(--gold); opacity: 0.8;"></i>
-            </div>
-            <h4 class="serif mb-2" style="font-size: 1.35rem; font-weight: 300; letter-spacing: 0.3px; color: #1a1a1a;">Premium Album</h4>
-            <p class="mb-3" style="font-size: 0.8rem; line-height: 1.6; opacity: 0.6; font-weight: 300; color: #4a4a4a;">Museum-quality printed album featuring your finest moments. Available in 30 or 40-page editions.</p>
-            <div class="d-flex align-items-baseline">
-              <span style="font-size: 0.7rem; color: #999; margin-right: 0.25rem;">₱</span>
-              <span class="serif" style="font-size: 1.6rem; font-weight: 300; letter-spacing: -0.5px; color: var(--gold);">2,000</span>
-            </div>
-          </div>
-        </div>
-
-        <!-- Add-on 4 -->
-        <div class="col-md-6 col-lg-4">
-          <div class="addon-card h-100 position-relative" style="background: #ffffff; border: 1px solid rgba(0,0,0,0.08); border-radius: 8px; padding: 1.75rem 1.5rem; transition: all 0.4s ease;">
-            <div class="mb-2">
-              <i class="bi bi-clock-history" style="font-size: 1.75rem; color: var(--gold); opacity: 0.8;"></i>
-            </div>
-            <h4 class="serif mb-2" style="font-size: 1.35rem; font-weight: 300; letter-spacing: 0.3px; color: #1a1a1a;">Extended Coverage</h4>
-            <p class="mb-3" style="font-size: 0.8rem; line-height: 1.6; opacity: 0.6; font-weight: 300; color: #4a4a4a;">Additional hours to ensure every moment is documented from beginning to end.</p>
-            <div class="d-flex align-items-baseline">
-              <span style="font-size: 0.7rem; color: #999; margin-right: 0.25rem;">₱</span>
-              <span class="serif" style="font-size: 1.6rem; font-weight: 300; letter-spacing: -0.5px; color: var(--gold);">1,000</span>
-              <span style="font-size: 0.75rem; color: #999; margin-left: 0.25rem;">/hr</span>
-            </div>
-          </div>
-        </div>
-
-        <!-- Add-on 5 -->
-        <div class="col-md-6 col-lg-4">
-          <div class="addon-card h-100 position-relative" style="background: #ffffff; border: 1px solid rgba(0,0,0,0.08); border-radius: 8px; padding: 1.75rem 1.5rem; transition: all 0.4s ease;">
-            <div class="mb-2">
-              <i class="bi bi-usb-symbol" style="font-size: 1.75rem; color: var(--gold); opacity: 0.8;"></i>
-            </div>
-            <h4 class="serif mb-2" style="font-size: 1.35rem; font-weight: 300; letter-spacing: 0.3px; color: #1a1a1a;">Premium USB</h4>
-            <p class="mb-3" style="font-size: 0.8rem; line-height: 1.6; opacity: 0.6; font-weight: 300; color: #4a4a4a;">All media delivered on a premium USB drive with custom presentation case.</p>
-            <div class="d-flex align-items-baseline">
-              <span style="font-size: 0.7rem; color: #999; margin-right: 0.25rem;">₱</span>
-              <span class="serif" style="font-size: 1.6rem; font-weight: 300; letter-spacing: -0.5px; color: var(--gold);">500</span>
-            </div>
-          </div>
-        </div>
-
-        <!-- Add-on 6 -->
-        <div class="col-md-6 col-lg-4">
-          <div class="addon-card h-100 position-relative" style="background: #ffffff; border: 1px solid rgba(0,0,0,0.08); border-radius: 8px; padding: 1.75rem 1.5rem; transition: all 0.4s ease;">
-            <div class="mb-2">
-              <i class="bi bi-broadcast" style="font-size: 1.75rem; color: var(--gold); opacity: 0.8;"></i>
-            </div>
-            <h4 class="serif mb-2" style="font-size: 1.35rem; font-weight: 300; letter-spacing: 0.3px; color: #1a1a1a;">Livestream Setup</h4>
-            <p class="mb-3" style="font-size: 0.8rem; line-height: 1.6; opacity: 0.6; font-weight: 300; color: #4a4a4a;">Professional streaming service allowing distant loved ones to share in your celebration.</p>
-            <div class="d-flex align-items-baseline">
-              <span style="font-size: 0.7rem; color: #999; margin-right: 0.25rem;">₱</span>
-              <span class="serif" style="font-size: 1.6rem; font-weight: 300; letter-spacing: -0.5px; color: var(--gold);">3,000</span>
-            </div>
-          </div>
-        </div>
+        <?php 
+            }
+        } else {
+            // Fallback if no add-ons found
+            echo '<div class="col-12 text-center"><p class="text-muted">No add-ons available at the moment.</p></div>';
+        }
+        ?>
 
       </div>
     </div>
@@ -512,66 +417,80 @@ require_once 'includes/functions/session.php';
         </div>
       </div>
 
-      <div class="row g-4">
-        <div class="col-lg-4 col-md-6">
-          <div class="gallery-item position-relative overflow-hidden" style="border-radius: 8px; height: 350px;">
-            <img src="./assets/pexels-emma-bauso-1183828-2253831.jpg" alt="Wedding Photography" class="w-100 h-100" style="object-fit: cover; transition: transform 0.5s ease;">
-            <div class="position-absolute bottom-0 start-0 w-100 p-4" style="background: linear-gradient(to top, rgba(0,0,0,0.8), transparent);">
-              <p class="text-light mb-1" style="font-size: 0.75rem; letter-spacing: 1px; text-transform: uppercase; opacity: 0.8;">Weddings</p>
-              <h4 class="text-light serif mb-0" style="font-size: 1.25rem; font-weight: 300;">Intimate Garden Ceremony</h4>
+      <div id="galleryCarousel" class="carousel slide carousel-fade" data-bs-ride="carousel">
+        <div class="carousel-indicators">
+          <button type="button" data-bs-target="#galleryCarousel" data-bs-slide-to="0" class="active" aria-current="true" aria-label="Slide 1"></button>
+          <button type="button" data-bs-target="#galleryCarousel" data-bs-slide-to="1" aria-label="Slide 2"></button>
+          <button type="button" data-bs-target="#galleryCarousel" data-bs-slide-to="2" aria-label="Slide 3"></button>
+          <button type="button" data-bs-target="#galleryCarousel" data-bs-slide-to="3" aria-label="Slide 4"></button>
+          <button type="button" data-bs-target="#galleryCarousel" data-bs-slide-to="4" aria-label="Slide 5"></button>
+          <button type="button" data-bs-target="#galleryCarousel" data-bs-slide-to="5" aria-label="Slide 6"></button>
+        </div>
+        <div class="carousel-inner" style="border-radius: 8px; overflow: hidden; box-shadow: 0 10px 30px rgba(0,0,0,0.5);">
+          
+          <!-- Slide 1 -->
+          <div class="carousel-item active" style="height: 600px;">
+            <img src="./assets/pexels-emma-bauso-1183828-2253831.jpg" class="d-block w-100 h-100" alt="Wedding Photography" style="object-fit: cover;">
+            <div class="carousel-caption d-block p-5" style="background: linear-gradient(to top, rgba(0,0,0,0.9), transparent); bottom: 0; left: 0; right: 0; width: 100%;">
+              <p class="text-gold mb-2" style="font-size: 0.85rem; letter-spacing: 3px; text-transform: uppercase; font-weight: 600;">Weddings</p>
+              <h3 class="text-light serif mb-0" style="font-size: 2.5rem; font-weight: 300;">Intimate Garden Ceremony</h3>
             </div>
           </div>
-        </div>
 
-        <div class="col-lg-4 col-md-6">
-          <div class="gallery-item position-relative overflow-hidden" style="border-radius: 8px; height: 350px;">
-            <img src="./assets/bride-groom-couple-wedding.jpg" alt="Corporate Event" class="w-100 h-100" style="object-fit: cover; transition: transform 0.5s ease;">
-            <div class="position-absolute bottom-0 start-0 w-100 p-4" style="background: linear-gradient(to top, rgba(0,0,0,0.8), transparent);">
-              <p class="text-light mb-1" style="font-size: 0.75rem; letter-spacing: 1px; text-transform: uppercase; opacity: 0.8;">Corporate</p>
-              <h4 class="text-light serif mb-0" style="font-size: 1.25rem; font-weight: 300;">Annual Gala Evening</h4>
+          <!-- Slide 2 -->
+          <div class="carousel-item" style="height: 600px;">
+            <img src="./assets/bride-groom-couple-wedding.jpg" class="d-block w-100 h-100" alt="Corporate Event" style="object-fit: cover;">
+            <div class="carousel-caption d-block p-5" style="background: linear-gradient(to top, rgba(0,0,0,0.9), transparent); bottom: 0; left: 0; right: 0; width: 100%;">
+              <p class="text-gold mb-2" style="font-size: 0.85rem; letter-spacing: 3px; text-transform: uppercase; font-weight: 600;">Corporate</p>
+              <h3 class="text-light serif mb-0" style="font-size: 2.5rem; font-weight: 300;">Annual Gala Evening</h3>
             </div>
           </div>
-        </div>
 
-        <div class="col-lg-4 col-md-6">
-          <div class="gallery-item position-relative overflow-hidden" style="border-radius: 8px; height: 350px;">
-            <img src="./assets/pexels-mikhail-nilov-7534800.jpg" alt="Birthday Celebration" class="w-100 h-100" style="object-fit: cover; transition: transform 0.5s ease;">
-            <div class="position-absolute bottom-0 start-0 w-100 p-4" style="background: linear-gradient(to top, rgba(0,0,0,0.8), transparent);">
-              <p class="text-light mb-1" style="font-size: 0.75rem; letter-spacing: 1px; text-transform: uppercase; opacity: 0.8;">Celebrations</p>
-              <h4 class="text-light serif mb-0" style="font-size: 1.25rem; font-weight: 300;">Milestone Birthday</h4>
+          <!-- Slide 3 -->
+          <div class="carousel-item" style="height: 600px;">
+            <img src="./assets/pexels-mikhail-nilov-7534800.jpg" class="d-block w-100 h-100" alt="Birthday Celebration" style="object-fit: cover;">
+            <div class="carousel-caption d-block p-5" style="background: linear-gradient(to top, rgba(0,0,0,0.9), transparent); bottom: 0; left: 0; right: 0; width: 100%;">
+              <p class="text-gold mb-2" style="font-size: 0.85rem; letter-spacing: 3px; text-transform: uppercase; font-weight: 600;">Celebrations</p>
+              <h3 class="text-light serif mb-0" style="font-size: 2.5rem; font-weight: 300;">Milestone Birthday</h3>
             </div>
           </div>
-        </div>
 
-        <div class="col-lg-4 col-md-6">
-          <div class="gallery-item position-relative overflow-hidden" style="border-radius: 8px; height: 350px;">
-            <img src="./assets/pexels-cottonbro-5077049.jpg" alt="Debut Photography" class="w-100 h-100" style="object-fit: cover; transition: transform 0.5s ease;">
-            <div class="position-absolute bottom-0 start-0 w-100 p-4" style="background: linear-gradient(to top, rgba(0,0,0,0.8), transparent);">
-              <p class="text-light mb-1" style="font-size: 0.75rem; letter-spacing: 1px; text-transform: uppercase; opacity: 0.8;">Debuts</p>
-              <h4 class="text-light serif mb-0" style="font-size: 1.25rem; font-weight: 300;">Elegant Coming of Age</h4>
+          <!-- Slide 4 -->
+          <div class="carousel-item" style="height: 600px;">
+            <img src="./assets/pexels-cottonbro-5077049.jpg" class="d-block w-100 h-100" alt="Debut Photography" style="object-fit: cover;">
+            <div class="carousel-caption d-block p-5" style="background: linear-gradient(to top, rgba(0,0,0,0.9), transparent); bottom: 0; left: 0; right: 0; width: 100%;">
+              <p class="text-gold mb-2" style="font-size: 0.85rem; letter-spacing: 3px; text-transform: uppercase; font-weight: 600;">Debuts</p>
+              <h3 class="text-light serif mb-0" style="font-size: 2.5rem; font-weight: 300;">Elegant Coming of Age</h3>
             </div>
           </div>
-        </div>
 
-        <div class="col-lg-4 col-md-6">
-          <div class="gallery-item position-relative overflow-hidden" style="border-radius: 8px; height: 350px;">
-            <img src="./assets/close-up-teenage-boy-taking-photography-click-retro-vintage-photo-camera-against-white-background.jpg" alt="Creative Shoot" class="w-100 h-100" style="object-fit: cover; transition: transform 0.5s ease;">
-            <div class="position-absolute bottom-0 start-0 w-100 p-4" style="background: linear-gradient(to top, rgba(0,0,0,0.8), transparent);">
-              <p class="text-light mb-1" style="font-size: 0.75rem; letter-spacing: 1px; text-transform: uppercase; opacity: 0.8;">Creative</p>
-              <h4 class="text-light serif mb-0" style="font-size: 1.25rem; font-weight: 300;">Fashion Editorial</h4>
+          <!-- Slide 5 -->
+          <div class="carousel-item" style="height: 600px;">
+            <img src="./assets/close-up-teenage-boy-taking-photography-click-retro-vintage-photo-camera-against-white-background.jpg" class="d-block w-100 h-100" alt="Creative Shoot" style="object-fit: cover;">
+            <div class="carousel-caption d-block p-5" style="background: linear-gradient(to top, rgba(0,0,0,0.9), transparent); bottom: 0; left: 0; right: 0; width: 100%;">
+              <p class="text-gold mb-2" style="font-size: 0.85rem; letter-spacing: 3px; text-transform: uppercase; font-weight: 600;">Creative</p>
+              <h3 class="text-light serif mb-0" style="font-size: 2.5rem; font-weight: 300;">Fashion Editorial</h3>
             </div>
           </div>
-        </div>
 
-        <div class="col-lg-4 col-md-6">
-          <div class="gallery-item position-relative overflow-hidden" style="border-radius: 8px; height: 350px;">
-            <img src="./assets/pexels-rdne-7648020.jpg" alt="Product Photography" class="w-100 h-100" style="object-fit: cover; transition: transform 0.5s ease;">
-            <div class="position-absolute bottom-0 start-0 w-100 p-4" style="background: linear-gradient(to top, rgba(0,0,0,0.8), transparent);">
-              <p class="text-light mb-1" style="font-size: 0.75rem; letter-spacing: 1px; text-transform: uppercase; opacity: 0.8;">Commercial</p>
-              <h4 class="text-light serif mb-0" style="font-size: 1.25rem; font-weight: 300;">Brand Campaign</h4>
+          <!-- Slide 6 -->
+          <div class="carousel-item" style="height: 600px;">
+            <img src="./assets/pexels-rdne-7648020.jpg" class="d-block w-100 h-100" alt="Product Photography" style="object-fit: cover;">
+            <div class="carousel-caption d-block p-5" style="background: linear-gradient(to top, rgba(0,0,0,0.9), transparent); bottom: 0; left: 0; right: 0; width: 100%;">
+              <p class="text-gold mb-2" style="font-size: 0.85rem; letter-spacing: 3px; text-transform: uppercase; font-weight: 600;">Commercial</p>
+              <h3 class="text-light serif mb-0" style="font-size: 2.5rem; font-weight: 300;">Brand Campaign</h3>
             </div>
           </div>
+
         </div>
+        <button class="carousel-control-prev" type="button" data-bs-target="#galleryCarousel" data-bs-slide="prev">
+          <span class="carousel-control-prev-icon" aria-hidden="true"></span>
+          <span class="visually-hidden">Previous</span>
+        </button>
+        <button class="carousel-control-next" type="button" data-bs-target="#galleryCarousel" data-bs-slide="next">
+          <span class="carousel-control-next-icon" aria-hidden="true"></span>
+          <span class="visually-hidden">Next</span>
+        </button>
       </div>
     </div>
   </section>
@@ -597,7 +516,7 @@ require_once 'includes/functions/session.php';
             <p class="text-light mb-3" style="font-size: 0.75rem; opacity: 0.5; letter-spacing: 1px; text-transform: uppercase;">Important Details</p>
             <div class="row g-4">
               <div class="col-md-4">
-                <p class="text-light mb-1" style="font-size: 0.85rem; font-weight: 300; opacity: 0.8;">20% deposit to secure booking</p>
+                <p class="text-light mb-1" style="font-size: 0.85rem; font-weight: 300; opacity: 0.8;">25% deposit to secure booking</p>
               </div>
               <div class="col-md-4">
                 <p class="text-light mb-1" style="font-size: 0.85rem; font-weight: 300; opacity: 0.8;">Free reschedule with 5+ days notice</p>
@@ -637,14 +556,26 @@ require_once 'includes/functions/session.php';
 
     // Store selected package in sessionStorage for booking page
     const bookingButtons = document.querySelectorAll('.btn-book-package');
+    const isLoggedIn = <?= isset($_SESSION['userId']) ? 'true' : 'false' ?>;
+
     bookingButtons.forEach(button => {
       button.addEventListener('click', function(e) {
+        e.preventDefault(); // Prevent default link behavior
+        
+        const packageId = this.dataset.id;
         const packageName = this.dataset.package;
         const packagePrice = this.dataset.price;
+        
+        if (packageId) {
+             sessionStorage.setItem('selectedPackageId', packageId);
+             sessionStorage.setItem('selectedPackageName', packageName);
+             sessionStorage.setItem('selectedPrice', packagePrice);
+        }
 
-        if (packageName && packagePrice) {
-          sessionStorage.setItem('selectedPackage', packageName);
-          sessionStorage.setItem('selectedPrice', packagePrice);
+        if (isLoggedIn) {
+            window.location.href = 'user/bookingForm.php';
+        } else {
+            window.location.href = 'logIn.php';
         }
       });
     });

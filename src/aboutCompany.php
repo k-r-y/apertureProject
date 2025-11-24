@@ -1,5 +1,9 @@
 <?php
-require_once 'includes/functions/session.php';
+require_once './includes/functions/config.php';
+require_once './includes/functions/auth.php';
+require_once './includes/functions/function.php';
+require_once './includes/functions/csrf.php';
+require_once './includes/functions/session.php';
 
 use PHPMailer\PHPMailer\PHPMailer;
 use PHPMailer\PHPMailer\Exception;
@@ -56,6 +60,9 @@ if ($_SERVER['REQUEST_METHOD'] == "POST") {
       $mail->send();
       $fullName = $email = $message = '';
       $response['success'] = "Thank you! Your message has been sent successfully. We'll get back to you soon.";
+
+      saveContactUsMessage($fullName, $email, $message);
+
     } catch (Exception $e) {
       error_log("Contact Form Error: " . $e->getMessage());
       $response['error'] = "Something went wrong. Please try again";
@@ -69,21 +76,6 @@ if ($_SERVER['REQUEST_METHOD'] == "POST") {
 
 
 
-<!DOCTYPE html>
-<html lang="en">
-
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <link rel="stylesheet" href="../bootstrap-5.3.8-dist/css/bootstrap.min.css">
-  <link rel="stylesheet" href="../bootstrap-5.3.8-dist/sweetalert2.min.css">
-  <link rel="stylesheet" href="style.css">
-  <link rel="icon" href="./assets/camera.png" type="image/x-icon">
-  <title>Aperture</title>
-</head>
-
-<body>
-  <?php include './includes/header.php'; ?>
 
   <section class="w-100 min-vh-100 p-5 d-flex justify-content-center align-content-center position-relative" id="aboutCompanyHero">
     <div class="overlay"></div>

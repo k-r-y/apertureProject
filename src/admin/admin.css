@@ -1,341 +1,392 @@
 /* Admin Dashboard Specific Styles */
+@import url("../luxuryDesignSystem.css");
+
 :root {
-    --gold: #D4AF37;
-    --admin-bg: #101010;
-    --card-bg: #1A1A1A;
-    --text-sidebar: #e9ecef;
-    --text-secondary: #888888;
-    --text-primary: #000000;
-    --border-color: rgba(255, 255, 255, 0.05);
-    --gold-soft: rgba(212, 175, 55, 0.1);
-    --gold-glow: 0 0 25px rgba(212, 175, 55, 0.15);
-    --sidebar-width: 240px;
-    --sidebar-mini-width: 80px;
+  --sidebar-width: 260px;
+  --sidebar-mini-width: 80px;
+  --header-height: 70px;
 }
 
 body.admin-dashboard {
-    font-family: "Inter", sans-serif;
-    background-color: var(--admin-bg);
-    color: var(--text-primary);
-    font-size: 0.875rem;
-    overflow-x: hidden;
+  background-color: var(--bg-dark);
+  color: var(--text-light);
+  font-family: "Poppins", sans-serif;
+  overflow-x: hidden;
+  background-image: radial-gradient(
+      circle at 5% 10%,
+      rgba(212, 175, 55, 0.05) 0%,
+      transparent 45%
+    ),
+    radial-gradient(
+      circle at 95% 90%,
+      rgba(255, 255, 255, 0.02) 0%,
+      transparent 45%
+    );
+  background-attachment: fixed;
 }
 
-.card-solid:hover {
-    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1), var(--gold-glow);
-    border-color: rgba(212, 175, 55, 0.3);
+.nav-section-title {
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 1.5px;
+  color: var(--gold-dim);
+  margin: 1.5rem 0 0.5rem 1rem;
+  font-weight: 600;
+  font-family: "Playfair Display", serif;
 }
 
+.nav-icon {
+  font-size: 1.1rem;
+  margin-right: 0.75rem;
+  color: var(--gold-dim);
+  transition: color 0.3s ease;
+}
+
+/* --- Main Content Area --- */
+.page-wrapper {
+  margin-left: var(--sidebar-width);
+  min-height: 100vh;
+  transition: all 0.3s ease;
+  display: flex;
+  flex-direction: column;
+}
+
+.main-content {
+  padding: 2rem;
+  flex: 1;
+}
+
+/* --- Header --- */
+.admin-header {
+  height: var(--header-height);
+  background: var(--glass-bg);
+  backdrop-filter: var(--glass-blur);
+  border-bottom: 1px solid var(--glass-border);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 2rem;
+  position: sticky;
+  top: 0;
+  z-index: 999;
+}
+
+.header-title {
+  font-family: "Playfair Display", serif;
+  font-size: 1.5rem;
+  color: var(--gold-main);
+  margin: 0;
+}
+
+/* --- Dashboard Cards --- */
+.stat-card {
+  background: var(--neo-card-bg);
+  border: 1px solid rgba(255, 255, 255, 0.03);
+  border-radius: var(--radius-md);
+  padding: 1.5rem;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  height: 100%;
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+  position: relative;
+  overflow: hidden;
+}
+
+.stat-card::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 4px;
+  background: var(--gold-gradient);
+  opacity: 0;
+  transition: opacity 0.3s ease;
+}
+
+.stat-card:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--neo-shadow-out);
+}
+
+.stat-card:hover::before {
+  opacity: 1;
+}
+
+.stat-icon {
+  width: 50px;
+  height: 50px;
+  border-radius: 12px;
+  background: rgba(212, 175, 55, 0.1);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.5rem;
+  color: var(--gold-main);
+  margin-bottom: 1rem;
+  border: 1px solid rgba(212, 175, 55, 0.2);
+}
+
+.stat-title {
+  font-size: 0.85rem;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  color: var(--text-muted);
+  margin-bottom: 0.5rem;
+}
+
+.stat-value {
+  font-size: 1.75rem;
+  font-weight: 700;
+  color: var(--text-light);
+  font-family: "Playfair Display", serif;
+}
+
+/* --- Charts --- */
+.chart-card {
+  background: var(--neo-card-bg);
+  border: 1px solid rgba(255, 255, 255, 0.03);
+  border-radius: var(--radius-md);
+  padding: 1.5rem;
+  box-shadow: var(--neo-shadow-out);
+}
+
+.card-header-title {
+  color: var(--gold-main);
+  font-family: "Playfair Display", serif;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+  padding-bottom: 1rem;
+  margin-bottom: 1.5rem;
+}
+
+/* --- Tables (Overrides) --- */
 .table {
-    color: var(--text-primary);
-    font-size: 0.85rem;
-    border-color: var(--border-color);
+  --bs-table-bg: transparent;
+  --bs-table-color: var(--text-light);
+  --bs-table-border-color: rgba(255, 255, 255, 0.05);
 }
 
 .table thead th {
-    background-color: transparent;
-    color: var(--gold);
-    font-family: "Poppins", sans-serif;
-    font-size: 0.75rem;
-    text-transform: uppercase;
-    letter-spacing: 0.5px;
-    border-bottom: 2px solid var(--border-color);
+  background-color: rgba(0, 0, 0, 0.2);
+  color: var(--gold-dim);
+  font-family: "Playfair Display", serif;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  font-size: 0.8rem;
+  border-bottom: 1px solid var(--gold-dim);
+  padding: 1rem;
 }
 
 .table tbody td {
-    border-color: rgba(255, 255, 255, 0.05);
-    vertical-align: middle;
-}
-
-.table .client-name {
-    font-weight: 600;
-    color: var(--text-primary);
+  padding: 1rem;
+  vertical-align: middle;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
 }
 
 .table-hover tbody tr:hover {
-    background-color: rgba(255, 255, 255, 0.02);
+  background-color: rgba(212, 175, 55, 0.05);
 }
 
+/* --- Status Badges --- */
 .status-badge {
-    padding: 0.25rem 0.6rem;
-    border-radius: 4px;
-    font-size: 0.75rem;
-    font-weight: 600;
+  padding: 0.35rem 0.75rem;
+  border-radius: 50px;
+  font-size: 0.7rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
 }
 
-.status-confirmed {
-    background-color: rgba(40, 167, 69, 0.1);
-    color: #28a745;
+.status-confirmed,
+.status-paid,
+.status-replied {
+  background: rgba(40, 167, 69, 0.15);
+  color: #2ecc71;
+  border: 1px solid rgba(40, 167, 69, 0.3);
 }
 
 .status-pending {
-    background-color: rgba(255, 193, 7, 0.1);
-    color: #ffc107;
+  background: rgba(255, 193, 7, 0.15);
+  color: #f1c40f;
+  border: 1px solid rgba(255, 193, 7, 0.3);
 }
 
 .status-completed {
-    background-color: rgba(0, 123, 255, 0.1);
-    color: #007bff;
+  background: rgba(0, 123, 255, 0.15);
+  color: #3498db;
+  border: 1px solid rgba(0, 123, 255, 0.3);
 }
 
-.status-canceled {
-    background-color: rgba(220, 53, 69, 0.1);
-    color: #dc3545;
+.status-canceled,
+.status-overdue {
+  background: rgba(220, 53, 69, 0.15);
+  color: #e74c3c;
+  border: 1px solid rgba(220, 53, 69, 0.3);
 }
 
 .status-new {
-    background-color: rgba(212, 175, 55, 0.15);
-    color: var(--gold);
+  background: rgba(212, 175, 55, 0.15);
+  color: var(--gold-main);
+  border: 1px solid rgba(212, 175, 55, 0.3);
 }
 
-.status-read {
-    background-color: rgba(0, 123, 255, 0.1);
-    color: #007bff;
-}
-
-.status-replied {
-    background-color: rgba(40, 167, 69, 0.1);
-    color: #28a745;
-}
-
-.status-overdue {
-    background-color: rgba(220, 53, 69, 0.1);
-    color: #dc3545;
-}
-
-.status-paid {
-    background-color: rgba(40, 167, 69, 0.1);
-    color: #28a745;
-}
-
-.portfolio-item {
-    position: relative;
-    overflow: hidden;
-    border-radius: 12px;
-}
-
-.portfolio-item img {
-    transition: transform 0.4s ease;
-}
-
-.portfolio-item:hover img {
-    transform: scale(1.05);
-}
-
-.portfolio-overlay {
-    position: absolute;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    background: linear-gradient(to top, rgba(0, 0, 0, 0.8), transparent);
-    opacity: 0;
-    transition: opacity 0.4s ease;
-    display: flex;
-    flex-direction: column;
-    justify-content: flex-end;
-    padding: 1.5rem;
-}
-
-.portfolio-item:hover .portfolio-overlay {
-    opacity: 1;
-}
-
+/* --- Calendar Specifics --- */
 #calendar {
-    height: 80vh;
+  background: var(--neo-card-bg);
+  padding: 1.5rem;
+  border-radius: var(--radius-md);
+  border: 1px solid rgba(255, 255, 255, 0.03);
+  min-height: 75vh;
 }
 
-.fc {
-    color: var(--admin-bg);
+.fc-theme-bootstrap5 .fc-scrollgrid {
+  border-color: rgba(255, 255, 255, 0.05);
 }
 
 .fc .fc-toolbar-title {
-    color: var(--gold);
-    font-family: 'Old Standard TT', serif;
+  color: var(--gold-main);
+  font-family: "Playfair Display", serif;
 }
 
 .fc .fc-button-primary {
-    background-color: var(--gold);
-    border-color: var(--border-color);
-    color: var(--text-primary);
+  background-color: rgba(255, 255, 255, 0.05);
+  border-color: rgba(255, 255, 255, 0.1);
+  color: var(--text-muted);
 }
 
-.fc .fc-button-primary:hover {
-    background-color: var(--gold-soft);
-    border-color: var(--gold);
-    color: var(--text-primary);
-}
-
+.fc .fc-button-primary:hover,
 .fc .fc-button-primary:active,
-.fc .fc-button-primary:focus {
-    box-shadow: 0 0 0 0.2rem var(--gold-soft);
+.fc .fc-button-primary.fc-button-active {
+  background-color: var(--gold-main) !important;
+  border-color: var(--gold-main) !important;
+  color: #000 !important;
 }
 
-.fc-daygrid-day.fc-day-today {
-    background-color: var(--gold-soft);
+.fc-daygrid-day-number {
+  color: var(--text-light);
+  text-decoration: none;
+}
+
+.fc-col-header-cell-cushion {
+  color: var(--gold-dim);
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  text-decoration: none;
 }
 
 .fc-event {
-    border: 1px solid var(--gold) !important;
-    background-color: var(--gold-soft) !important;
-    color: var(--gold) !important;
+  border: none !important;
+  background: var(--gold-gradient) !important;
+  color: #000 !important;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+  font-weight: 600;
+  padding: 2px 4px;
 }
 
-.fc .fc-col-header-cell-cushion {
-    color: var(--text-secondary);
-}
-
-.fc-event-title.fc-sticky {
-    color: var(--text-primary);
-}
-
-.fc .fc-daygrid-day-number {
-    color: var(--text-primary);
-}
-
-/* ===================================
-   ADMIN PAGE MOBILE RESPONSIVENESS
-   =================================== */
-
-/* Tablet and below */
+/* --- Responsive --- */
 @media (max-width: 768px) {
-  .admin-card {
-    padding: 1rem !important;
+  .sidebar {
+    transform: translateX(-100%);
+    width: var(--sidebar-width);
   }
-  
-  .stat-card {
-    min-height: auto !important;
+
+  .sidebar.show {
+    transform: translateX(0);
   }
-  
-  .chart-card {
-    padding: 1rem !important;
+
+  .page-wrapper {
+    margin-left: 0;
   }
-  
-  table {
-    font-size: 0.8rem;
-  }
-  
-  table th,
-  table td {
-    padding: 0.5rem !important;
-  }
-  
-  .fc .fc-toolbar {
-    flex-direction: column !important;
-    gap: 0.5rem;
-  }
-  
-  .fc .fc-toolbar-title {
-    font-size: 1.2rem !important;
-  }
-  
-  .fc .fc-button {
-    padding: 0.25rem 0.5rem;
-    font-size: 0.85rem;
+
+  .admin-header {
+    padding: 0 1rem;
   }
 }
+.upload-area {
+            border: 2px dashed var(--border-color);
+            border-radius: 12px;
+            padding: 3rem 2rem;
+            text-align: center;
+            transition: all 0.3s ease;
+            background: rgba(255, 255, 255, 0.02);
+            cursor: pointer;
+        }
 
-/* Mobile specific */
-@media (max-width: 576px) {
-  .admin-card {
-    padding: 0.75rem !important;
-  }
-  
-  .portfolio-item {
-    padding: 0.75rem !important;
-  }
-  
-  .portfolio-item img {
-    max-height: 150px !important;
-  }
-  
-  .status-pending,
-  .status-confirmed,
-  .status-completed,
-  .status-cancelled {
-    font-size: 0.7rem !important;
-    padding: 0.2rem 0.4rem !important;
-  }
-  
-  .table-responsive {
-    overflow-x: auto;
-    -webkit-overflow-scrolling: touch;
-  }
-  
-  table {
-    min-width: 600px;
-    font-size: 0.75rem;
-  }
-  
-  table th,
-  table td {
-    padding: 0.4rem !important;
-    white-space: nowrap;
-  }
-  
-  .fc .fc-toolbar-title {
-    font-size: 1rem !important;
-  }
-  
-  .fc .fc-button {
-    padding: 0.2rem 0.4rem;
-    font-size: 0.75rem;
-  }
-  
-  .fc .fc-daygrid-day-number {
-    font-size: 0.8rem;
-  }
-  
-  .mb-3 {
-    margin-bottom: 0.75rem !important;
-  }
-  
-  .btn-sm {
-    padding: 0.25rem 0.5rem;
-    font-size: 0.75rem;
-  }
-}
+        .upload-area:hover,
+        .upload-area.drag-over {
+            border-color: var(--gold);
+            background: rgba(212, 175, 55, 0.05);
+        }
 
-/* Extra small devices */
-@media (max-width: 375px) {
-  .admin-card {
-    padding: 0.5rem !important;
-  }
-  
-  .stat-value {
-    font-size: 1.5rem !important;
-  }
-  
-  .stat-icon {
-    font-size: 1.25rem !important;
-  }
-  
-  .portfolio-item {
-    padding: 0.5rem !important;
-  }
-  
-  .portfolio-item img {
-    max-height: 120px !important;
-  }
-  
-  table {
-    font-size: 0.7rem;
-  }
-  
-  table th,
-  table td {
-    padding: 0.3rem !important;
-  }
-  
-  .fc .fc-toolbar-title {
-    font-size: 0.9rem !important;
-  }
-  
-  .fc .fc-button {
-    font-size: 0.7rem;
-  }
-}
+        .upload-area i {
+            font-size: 3rem;
+            color: var(--gold);
+            margin-bottom: 1rem;
+        }
 
+        .preview-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+            gap: 1rem;
+            margin-top: 2rem;
+        }
 
-/* 
- */
+        .preview-item {
+            position: relative;
+            border-radius: 8px;
+            overflow: hidden;
+            background: var(--card-bg);
+            border: 1px solid var(--border-color);
+        }
+
+        .preview-item img {
+            width: 100%;
+            height: 150px;
+            object-fit: cover;
+        }
+
+        .preview-item .remove-btn {
+            position: absolute;
+            top: 0.5rem;
+            right: 0.5rem;
+            background: rgba(220, 53, 69, 0.9);
+            color: white;
+            border: none;
+            border-radius: 50%;
+            width: 30px;
+            height: 30px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .preview-item .remove-btn:hover {
+            background: #dc3545;
+            transform: scale(1.1);
+        }
+
+        .preview-item .caption-input {
+            padding: 0.5rem;
+            background: rgba(0, 0, 0, 0.5);
+            border: none;
+            border-top: 1px solid var(--border-color);
+            color: var(--text-primary);
+            font-size: 0.85rem;
+        }
+
+        .preview-item .caption-input:focus {
+            outline: none;
+            background: rgba(0, 0, 0, 0.7);
+        }
+
+        .upload-progress {
+            display: none;
+            margin-top: 1rem;
+        }
+
+        .upload-progress.active {
+            display: block;
+        }

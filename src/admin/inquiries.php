@@ -36,9 +36,14 @@ if (isset($_GET['action']) and $_GET['action'] === 'logout') {
 
     <link rel="stylesheet" href="../../bootstrap-5.3.8-dist/css/bootstrap.min.css">
     <link rel="stylesheet" href="../../bootstrap-5.3.8-dist/font/bootstrap-icons.css">
-    <link rel="stylesheet" href="../style.css">
+    <link rel="stylesheet" href="../luxuryDesignSystem.css">
+    <link rel="stylesheet" href="../css/modal.css">
     <link rel="stylesheet" href="admin.css">
+    <link rel="stylesheet" href="../style.css">
     <link rel="icon" href="../assets/camera.png" type="image/x-icon">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Playfair+Display:wght@400;500;600;700&display=swap" rel="stylesheet">
 
     <!-- ApexCharts -->
     <script src="https://cdn.jsdelivr.net/npm/apexcharts"></script>
@@ -58,9 +63,9 @@ if (isset($_GET['action']) and $_GET['action'] === 'logout') {
                 </div>
 
                 <!-- Inquiries Table -->
-                <div class="card-solid">
+                <div class="glass-panel p-4">
                     <div class="table-responsive">
-                        <table class="table table-hover mb-0">
+                        <table class="table table-luxury align-middle mb-0">
                             <thead>
                                 <tr>
                                     <th class="ps-3">From</th>
@@ -73,23 +78,23 @@ if (isset($_GET['action']) and $_GET['action'] === 'logout') {
                             <tbody>
                                 <?php for ($i = 0; $i < 10; $i++) : ?>
                                     <tr>
-                                        <td class="client-name ps-3">John Doe</td>
+                                        <td class="client-name ps-3 fw-bold text-gold">John Doe</td>
                                         <td>Question about Elite Package</td>
-                                        <td>Nov 15, 2025</td>
+                                        <td class="text-muted">Nov 15, 2025</td>
                                         <td><span class="status-badge status-new">New</span></td>
                                         <td class="text-end pe-3">
-                                            <a href="#" class="btn btn-sm btn-outline-secondary">View</a>
-                                            <a href="#" class="btn btn-sm btn-outline-secondary">Reply</a>
+                                            <a href="#" class="btn btn-sm btn-ghost">View</a>
+                                            <a href="#" class="btn btn-sm btn-ghost">Reply</a>
                                         </td>
                                     </tr>
                                     <tr>
-                                        <td class="client-name ps-3">Jane Smith</td>
+                                        <td class="client-name ps-3 fw-bold text-gold">Jane Smith</td>
                                         <td>Wedding Photography Inquiry</td>
-                                        <td>Nov 14, 2025</td>
-                                        <td><span class="status-badge status-read">Read</span></td>
+                                        <td class="text-muted">Nov 14, 2025</td>
+                                        <td><span class="status-badge status-read" style="background: rgba(255,255,255,0.1); color: #ccc; border: 1px solid rgba(255,255,255,0.2);">Read</span></td>
                                         <td class="text-end pe-3">
-                                            <a href="#" class="btn btn-sm btn-outline-secondary">View</a>
-                                            <a href="#" class="btn btn-sm btn-outline-secondary">Reply</a>
+                                            <a href="#" class="btn btn-sm btn-ghost">View</a>
+                                            <a href="#" class="btn btn-sm btn-ghost">Reply</a>
                                         </td>
                                     </tr>
                                 <?php endfor; ?>

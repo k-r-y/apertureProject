@@ -145,7 +145,7 @@ h6 {
   outline: none;
   box-shadow: var(--neo-shadow-in);
   transition: all 0.3s ease;
-}
+}z
 
 .neo-input:focus {
   border-color: var(--gold-dim);

@@ -30,12 +30,7 @@ $currentPage = basename($_SERVER['PHP_SELF']);
         </li>
 
         <li class="nav-section-title"><span class="nav-text">Management</span></li>
-        <li class="sidebar-nav-item">
-            <a href="appointment.php" class="sidebar-nav-link <?= ($currentPage == 'appointment.php') ? 'active' : '' ?>">
-                <i class="bi bi-calendar2-check-fill nav-icon"></i>
-                <span class="nav-text">Appointments</span>
-            </a>
-        </li>
+       
         <li class="sidebar-nav-item">
             <a href="client.php" class="sidebar-nav-link <?= ($currentPage == 'client.php') ? 'active' : '' ?>">
                 <i class="bi bi-people-fill nav-icon"></i>

@@ -434,6 +434,32 @@ $minBookingDate = date('Y-m-d', strtotime('+5 days'));
         });
     </script>
     <?php endif; ?>
+
+    <!-- Pre-select package from sessionStorage (from services.php) -->
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const selectedPackageId = sessionStorage.getItem('selectedPackageId');
+            
+            if (selectedPackageId) {
+                // Wait a bit for other scripts to initialize
+                setTimeout(() => {
+                    const packageRadio = document.querySelector(`input[name="packageID"][value="${selectedPackageId}"]`);
+                    if (packageRadio) {
+                        packageRadio.checked = true;
+                        packageRadio.dispatchEvent(new Event('change', { bubbles: true }));
+                        
+                        // Scroll to package section
+                        packageRadio.closest('.neo-card').scrollIntoView({ behavior: 'smooth', block: 'center' });
+                        
+                        // Clear storage so it doesn't persist forever
+                        sessionStorage.removeItem('selectedPackageId');
+                        sessionStorage.removeItem('selectedPackageName');
+                        sessionStorage.removeItem('selectedPrice');
+                    }
+                }, 500);
+            }
+        });
+    </script>
     
     <script src="booking.js"></script>
     <script src="user.js"></script>

@@ -32,6 +32,7 @@ if ($result) {
     <link rel="stylesheet" href="../../bootstrap-5.3.8-dist/font/bootstrap-icons.css">
     <link rel="stylesheet" href="admin.css">
     <link rel="stylesheet" href="../style.css">
+    <link rel="stylesheet" href="../libs/sweetalert2/sweetalert2.min.css">
     <link rel="icon" href="../assets/camera.png" type="image/x-icon">
 
     <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -126,6 +127,42 @@ if ($result) {
         .upload-progress.active {
             display: block;
         }
+
+        .preview-item.error {
+            border: 2px solid #dc3545;
+        }
+
+        .preview-item .error-badge {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background: rgba(220, 53, 69, 0.95);
+            color: white;
+            padding: 0.5rem;
+            font-size: 0.75rem;
+            text-align: center;
+            z-index: 10;
+        }
+
+        .preview-item.success {
+            border: 2px solid #28a745;
+            opacity: 0.6;
+            pointer-events: none;
+        }
+
+        .preview-item.success::after {
+            content: '\2713';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            font-size: 3rem;
+            color: #28a745;
+            font-weight: bold;
+            text-shadow: 0 0 10px rgba(0,0,0,0.5);
+            z-index: 5;
+        }
     </style>
 </head>
 
@@ -185,7 +222,7 @@ if ($result) {
 
                             <!-- Upload Button -->
                             <div class="mt-4">
-                                <button type="button" class="btn btn-gold btn-lg" id="uploadBtn" disabled>
+                                <button type="button" class="btn btn-gold btn-lg" id="uploadBtn">
                                     <i class="bi bi-upload me-2"></i>Upload Photos
                                 </button>
                             </div>
@@ -193,9 +230,9 @@ if ($result) {
                     </div>
 
                     <div class="col-lg-4">
-                        <div class="stat-card">
-                            <h5 class="text-gold mb-3"><i class="bi bi-info-circle me-2"></i>Upload Guidelines</h5>
-                            <ul class="text-light small" style="line-height: 1.8;">
+                        <div class="neo-card h-100">
+                            <h5 class="text-gold"><i class="bi bi-info-circle me-2"></i>Upload Guidelines</h5>
+                            <ul class="text-light small mb-auto" style="line-height: 1.8;">
                                 <li>Select the user who will receive these photos</li>
                                 <li>Upload multiple photos at once</li>
                                 <li>Add optional captions to each photo</li>
@@ -211,6 +248,7 @@ if ($result) {
     </div>
 
     <script src="../../bootstrap-5.3.8-dist/js/bootstrap.bundle.min.js"></script>
+    <script src="../libs/sweetalert2/sweetalert2.all.min.js"></script>
     <script src="admin.js"></script>
 
     <script>
@@ -276,10 +314,13 @@ if ($result) {
         function renderPreviews() {
             previewGrid.innerHTML = '';
             selectedFiles.forEach((file, index) => {
+                if (!file) return; // Skip null entries
+                
                 const reader = new FileReader();
                 reader.onload = (e) => {
                     const previewItem = document.createElement('div');
                     previewItem.className = 'preview-item';
+                    previewItem.setAttribute('data-file-index', index);
                     previewItem.innerHTML = `
                         <img src="${e.target.result}" alt="Preview">
                         <button class="remove-btn" onclick="removeFile(${index})">
@@ -296,9 +337,37 @@ if ($result) {
         }
 
         function removeFile(index) {
-            selectedFiles.splice(index, 1);
+            selectedFiles[index] = null;
+            selectedFiles = selectedFiles.filter(f => f !== null);
             renderPreviews();
             updateUploadButton();
+        }
+
+        function showErrorModal(response) {
+            const errorList = response.failed.map(item => 
+                `<li><strong>${item.filename}</strong>: ${item.reason}</li>`
+            ).join('');
+            
+            Swal.fire({
+                icon: response.uploaded > 0 ? 'warning' : 'error',
+                title: response.uploaded > 0 ? 'Partial Upload' : 'Upload Failed',
+                html: `
+                    <div class="text-start">
+                        <p><strong>Uploaded:</strong> ${response.uploaded} of ${response.total}</p>
+                        ${response.failed.length > 0 ? `
+                            <p class="mt-3"><strong>Failed Images:</strong></p>
+                            <ul class="text-danger">${errorList}</ul>
+                            <p class="text-muted small mt-3">
+                                <i class="bi bi-info-circle me-1"></i>
+                                Failed images remain in the preview. Fix the issues and try uploading again.
+                            </p>
+                        ` : ''}
+                    </div>
+                `,
+                confirmButtonText: 'OK',
+                width: '600px',
+                confirmButtonColor: '#D4AF37'
+            });
         }
 
         function updateUploadButton() {
@@ -350,18 +419,61 @@ if ($result) {
                 xhr.addEventListener('load', () => {
                     if (xhr.status === 200) {
                         const response = JSON.parse(xhr.responseText);
-                        if (response.success) {
-                            alert(`Successfully uploaded ${response.uploaded} photo(s)!`);
-                            selectedFiles = [];
-                            previewGrid.innerHTML = '';
-                            fileInput.value = '';
-                            userSelect.value = '';
-                            updateUploadButton();
-                        } else {
-                            alert('Upload failed: ' + response.message);
+                        
+                        // Mark successful uploads
+                        if (response.successful && response.successful.length > 0) {
+                            response.successful.forEach(item => {
+                                const previewItem = document.querySelector(`[data-file-index="${item.index}"]`);
+                                if (previewItem) {
+                                    previewItem.classList.add('success');
+                                }
+                                selectedFiles[item.index] = null; // Mark for removal
+                            });
                         }
+                        
+                        // Mark failed uploads with errors
+                        if (response.failed && response.failed.length > 0) {
+                            response.failed.forEach(item => {
+                                const previewItem = document.querySelector(`[data-file-index="${item.index}"]`);
+                                if (previewItem) {
+                                    previewItem.classList.add('error');
+                                    const errorBadge = document.createElement('div');
+                                    errorBadge.className = 'error-badge';
+                                    errorBadge.textContent = item.reason;
+                                    previewItem.appendChild(errorBadge);
+                                }
+                            });
+                            showErrorModal(response);
+                        }
+                        
+                        // Remove successful files after a delay
+                        setTimeout(() => {
+                            selectedFiles = selectedFiles.filter(f => f !== null);
+                            
+                            if (selectedFiles.length === 0) {
+                                if (response.uploaded > 0 && response.failed.length === 0) {
+                                    Swal.fire({
+                                        icon: 'success',
+                                        title: 'Upload Complete!',
+                                        text: `Successfully uploaded ${response.uploaded} photo(s)`,
+                                        timer: 3000,
+                                        showConfirmButton: false
+                                    });
+                                }
+                                previewGrid.innerHTML = '';
+                                fileInput.value = '';
+                                userSelect.value = '';
+                            } else {
+                                renderPreviews();
+                            }
+                            updateUploadButton();
+                        }, 1500);
                     } else {
-                        alert('Upload failed. Please try again.');
+                        Swal.fire({
+                            icon: 'error',
+                            title: 'Upload Failed',
+                            text: 'Server error. Please try again.'
+                        });
                     }
                     uploadProgress.classList.remove('active');
                     uploadBtn.disabled = false;

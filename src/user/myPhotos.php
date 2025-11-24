@@ -26,11 +26,47 @@ if (!isset($_SESSION["userId"]) || !isset($_SESSION["role"]) || $_SESSION["role"
     <link rel="icon" href="../assets/camera.png" type="image/x-icon">
 
     <!-- PhotoSwipe CSS -->
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/photoswipe@5.3.7/dist/photoswipe.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/photoswipe@5.4.3/dist/photoswipe.css" crossorigin="anonymous">
 
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Playfair+Display:wght@400;500;600;700&display=swap" rel="stylesheet">
+
+
+    <style>
+          /* Additional styles for photo hover effects */
+        .photo-card-luxury img:hover {
+            transform: scale(1.05);
+        }
+        .photo-overlay-luxury {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.4);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+        .photo-card-luxury a:hover .photo-overlay-luxury {
+            opacity: 1;
+        }
+        
+        /* PhotoSwipe Customization */
+        .pswp-luxury .pswp__bg {
+            background: rgba(10, 10, 10, 0.95) !important;
+            backdrop-filter: blur(10px);
+        }
+        
+        /* Prevent image stretching in PhotoSwipe */
+        .pswp img {
+            object-fit: contain;
+        }
+    </style>
+
 </head>
 
 <body class="admin-dashboard">
@@ -84,8 +120,8 @@ if (!isset($_SESSION["userId"]) || !isset($_SESSION["role"]) || $_SESSION["role"
     <script src="user.js"></script>
 
     <!-- PhotoSwipe JS -->
-    <script src="https://cdn.jsdelivr.net/npm/photoswipe@5.3.7/dist/photoswipe.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/photoswipe@5.3.7/dist/photoswipe-lightbox.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/photoswipe@5.4.3/dist/umd/photoswipe.umd.min.js" crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/photoswipe@5.4.3/dist/umd/photoswipe-lightbox.umd.min.js" crossorigin="anonymous"></script>
 
     <script>
         const photoGrid = document.getElementById('photoGrid');
@@ -132,11 +168,8 @@ if (!isset($_SESSION["userId"]) || !isset($_SESSION["role"]) || $_SESSION["role"
                     <div class="col-sm-6 col-md-4 col-lg-3">
                         <div class="neo-card h-100 p-2 photo-card-luxury">
                             <a href="${photo.url}" 
-                               data-pswp-width="1200" 
-                               data-pswp-height="800"
-                               data-pswp-caption="${photo.caption || photo.originalName}"
-                               target="_blank"
-                               class="d-block position-relative overflow-hidden rounded mb-2">
+                               class="photo-link d-block position-relative overflow-hidden rounded mb-2"
+                               data-pswp-caption="${photo.caption || photo.originalName}">
                                 <img src="${photo.url}" alt="${photo.caption || photo.originalName}" loading="lazy" class="img-fluid w-100" style="aspect-ratio: 1/1; object-fit: cover; transition: transform 0.5s ease;">
                                 <div class="photo-overlay-luxury">
                                     <i class="bi bi-zoom-in fs-3 text-white"></i>
@@ -168,9 +201,15 @@ if (!isset($_SESSION["userId"]) || !isset($_SESSION["role"]) || $_SESSION["role"
         }
 
         function initPhotoSwipe() {
+            // Check if PhotoSwipe library is loaded
+            if (typeof PhotoSwipeLightbox === 'undefined' || typeof PhotoSwipe === 'undefined') {
+                console.error('PhotoSwipe library not loaded');
+                return;
+            }
+
             const lightbox = new PhotoSwipeLightbox({
                 gallery: '#photoGrid',
-                children: 'a',
+                children: 'a.photo-link',
                 pswpModule: PhotoSwipe,
                 bgOpacity: 0.95,
                 padding: { top: 20, bottom: 20, left: 20, right: 20 },
@@ -222,32 +261,7 @@ if (!isset($_SESSION["userId"]) || !isset($_SESSION["role"]) || $_SESSION["role"
     </script>
 
     <style>
-        /* Additional styles for photo hover effects */
-        .photo-card-luxury img:hover {
-            transform: scale(1.05);
-        }
-        .photo-overlay-luxury {
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: rgba(0, 0, 0, 0.4);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            opacity: 0;
-            transition: opacity 0.3s ease;
-        }
-        .photo-card-luxury a:hover .photo-overlay-luxury {
-            opacity: 1;
-        }
-        
-        /* PhotoSwipe Customization */
-        .pswp-luxury .pswp__bg {
-            background: rgba(10, 10, 10, 0.95) !important;
-            backdrop-filter: blur(10px);
-        }
+      
     </style>
 </body>
 </html>
