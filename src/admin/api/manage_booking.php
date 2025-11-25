@@ -6,7 +6,10 @@ require_once '../../includes/functions/booking_workflow.php';
 header('Content-Type: application/json');
 
 // Check admin access
-session_start();
+if (session_status() === PHP_SESSION_NONE) {
+    session_start();
+}
+
 if (!isset($_SESSION['userId']) || $_SESSION['role'] !== 'Admin') {
     http_response_code(403);
     echo json_encode(['success' => false, 'message' => 'Unauthorized']);
@@ -81,17 +84,22 @@ if ($action === 'list') {
         exit;
     }
 
-    // Get addons
-    $stmt = $conn->prepare("
-        SELECT a.name, a.price 
-        FROM booking_addons ba 
-        JOIN addons a ON ba.addonID = a.addonID 
-        WHERE ba.bookingID = ?
-    ");
-    $stmt->bind_param("i", $bookingId);
-    $stmt->execute();
-    $addons = $stmt->get_result()->fetch_all(MYSQLI_ASSOC);
-    $booking['addons'] = $addons;
+    // Get addons (handle if table doesn't exist)
+    try {
+        $stmt = $conn->prepare("
+            SELECT a.name, a.price 
+            FROM booking_addons ba 
+            JOIN addons a ON ba.addonID = a.addonID 
+            WHERE ba.bookingID = ?
+        ");
+        $stmt->bind_param("i", $bookingId);
+        $stmt->execute();
+        $addons = $stmt->get_result()->fetch_all(MYSQLI_ASSOC);
+        $booking['addons'] = $addons;
+    } catch (Exception $e) {
+        // Table doesn't exist, return empty array
+        $booking['addons'] = [];
+    }
 
     // Get logs
     $booking['logs'] = getBookingLogs($bookingId);

@@ -56,6 +56,22 @@ function updateBookingStatus($bookingId, $newStatus, $userId) {
                     $newStatus,
                     date('M d, Y', strtotime($client['event_date']))
                 );
+                
+                // Create in-app notification
+                $clientStmt = $conn->prepare("SELECT userID FROM bookings WHERE bookingID = ?");
+                $clientStmt->bind_param("i", $bookingId);
+                $clientStmt->execute();
+                $clientUser = $clientStmt->get_result()->fetch_assoc();
+                
+                if ($clientUser) {
+                    createNotification(
+                        $clientUser['userID'],
+                        'booking_status',
+                        'Booking Status Updated',
+                        "Your booking #{$bookingId} status has been updated to " . str_replace('_', ' ', ucwords($newStatus)),
+                        'appointments.php'
+                    );
+                }
             }
         } catch (Exception $e) {
             // Don't fail the status update if email fails
@@ -119,5 +135,17 @@ function getBookingLogs($bookingId) {
         $logs[] = $row;
     }
     return $logs;
+}
+
+/**
+ * Create an in-app notification for a user
+ */
+function createNotification($userId, $type, $title, $message, $link = null) {
+    global $conn;
+    
+    $stmt = $conn->prepare("INSERT INTO notifications (userID, type, title, message, link) VALUES (?, ?, ?, ?, ?)");
+    $stmt->bind_param("issss", $userId, $type, $title, $message, $link);
+    $stmt->execute();
+    $stmt->close();
 }
 ?>

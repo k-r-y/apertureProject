@@ -79,7 +79,7 @@ $minBookingDate = date('Y-m-d', strtotime('+5 days'));
         <?php include_once 'components/header.php'; ?>
 
         <main class="main-content">
-            <div class="container-fluid px-3 px-lg-5 py-5">
+            <div class="container-fluid px-3 px-lg-5 ">
                 
                 <!-- Page Header -->
                 <div class="text-center mb-5">
@@ -187,11 +187,38 @@ $minBookingDate = date('Y-m-d', strtotime('+5 days'));
                                     </div>
                                     <div class="col-md-6">
                                         <label class="text-muted small mb-2 text-uppercase letter-spacing-1">Start Time <span class="text-gold">*</span></label>
-                                        <input type="time" name="startTime" class="neo-input" value="<?= htmlspecialchars($savedData['startTime'] ?? '') ?>" required>
+                                        <select name="startTime" id="startTime" class="neo-input" required>
+                                            <option value="" disabled selected>Select start time</option>
+                                            <?php
+                                            $start = strtotime('07:00');
+                                            $end = strtotime('22:00');
+                                            $savedStart = $savedData['startTime'] ?? '';
+                                            for ($i = $start; $i <= $end; $i += 1800) {
+                                                $timeValue = date('H:i', $i);
+                                                $timeLabel = date('g:i A', $i);
+                                                $selected = ($savedStart == $timeValue) ? 'selected' : '';
+                                                echo "<option value=\"$timeValue\" $selected>$timeLabel</option>";
+                                            }
+                                            ?>
+                                        </select>
+                                        <div id="start-time-feedback" class="invalid-feedback"></div>
                                     </div>
                                     <div class="col-md-6">
                                         <label class="text-muted small mb-2 text-uppercase letter-spacing-1">End Time <span class="text-gold">*</span></label>
-                                        <input type="time" name="endTime" class="neo-input" value="<?= htmlspecialchars($savedData['endTime'] ?? '') ?>" required>
+                                        <select name="endTime" id="endTime" class="neo-input" required>
+                                            <option value="" disabled selected>Select end time</option>
+                                            <?php
+                                            $savedEnd = $savedData['endTime'] ?? '';
+                                            for ($i = $start; $i <= $end; $i += 1800) {
+                                                $timeValue = date('H:i', $i);
+                                                $timeLabel = date('g:i A', $i);
+                                                $selected = ($savedEnd == $timeValue) ? 'selected' : '';
+                                                echo "<option value=\"$timeValue\" $selected>$timeLabel</option>";
+                                            }
+                                            ?>
+                                        </select>
+                                        <div id="end-time-feedback" class="invalid-feedback"></div>
+                                        <div id="time-range-feedback" class="invalid-feedback"></div>
                                     </div>
                                     <div class="col-12">
                                         <label class="text-muted small mb-2 text-uppercase letter-spacing-1">Event Location <span class="text-gold">*</span></label>
@@ -254,7 +281,7 @@ $minBookingDate = date('Y-m-d', strtotime('+5 days'));
                                     ?>
                                     <div class="col-md-6 col-lg-3">
                                         <input type="radio" name="paymentMethod" id="<?= $id ?>" value="<?= $name ?>" class="btn-check" required>
-                                        <label for="<?= $id ?>" class="neo-card w-100 text-center p-3 cursor-pointer payment-label" style="cursor: pointer;">
+                                        <label for="<?= $id ?>" class="neo-card w-100 h-100 text-center py-2 px-1 cursor-pointer payment-label" style="cursor: pointer;">
                                             <i class="bi bi-<?= $icon ?> fs-3 text-gold mb-2 d-block"></i>
                                             <span class="text-light"><?= $name ?></span>
                                         </label>
@@ -276,6 +303,13 @@ $minBookingDate = date('Y-m-d', strtotime('+5 days'));
                                     <small class="text-muted d-block mt-2">Max 5MB • JPG, PNG, or PDF</small>
                                     <div id="proofPreview" class="mt-3"></div>
                                 </div>
+
+                                <!-- Downpayment Amount -->
+                                <div class="mt-4">
+                                    <label class="text-muted small mb-2 text-uppercase letter-spacing-1">Downpayment Amount (₱) <span class="text-gold">*</span></label>
+                                    <input type="number" name="downpayment" id="downpaymentInput" class="neo-input" required step="0.01" min="0">
+                                    <div class="form-text text-muted small mt-1" id="downpaymentHint">Minimum required: 25% of total</div>
+                                </div>
                             </div>
 
                             <!-- Special Requests -->
@@ -285,6 +319,35 @@ $minBookingDate = date('Y-m-d', strtotime('+5 days'));
                                 </div>
                                 <label class="text-muted small mb-2 text-uppercase letter-spacing-1">Additional Notes (Optional)</label>
                                 <textarea name="specialRequests" class="neo-input" rows="4" placeholder="Any special requirements or requests..."><?= htmlspecialchars($savedData['specialRequests'] ?? '') ?></textarea>
+                            </div>
+
+                            <!-- Consultation Schedule -->
+                            <div class="neo-card mb-4">
+                                <div class="mb-4 pb-2 border-bottom border-secondary">
+                                    <h4 class="m-0"><i class="bi bi-camera-video me-2 text-gold"></i>Consultation Schedule</h4>
+                                </div>
+                                <p class="text-muted small mb-3">Schedule a Google Meet / Zoom call with our team to discuss your event details.</p>
+                                <div class="row g-3">
+                                    <div class="col-md-6">
+                                        <label class="text-muted small mb-2 text-uppercase letter-spacing-1">Preferred Date <span class="text-gold">*</span></label>
+                                        <input type="date" name="consultationDate" class="neo-input" min="<?= date('Y-m-d', strtotime('+1 day')) ?>" required>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <label class="text-muted small mb-2 text-uppercase letter-spacing-1">Preferred Time <span class="text-gold">*</span></label>
+                                        <select name="consultationTime" class="neo-input" required>
+                                            <option value="" disabled selected>Select time</option>
+                                            <?php
+                                            $cStart = strtotime('09:00');
+                                            $cEnd = strtotime('18:00');
+                                            for ($i = $cStart; $i <= $cEnd; $i += 1800) {
+                                                $timeValue = date('H:i', $i);
+                                                $timeLabel = date('g:i A', $i);
+                                                echo "<option value=\"$timeValue\">$timeLabel</option>";
+                                            }
+                                            ?>
+                                        </select>
+                                    </div>
+                                </div>
                             </div>
 
                         </div>

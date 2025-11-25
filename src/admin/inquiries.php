@@ -44,9 +44,6 @@ if (isset($_GET['action']) and $_GET['action'] === 'logout') {
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Playfair+Display:wght@400;500;600;700&display=swap" rel="stylesheet">
-
-    <!-- ApexCharts -->
-    <script src="https://cdn.jsdelivr.net/npm/apexcharts"></script>
 </head>
 
 <body class="admin-dashboard">
@@ -60,6 +57,7 @@ if (isset($_GET['action']) and $_GET['action'] === 'logout') {
 
                 <div class="d-flex justify-content-between align-items-center mb-4">
                     <h1 class="header-title m-0">Inquiries</h1>
+                    <button class="btn btn-sm btn-gold" onclick="loadInquiries()"><i class="bi bi-arrow-clockwise"></i> Refresh</button>
                 </div>
 
                 <!-- Inquiries Table -->
@@ -75,29 +73,8 @@ if (isset($_GET['action']) and $_GET['action'] === 'logout') {
                                     <th class="text-end pe-3">Actions</th>
                                 </tr>
                             </thead>
-                            <tbody>
-                                <?php for ($i = 0; $i < 10; $i++) : ?>
-                                    <tr>
-                                        <td class="client-name ps-3 fw-bold text-gold">John Doe</td>
-                                        <td>Question about Elite Package</td>
-                                        <td class="text-muted">Nov 15, 2025</td>
-                                        <td><span class="status-badge status-new">New</span></td>
-                                        <td class="text-end pe-3">
-                                            <a href="#" class="btn btn-sm btn-ghost">View</a>
-                                            <a href="#" class="btn btn-sm btn-ghost">Reply</a>
-                                        </td>
-                                    </tr>
-                                    <tr>
-                                        <td class="client-name ps-3 fw-bold text-gold">Jane Smith</td>
-                                        <td>Wedding Photography Inquiry</td>
-                                        <td class="text-muted">Nov 14, 2025</td>
-                                        <td><span class="status-badge status-read" style="background: rgba(255,255,255,0.1); color: #ccc; border: 1px solid rgba(255,255,255,0.2);">Read</span></td>
-                                        <td class="text-end pe-3">
-                                            <a href="#" class="btn btn-sm btn-ghost">View</a>
-                                            <a href="#" class="btn btn-sm btn-ghost">Reply</a>
-                                        </td>
-                                    </tr>
-                                <?php endfor; ?>
+                            <tbody id="inquiriesTableBody">
+                                <tr><td colspan="5" class="text-center text-muted">Loading...</td></tr>
                             </tbody>
                         </table>
                     </div>
@@ -106,8 +83,113 @@ if (isset($_GET['action']) and $_GET['action'] === 'logout') {
         </main>
     </div>
 
+    <!-- View Inquiry Modal -->
+    <div class="modal fade" id="viewInquiryModal" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content bg-dark border-secondary">
+                <div class="modal-header border-secondary">
+                    <h5 class="modal-title text-gold">Inquiry Details</h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body text-light">
+                    <div class="mb-3">
+                        <small class="text-muted">From:</small>
+                        <div id="modalName" class="fw-bold"></div>
+                        <div id="modalEmail" class="text-gold"></div>
+                    </div>
+                    <div class="mb-3">
+                        <small class="text-muted">Subject:</small>
+                        <div id="modalSubject"></div>
+                    </div>
+                    <div class="mb-3">
+                        <small class="text-muted">Message:</small>
+                        <div id="modalMessage" class="p-3 bg-black rounded border border-secondary"></div>
+                    </div>
+                </div>
+                <div class="modal-footer border-secondary">
+                    <a id="replyBtn" href="#" class="btn btn-gold">Reply via Email</a>
+                    <button type="button" class="btn btn-ghost" data-bs-dismiss="modal">Close</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <script src="../../bootstrap-5.3.8-dist/js/bootstrap.bundle.min.js"></script>
+    <script src="../libs/sweetalert2/sweetalert2.all.min.js"></script>
     <script src="admin.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', loadInquiries);
+
+        function loadInquiries() {
+            fetch('api/inquiries_api.php?action=get_all')
+                .then(r => r.json())
+                .then(data => {
+                    const tbody = document.getElementById('inquiriesTableBody');
+                    if (data.success && data.inquiries.length > 0) {
+                        tbody.innerHTML = data.inquiries.map(inq => `
+                            <tr>
+                                <td class="ps-3">
+                                    <div class="fw-bold text-gold">${inq.name}</div>
+                                    <small class="text-muted">${inq.email}</small>
+                                </td>
+                                <td>${inq.subject}</td>
+                                <td class="text-muted">${new Date(inq.created_at).toLocaleDateString()}</td>
+                                <td>
+                                    <span class="status-badge ${inq.status === 'new' ? 'status-new' : 'status-read'}" 
+                                          style="${inq.status === 'read' ? 'background: rgba(255,255,255,0.1); color: #ccc; border: 1px solid rgba(255,255,255,0.2);' : ''}">
+                                        ${inq.status.toUpperCase()}
+                                    </span>
+                                </td>
+                                <td class="text-end pe-3">
+                                    <button class="btn btn-sm btn-ghost" onclick='viewInquiry(${JSON.stringify(inq)})'>View</button>
+                                    <button class="btn btn-sm btn-ghost text-danger" onclick="deleteInquiry(${inq.id})"><i class="bi bi-trash"></i></button>
+                                </td>
+                            </tr>
+                        `).join('');
+                    } else {
+                        tbody.innerHTML = '<tr><td colspan="5" class="text-center text-muted">No inquiries found</td></tr>';
+                    }
+                });
+        }
+
+        function viewInquiry(inq) {
+            document.getElementById('modalName').textContent = inq.name;
+            document.getElementById('modalEmail').textContent = inq.email;
+            document.getElementById('modalSubject').textContent = inq.subject;
+            document.getElementById('modalMessage').textContent = inq.message;
+            document.getElementById('replyBtn').href = `mailto:${inq.email}?subject=Re: ${inq.subject}`;
+            
+            new bootstrap.Modal(document.getElementById('viewInquiryModal')).show();
+
+            if (inq.status === 'new') {
+                updateStatus(inq.id, 'read');
+            }
+        }
+
+        function updateStatus(id, status) {
+            fetch('api/inquiries_api.php?action=update_status', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({id, status})
+            }).then(() => loadInquiries()); // Refresh to show updated status
+        }
+
+        function deleteInquiry(id) {
+            if(!confirm('Are you sure you want to delete this inquiry?')) return;
+            fetch('api/inquiries_api.php?action=delete', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({id})
+            })
+            .then(r => r.json())
+            .then(data => {
+                if(data.success) {
+                    loadInquiries();
+                    Swal.fire('Deleted!', 'Inquiry has been deleted.', 'success');
+                }
+            });
+        }
+    </script>
 </body>
 
 </html>

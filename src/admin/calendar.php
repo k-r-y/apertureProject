@@ -47,6 +47,13 @@ if (isset($_GET['action']) and $_GET['action'] === 'logout') {
 
     <!-- FullCalendar -->
     <script src='https://cdn.jsdelivr.net/npm/fullcalendar@6.1.10/index.global.min.js'></script>
+    <style>
+        .fc-event { cursor: pointer; }
+        .fc-toolbar-title { color: #D4AF37 !important; font-family: 'Playfair Display', serif; }
+        .fc-button-primary { background-color: #D4AF37 !important; border-color: #D4AF37 !important; color: #000 !important; }
+        .fc-daygrid-day-number { color: #fff; text-decoration: none; }
+        .fc-col-header-cell-cushion { color: #fff; text-decoration: none; }
+    </style>
 </head>
 
 <body class="admin-dashboard">
@@ -60,16 +67,19 @@ if (isset($_GET['action']) and $_GET['action'] === 'logout') {
 
                 <div class="d-flex justify-content-between align-items-center mb-4">
                     <h1 class="header-title m-0">Booking Calendar</h1>
-                    <a href="appointment.php" class="btn btn-gold">+ New Appointment</a>
+                    <a href="bookings.php" class="btn btn-gold">Manage Bookings</a>
                 </div>
 
-                <div class="calendar-luxury" id="calendar"></div>
+                <div class="glass-panel p-4">
+                    <div class="calendar-luxury" id="calendar"></div>
+                </div>
 
             </div>
         </main>
     </div>
 
     <script src="../../bootstrap-5.3.8-dist/js/bootstrap.bundle.min.js"></script>
+    <script src="../libs/sweetalert2/sweetalert2.all.min.js"></script>
     <script src="admin.js"></script>
     <script>
         document.addEventListener('DOMContentLoaded', function() {
@@ -82,10 +92,33 @@ if (isset($_GET['action']) and $_GET['action'] === 'logout') {
                     center: 'title',
                     right: 'dayGridMonth,timeGridWeek,timeGridDay'
                 },
-                events: 'get_bookings.php', // Fetch events from this endpoint
+                events: 'get_bookings.php',
                 eventClick: function(info) {
-                    // Optional: Open modal with details
-                    alert('Booking: ' + info.event.title);
+                    const event = info.event;
+                    const props = event.extendedProps;
+                    
+                    Swal.fire({
+                        title: event.title,
+                        html: `
+                            <div class="text-start">
+                                <p><strong>Date:</strong> ${event.start.toLocaleString()}</p>
+                                <p><strong>Status:</strong> <span class="badge bg-secondary">${props.status}</span></p>
+                                <p><strong>Amount:</strong> ₱${Number(props.amount).toLocaleString()}</p>
+                            </div>
+                        `,
+                        icon: 'info',
+                        background: '#1a1a1a',
+                        color: '#fff',
+                        confirmButtonColor: '#D4AF37',
+                        confirmButtonText: 'View Booking Details',
+                        showCancelButton: true,
+                        cancelButtonColor: '#6c757d'
+                    }).then((result) => {
+                        if (result.isConfirmed) {
+                            // Redirect to bookings page or open modal (simplified for now)
+                            window.location.href = `bookings.php?search=${event.id}`;
+                        }
+                    });
                 }
             });
             calendar.render();

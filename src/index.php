@@ -383,40 +383,34 @@ require_once 'includes/functions/session.php';
       </div>
 
       <div class="row justify-content-center">
-
-
-
         <div class="accordion col-md-8" id="faqAccordion">
-
-
 
           <!-- item 1 -->
           <div class="accordion-item">
             <h2 class="accordion-header">
               <button class="accordion-button" type="button" data-bs-toggle="collapse" data-bs-target="#firstQuestion" aria-expanded="true" aria-controls="firstQuestion">
-                What is included in the hourly rate?
+                How does the Aperture booking system work?
               </button>
             </h2>
 
-            <div id="firstQuestion" class="accordion-collapse collapse  show" data-bs-parent="#faqAccordion">
-              <div class="accordion-body ">
-                <p>The hourly rate includes professional photography or videography services, post-production editing, and delivery of high-resolution images or videos. Specific inclusions vary by package.</p>
+            <div id="firstQuestion" class="accordion-collapse collapse show" data-bs-parent="#faqAccordion">
+              <div class="accordion-body">
+                <p>Aperture uses a simple 4-step process: (1) Submit your booking request with event details, (2) Our team reviews and confirms photographer availability, (3) Receive booking approval and confirmation, (4) Enjoy your event while our professionals capture every moment.</p>
               </div>
             </div>
-
           </div>
 
           <!-- item 2 -->
           <div class="accordion-item">
             <h2 class="accordion-header">
               <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#secondQuestion" aria-expanded="false" aria-controls="secondQuestion">
-                Is there a minimum booking time?
+                Can I only book one appointment per day?
               </button>
             </h2>
 
-            <div id="secondQuestion" class="accordion-collapse collapse " data-bs-parent="#faqAccordion">
-              <div class="accordion-body ">
-                <p>Yes, the minimum booking is 1 hour to ensure quality and proper scheduling.</p>
+            <div id="secondQuestion" class="accordion-collapse collapse" data-bs-parent="#faqAccordion">
+              <div class="accordion-body">
+                <p>Yes, to ensure our photographers can dedicate their full attention and deliver the highest quality service, we allow only one booking per client per day. This policy helps us maintain our commitment to excellence.</p>
               </div>
             </div>
           </div>
@@ -425,13 +419,13 @@ require_once 'includes/functions/session.php';
           <div class="accordion-item">
             <h2 class="accordion-header">
               <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#thirdQuestion" aria-expanded="false" aria-controls="thirdQuestion">
-                How do I book a session?
+                How long does it take to get booking approval?
               </button>
             </h2>
 
-            <div id="thirdQuestion" class="accordion-collapse collapse " data-bs-parent="#faqAccordion">
-              <div class="accordion-body ">
-                <p>You can book a session by clicking the “Book Now” button on your chosen package or contacting us directly through our website or phone.</p>
+            <div id="thirdQuestion" class="accordion-collapse collapse" data-bs-parent="#faqAccordion">
+              <div class="accordion-body">
+                <p>Our admin team typically reviews and approves booking requests within 24-48 hours. You'll receive an email notification once your booking status changes. You can also track your booking status in real-time through your user dashboard.</p>
               </div>
             </div>
           </div>
@@ -440,13 +434,13 @@ require_once 'includes/functions/session.php';
           <div class="accordion-item">
             <h2 class="accordion-header">
               <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#fourthQuestion" aria-expanded="false" aria-controls="fourthQuestion">
-                What is the turnaround time for receiving photos/videos?
+                When will I receive my photos or videos?
               </button>
             </h2>
 
-            <div id="fourthQuestion" class="accordion-collapse collapse " data-bs-parent="#faqAccordion">
-              <div class="accordion-body ">
-                <p>Typically, you will receive your edited photos or videos within 1 to 2 weeks after the event. Express delivery options are available with the Premium package.</p>
+            <div id="fourthQuestion" class="accordion-collapse collapse" data-bs-parent="#faqAccordion">
+              <div class="accordion-body">
+                <p>Delivery times vary by event type and package. Typically, you'll receive your professionally edited photos within 7-14 days. Videos may take 14-21 days for complete editing. All deliverables are uploaded to your secure online gallery accessible through your dashboard.</p>
               </div>
             </div>
           </div>
@@ -455,13 +449,13 @@ require_once 'includes/functions/session.php';
           <div class="accordion-item">
             <h2 class="accordion-header">
               <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#fifthQuestion" aria-expanded="false" aria-controls="fifthQuestion">
-                Can I customize a package?
+                What types of events can I book through Aperture?
               </button>
             </h2>
 
-            <div id="fifthQuestion" class="accordion-collapse collapse " data-bs-parent="#faqAccordion">
-              <div class="accordion-body ">
-                <p>Absolutely! We offer custom packages tailored to your specific needs. Please contact us to discuss your requirements.</p>
+            <div id="fifthQuestion" class="accordion-collapse collapse" data-bs-parent="#faqAccordion">
+              <div class="accordion-body">
+                <p>Aperture supports a wide range of events including Weddings & Engagements, Birthdays & Celebrations, Corporate Events, Creative Shoots, Product Photography, and Behind-the-Lens sessions. Simply select your event type when submitting your booking request.</p>
               </div>
             </div>
           </div>
@@ -470,81 +464,75 @@ require_once 'includes/functions/session.php';
           <div class="accordion-item">
             <h2 class="accordion-header">
               <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#sixthQuestion" aria-expanded="false" aria-controls="sixthQuestion">
-                Are travel expenses included in the price?
+                How can I track my booking status?
               </button>
             </h2>
 
-            <div id="sixthQuestion" class="accordion-collapse collapse " data-bs-parent="#faqAccordion">
-              <div class="accordion-body ">
-                <p>All pricing is transparent and upfront. Travel expenses are clearly communicated and included in your quote before booking for events outside our standard service area. There are no hidden fees.</p>
+            <div id="sixthQuestion" class="accordion-collapse collapse" data-bs-parent="#faqAccordion">
+              <div class="accordion-body">
+                <p>After logging into your Aperture account, navigate to "My Appointments" in your dashboard. Here you can view all your bookings with real-time status updates (Pending, Approved, Completed, or Cancelled), booking details, and access your photo gallery once photos are delivered.</p>
               </div>
             </div>
-
           </div>
 
           <!-- item 7 -->
           <div class="accordion-item">
             <h2 class="accordion-header">
               <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#seventhQuestion" aria-expanded="false" aria-controls="seventhQuestion">
-                What happens if the event runs longer than expected?
+                What payment methods do you accept?
               </button>
             </h2>
 
-            <div id="seventhQuestion" class="accordion-collapse collapse " data-bs-parent="#faqAccordion">
-              <div class="accordion-body ">
-                <p>Overtime is billed at the same hourly rate as your package. We will notify you in advance if additional time is needed.</p>
+            <div id="seventhQuestion" class="accordion-collapse collapse" data-bs-parent="#faqAccordion">
+              <div class="accordion-body">
+                <p>We accept various payment methods including bank transfers, GCash, PayMaya, and credit/debit cards. Payment details and instructions will be provided once your booking is approved by our admin team.</p>
               </div>
             </div>
-
           </div>
 
           <!-- item 8 -->
           <div class="accordion-item">
             <h2 class="accordion-header">
               <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#eighthQuestion" aria-expanded="false" aria-controls="eighthQuestion">
-                What is your cancellation policy?
+                Can I cancel or reschedule my booking?
               </button>
             </h2>
 
-            <div id="eighthQuestion" class="accordion-collapse collapse " data-bs-parent="#faqAccordion">
-              <div class="accordion-body ">
-                <p>Cancellations made at least 7 days before the event will receive a full refund. Cancellations within 7 days may be subject to a cancellation fee.</p>
+            <div id="eighthQuestion" class="accordion-collapse collapse" data-bs-parent="#faqAccordion">
+              <div class="accordion-body">
+                <p>Yes, you can request cancellations or rescheduling through your dashboard or by contacting our support team. Cancellations made 7+ days before the event receive a full refund. Cancellations within 7 days may incur a fee. Rescheduling is subject to photographer availability.</p>
               </div>
             </div>
           </div>
 
           <!-- item 9 -->
           <div class="accordion-item">
-
             <h2 class="accordion-header">
               <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#ninthQuestion" aria-expanded="false" aria-controls="ninthQuestion">
-                Do you provide raw/unedited photos or videos?
+                How do I access my photos after the event?
               </button>
             </h2>
 
-            <div id="ninthQuestion" class="accordion-collapse collapse " data-bs-parent="#faqAccordion">
-              <div class="accordion-body ">
-                <p>We deliver professionally edited and color-corrected images and videos. Raw files are not typically provided but can be requested for an additional fee.</p>
+            <div id="ninthQuestion" class="accordion-collapse collapse" data-bs-parent="#faqAccordion">
+              <div class="accordion-body">
+                <p>Once your photos are ready, you'll receive an email notification. Log into your Aperture account and go to "My Photos" to view and download your professionally edited images. All photos are delivered in high-resolution format and stored securely in your online gallery.</p>
               </div>
             </div>
-
           </div>
 
           <!-- item 10 -->
           <div class="accordion-item">
-
             <h2 class="accordion-header">
               <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#tenthQuestion" aria-expanded="false" aria-controls="tenthQuestion">
-                Can I request specific shots or styles?
+                Do I need to create an account to book?
               </button>
             </h2>
 
-            <div id="tenthQuestion" class="accordion-collapse collapse " data-bs-parent="#faqAccordion">
-              <div class="accordion-body ">
-                <p>Yes! We encourage you to share your preferences and ideas during the pre-event consultation to ensure your vision is captured.</p>
+            <div id="tenthQuestion" class="accordion-collapse collapse" data-bs-parent="#faqAccordion">
+              <div class="accordion-body">
+                <p>Yes, creating a free Aperture account is required to submit booking requests. Your account gives you access to your personalized dashboard where you can manage bookings, track status updates, view appointments, and access your photo gallery—all in one convenient place.</p>
               </div>
             </div>
-
           </div>
 
         </div>
@@ -559,6 +547,39 @@ require_once 'includes/functions/session.php';
 
   <script src="../bootstrap-5.3.8-dist/js/bootstrap.bundle.min.js"></script>
   <script src="script.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            fetch('user/api/reviews_api.php?action=get_approved_reviews')
+                .then(r => r.json())
+                .then(data => {
+                    const grid = document.getElementById('testimonialsGrid');
+                    if(data.success && data.reviews.length > 0) {
+                        grid.innerHTML = data.reviews.map(r => `
+                            <div class="col-md-4">
+                                <div class="card bg-dark border-secondary h-100">
+                                    <div class="card-body p-4">
+                                        <div class="mb-3 text-warning">
+                                            ${Array(5).fill(0).map((_, i) => 
+                                                `<i class="bi bi-star${i < r.rating ? '-fill' : ''}"></i>`
+                                            ).join('')}
+                                        </div>
+                                        <p class="card-text text-light fst-italic mb-4">"${r.comment}"</p>
+                                        <div class="d-flex align-items-center">
+                                            <div class="ms-0">
+                                                <h6 class="text-gold mb-0 font-serif">${r.FirstName} ${r.LastName}</h6>
+                                                <small class="text-muted">${r.event_type}</small>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        `).join('');
+                    } else {
+                        grid.innerHTML = '<div class="col-12 text-center text-muted">No reviews yet. Be the first!</div>';
+                    }
+                });
+        });
+    </script>
 </body>
 
 </html>

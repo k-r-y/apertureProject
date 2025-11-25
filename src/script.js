@@ -155,6 +155,7 @@ if (radios.length > 0) {
                 const packageId = this.value;
                 console.log(packageId);
                 loadPackageDetails(packageId);
+                calculateTotal();
             }
         })
     })
@@ -243,9 +244,14 @@ function displayAddOns(data) {
                 const formCheckDiv = document.createElement('div');
                 const checkInput = document.createElement('input');
                 checkInput.setAttribute('type', 'checkbox')
+
+                // Add price data attribute
+                checkInput.dataset.price = addon.Price;
+                checkInput.addEventListener('change', calculateTotal);
+
                 const labelCheck = document.createElement('label');
 
-                labelCheck.textContent = addon.Description + ' - ' + addon.Price;
+                labelCheck.textContent = addon.Description + ' - ₱' + parseFloat(addon.Price).toLocaleString();
 
                 checkInput.classList.add('form-check-input');
                 labelCheck.classList.add('form-check-label');
@@ -262,10 +268,6 @@ function displayAddOns(data) {
                 formCheckDiv.appendChild(labelCheck);
 
                 addOnsList.appendChild(formCheckDiv);
-
-                console.log("Addons asjdakjdk", addon.Description);
-
-
             })
         } else {
             addOnsList.innerHTML = '<li class="text-muted">No inclusions available</li>';
@@ -273,6 +275,8 @@ function displayAddOns(data) {
     }
 
 }
+
+
 
 
 const contactInput = document.getElementById("contactInput");
@@ -290,6 +294,8 @@ if (contactInput) {
         }
     })
 }
+
+
 
 
 

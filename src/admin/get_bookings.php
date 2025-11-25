@@ -20,20 +20,21 @@ $events = [];
 while ($row = $result->fetch_assoc()) {
     $start = $row['event_date'] . 'T' . $row['event_time'];
     
-    // Calculate end time (assuming default duration or if stored)
-    // For now, let's assume 2 hours duration if not specified, or just use start
-    // If you have duration, you can calculate end.
-    // Let's just use start for now.
+    // Calculate end time (assuming 2 hours duration for visualization)
+    $endTime = date('H:i:s', strtotime($row['event_time']) + 7200); // +2 hours
+    $end = $row['event_date'] . 'T' . $endTime;
     
     $color = '#d4af37'; // Default gold
     if ($row['booking_status'] === 'Pending') $color = '#ffc107';
     if ($row['booking_status'] === 'Cancelled') $color = '#dc3545';
     if ($row['booking_status'] === 'Completed') $color = '#0d6efd';
+    if ($row['booking_status'] === 'Confirmed') $color = '#198754';
 
     $events[] = [
         'id' => $row['bookingID'],
         'title' => $row['event_type'] . ' (' . $row['booking_status'] . ')',
         'start' => $start,
+        'end' => $end,
         'backgroundColor' => $color,
         'borderColor' => $color,
         'extendedProps' => [

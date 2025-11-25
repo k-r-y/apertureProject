@@ -49,7 +49,7 @@ $currentPage = 'bookings.php';
                     <div class="row g-3">
                         <div class="col-md-3">
                             <label class="text-muted small mb-2">Status</label>
-                            <select id="statusFilter" class="neo-input form-select bg-transparent text-light border-secondary">
+                            <select id="statusFilter" class="neo-input form-select">
                                 <option value="all" selected>All Statuses</option>
                                 <option value="pending">Pending</option>
                                 <option value="confirmed">Confirmed</option>
@@ -145,6 +145,9 @@ $currentPage = 'bookings.php';
                             <p class="mb-1"><i class="bi bi-clock me-2 text-muted"></i> <span id="modalEventTime" class="text-light"></span></p>
                             <p class="mb-1"><i class="bi bi-geo-alt me-2 text-muted"></i> <span id="modalEventLocation" class="text-light"></span></p>
                             <p class="mb-1"><i class="bi bi-camera me-2 text-muted"></i> <span id="modalEventType" class="text-light"></span></p>
+                            
+                            <!-- Consultation Info Container -->
+                            <div id="modalConsultation"></div>
                         </div>
 
                         <!-- Package & Payment -->
@@ -161,6 +164,9 @@ $currentPage = 'bookings.php';
                                         <p class="mb-1">Total: <span id="modalTotalAmount" class="text-light fw-bold"></span></p>
                                         <p class="mb-1">Downpayment: <span id="modalDownpayment" class="text-light"></span></p>
                                         <p class="mb-0">Balance: <span id="modalBalance" class="text-light"></span></p>
+                                        
+                                        <!-- Proof of Payment Container -->
+                                        <div id="modalPaymentProof"></div>
                                     </div>
                                 </div>
                             </div>
@@ -171,6 +177,7 @@ $currentPage = 'bookings.php';
                             <h6 class="text-gold mb-2">Admin Notes</h6>
                             <textarea id="modalAdminNotes" class="form-control bg-dark text-light border-secondary mb-2" rows="3" placeholder="Add internal notes here..."></textarea>
                             <button id="saveNotesBtn" class="btn btn-sm btn-outline-gold">Save Notes</button>
+                            <button id="downloadInvoiceBtn" class="btn btn-sm btn-gold ms-2"><i class="bi bi-file-pdf me-1"></i>Download Invoice</button>
                         </div>
 
                         <!-- Activity Log -->
@@ -188,6 +195,6 @@ $currentPage = 'bookings.php';
 
     <script src="../../bootstrap-5.3.8-dist/js/bootstrap.bundle.min.js"></script>
     <script src="../js/feedback.js"></script>
-    <script src="js/bookings.js"></script>
+    <script src="js/bookings.js?v=<?= time() ?>"></script>
 </body>
 </html>

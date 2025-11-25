@@ -10,7 +10,15 @@ if (!isset($_SESSION['userId']) || $_SESSION['role'] !== 'Admin') {
 $clientId = $_GET['id'] ?? 0;
 
 // Get client info
-$stmt = $conn->prepare("SELECT * FROM users WHERE userID = ?");
+// Get client info
+$stmt = $conn->prepare("
+    SELECT u.*, 
+    (SELECT COALESCE(SUM(CASE WHEN is_fully_paid = 1 THEN total_price ELSE downpayment_amount END), 0) 
+     FROM bookings 
+     WHERE userID = u.userID AND booking_status != 'cancelled') as total_spent
+    FROM users u 
+    WHERE u.userID = ?
+");
 $stmt->bind_param("i", $clientId);
 $stmt->execute();
 $client = $stmt->get_result()->fetch_assoc();
@@ -88,6 +96,7 @@ if (!$client) {
                             <div class="mb-2"><i class="bi bi-envelope me-2 text-gold"></i><?= htmlspecialchars($client['Email']) ?></div>
                             <div class="mb-2"><i class="bi bi-phone me-2 text-gold"></i><?= htmlspecialchars($client['contactNo'] ?? 'Not provided') ?></div>
                             <div class="mb-2"><i class="bi bi-calendar me-2 text-gold"></i>Joined: <?= date('M d, Y', strtotime($client['created_at'])) ?></div>
+                            <div class="mb-2"><i class="bi bi-cash-stack me-2 text-gold"></i>Total Spent: ₱<?= number_format($client['total_spent'], 2) ?></div>
                         </div>
 
                         <!-- Notes -->

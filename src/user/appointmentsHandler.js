@@ -100,6 +100,11 @@ function renderAppointments(appointments) {
                 <button class="btn btn-gold btn-sm">
                     <i class="bi bi-eye me-1"></i>View Details
                 </button>
+                ${appointment.bookingStatus === 'completed' ? `
+                <button class="btn btn-outline-gold btn-sm ms-2" onclick="openReviewModal(${appointment.bookingID}, event)">
+                    <i class="bi bi-star me-1"></i>Review
+                </button>
+                ` : ''}
             </div>
         </div>
     `).join('');
@@ -237,8 +242,13 @@ function openAppointmentModal(bookingID) {
         <div class="divider"></div>
         
         <div class="mt-4 d-flex justify-content-between align-items-center">
-            <small class="text-muted">Booked on ${appointment.createdAtFormatted}</small>
-            ${appointment.bookingStatus === 'pending_consultation' ? `
+            <div>
+                <small class="text-muted">Booked on ${appointment.createdAtFormatted}</small>
+                <button class="btn btn-gold btn-sm ms-3" onclick="window.open('../api/generate_invoice.php?id=${appointment.bookingID}', '_blank')">
+                    <i class="bi bi-file-pdf me-2"></i>Download Invoice
+                </button>
+            </div>
+            ${(appointment.bookingStatus === 'pending_consultation' || appointment.bookingStatus === 'confirmed') ? `
             <button class="btn btn-outline-danger btn-sm" onclick="cancelBooking(${appointment.bookingID})">
                 <i class="bi bi-x-circle me-2"></i>Cancel Booking
             </button>
@@ -300,6 +310,72 @@ document.addEventListener('keydown', function (e) {
     if (e.key === 'Escape') {
         closeModal();
     }
+});
+
+// Review Modal Logic
+function openReviewModal(bookingID, event) {
+    if (event) event.stopPropagation();
+    document.getElementById('reviewBookingId').value = bookingID;
+    document.getElementById('reviewModal').classList.add('active');
+
+    // Reset form
+    document.getElementById('reviewForm').reset();
+    document.getElementById('reviewRating').value = '';
+    document.querySelectorAll('.rating-stars i').forEach(star => {
+        star.classList.remove('bi-star-fill', 'text-warning');
+        star.classList.add('bi-star', 'text-muted');
+    });
+}
+
+function closeReviewModal() {
+    document.getElementById('reviewModal').classList.remove('active');
+}
+
+// Star Rating Interaction
+document.querySelectorAll('.rating-stars i').forEach(star => {
+    star.addEventListener('click', function () {
+        const rating = this.dataset.value;
+        document.getElementById('reviewRating').value = rating;
+
+        document.querySelectorAll('.rating-stars i').forEach(s => {
+            if (s.dataset.value <= rating) {
+                s.classList.remove('bi-star', 'text-muted');
+                s.classList.add('bi-star-fill', 'text-warning');
+            } else {
+                s.classList.remove('bi-star-fill', 'text-warning');
+                s.classList.add('bi-star', 'text-muted');
+            }
+        });
+    });
+});
+
+// Submit Review
+document.getElementById('reviewForm').addEventListener('submit', function (e) {
+    e.preventDefault();
+
+    const bookingId = document.getElementById('reviewBookingId').value;
+    const rating = document.getElementById('reviewRating').value;
+    const comment = document.getElementById('reviewComment').value;
+
+    if (!rating) {
+        alert('Please select a rating');
+        return;
+    }
+
+    fetch('api/reviews_api.php?action=submit_review', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ bookingId, rating, comment })
+    })
+        .then(r => r.json())
+        .then(data => {
+            if (data.success) {
+                alert('Review submitted successfully!');
+                closeReviewModal();
+            } else {
+                alert('Error: ' + data.message);
+            }
+        });
 });
 
 // Helper function to escape HTML

@@ -120,6 +120,10 @@ function displayUserDetails(user) {
                 <label class="form-label text-muted small">Confirmed Bookings</label>
                 <p class="fw-bold text-success">${user.confirmedBookings}</p>
             </div>
+            <div class="col-md-6">
+                <label class="form-label text-muted small">Total Spent</label>
+                <p class="fw-bold text-gold">₱${parseFloat(user.totalSpent).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</p>
+            </div>
             ${!user.isVerified ? `
             <div class="col-12 mt-4">
                 <button type="button" class="btn btn-gold" onclick="resendVerification(${user.userID})">

@@ -83,7 +83,7 @@ function getBookingCount($userId) {
 
 function getUpcomingBookingsCount($userId) {
     global $conn;
-    $stmt = $conn->prepare("SELECT COUNT(*) FROM bookings WHERE userID = ? AND booking_status = 'Confirmed' AND event_date >= CURRENT_DATE() ORDER BY event_date ASC");
+    $stmt = $conn->prepare("SELECT COUNT(*) FROM bookings WHERE userID = ? AND booking_status = 'confirmed' AND event_date >= CURRENT_DATE() ORDER BY event_date ASC");
     $stmt->bind_param("s", $userId);
     $stmt->execute();
     $result = $stmt->get_result();

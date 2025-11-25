@@ -90,14 +90,16 @@ document.addEventListener('DOMContentLoaded', function () {
         // Reset Modal
         document.getElementById('modalActivityLog').innerHTML = 'Loading logs...';
 
-        fetch(`api/manage_booking.php?action=details&id=${bookingId}`)
+        fetch(`api/manage_booking.php?action=details&id=${bookingId}`, {
+            credentials: 'include'
+        })
             .then(response => response.json())
             .then(data => {
                 if (data.success) {
                     populateModal(data.booking);
                     bookingDetailsModal.show();
                 } else {
-                    LuxuryToast.show('Error', data.message, 'error');
+                    LuxuryToast.show('Error', data.message || 'Failed to load booking details', 'error');
                 }
             })
             .catch(error => {
@@ -141,6 +143,54 @@ document.addEventListener('DOMContentLoaded', function () {
             addonsContainer.innerHTML = 'No addons selected';
         }
 
+        // Proof of Payment
+        const paymentContainer = document.getElementById('modalPaymentProof');
+        if (paymentContainer) {
+            if (booking.proof_payment) {
+                // Adjust path if needed. Assuming proof_payment is relative to uploads/
+                // The DB stores "../uploads/payment_proofs/filename". 
+                // We need to make it accessible from admin/bookings.php
+                // bookings.php is in src/admin/. Uploads are in src/uploads/
+                // So path should be ../uploads/...
+                // If DB has full relative path "../uploads/...", it works directly if we are in src/admin/
+
+                const proofUrl = booking.proof_payment;
+                paymentContainer.innerHTML = `
+                    <div class="mt-3 border-top border-secondary pt-3">
+                        <h6 class="text-gold mb-2">Proof of Payment</h6>
+                        <a href="${proofUrl}" target="_blank" class="btn btn-sm btn-outline-light">
+                            <i class="bi bi-file-earmark-image me-2"></i>View Proof
+                        </a>
+                    </div>
+                `;
+            } else {
+                paymentContainer.innerHTML = '';
+            }
+        }
+
+        // Consultation Info
+        const consultationContainer = document.getElementById('modalConsultation');
+        if (consultationContainer) {
+            if (booking.consultation_date && booking.consultation_time) {
+                consultationContainer.innerHTML = `
+                    <div class="alert alert-dark border-gold mt-3">
+                        <h6 class="text-gold mb-1"><i class="bi bi-camera-video me-2"></i>Requested Consultation</h6>
+                        <div class="text-light small">
+                            ${formatDate(booking.consultation_date)} at ${formatTime(booking.consultation_time)}
+                        </div>
+                    </div>
+                `;
+            } else {
+                consultationContainer.innerHTML = '';
+            }
+        }
+
+        // Add Download Invoice Button
+        const invoiceBtn = document.getElementById('downloadInvoiceBtn');
+        if (invoiceBtn) {
+            invoiceBtn.onclick = () => window.open(`../api/generate_invoice.php?id=${booking.bookingID}`, '_blank');
+        }
+
         // Logs
         renderLogs(booking.logs);
     }
@@ -172,6 +222,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
         fetch('api/manage_booking.php?action=update_status', {
             method: 'POST',
+            credentials: 'include',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ bookingId, status })
         })
@@ -182,7 +233,7 @@ document.addEventListener('DOMContentLoaded', function () {
                     viewBooking(bookingId); // Refresh modal
                     fetchBookings(); // Refresh list
                 } else {
-                    LuxuryToast.show('Error', data.message, 'error');
+                    LuxuryToast.show('Error', data.message || 'Failed to update booking status', 'error');
                 }
             })
             .catch(error => {
@@ -202,6 +253,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
         fetch('api/manage_booking.php?action=update_note', {
             method: 'POST',
+            credentials: 'include',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ bookingId, note })
         })
@@ -211,7 +263,7 @@ document.addEventListener('DOMContentLoaded', function () {
                     LuxuryToast.show('Success', 'Note saved successfully', 'success');
                     viewBooking(bookingId); // Refresh modal
                 } else {
-                    LuxuryToast.show('Error', data.message, 'error');
+                    LuxuryToast.show('Error', data.message || 'Failed to save note', 'error');
                 }
             })
             .catch(error => {

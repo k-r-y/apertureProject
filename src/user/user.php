@@ -65,7 +65,7 @@ foreach ($bookingsByType as $booking) {
         <?php include_once 'components/header.php'; ?>
 
         <main class="main-content">
-            <div class="container-fluid px-3 px-lg-5 py-5">
+            <div class="container-fluid px-3 px-lg-5 py-0">
 
                 <div class="mb-5">
                     <h1 class="mb-2">Welcome, <span class="text-gold"><?= htmlspecialchars($_SESSION['firstName'] ?? 'Client') ?></span></h1>
@@ -138,6 +138,7 @@ foreach ($bookingsByType as $booking) {
 
     <script src="../../bootstrap-5.3.8-dist/js/bootstrap.bundle.min.js"></script>
     <script src="user.js"></script>
+    <script src="js/notifications.js"></script>
     <script>
         document.addEventListener("DOMContentLoaded", function() {
             <?php if (!empty($bookingsByType)): ?>

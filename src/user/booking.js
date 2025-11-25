@@ -167,8 +167,8 @@ document.addEventListener("DOMContentLoaded", function () {
             summaryEventDate.textContent = dateVal ? new Date(dateVal).toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' }) : '-';
         }
         if (summaryEventTime) {
-            const start = document.querySelector('input[name="startTime"]')?.value;
-            const end = document.querySelector('input[name="endTime"]')?.value;
+            const start = document.getElementById('startTime')?.value;
+            const end = document.getElementById('endTime')?.value;
 
             const formatTime = (timeStr) => {
                 if (!timeStr) return '';
@@ -274,8 +274,8 @@ document.addEventListener("DOMContentLoaded", function () {
 
         if (selectedPackageRadio) {
             const packageLabel = selectedPackageRadio.nextElementSibling;
-            const startTimeInput = document.querySelector('input[name="startTime"]');
-            const endTimeInput = document.querySelector('input[name="endTime"]');
+            const startTimeInput = document.getElementById('startTime');
+            const endTimeInput = document.getElementById('endTime');
 
             if (packageLabel && startTimeInput && endTimeInput && startTimeInput.value && endTimeInput.value) {
                 const coverageHours = parseFloat(packageLabel.dataset.coverageHours) || 4;
@@ -327,7 +327,64 @@ document.addEventListener("DOMContentLoaded", function () {
         }
 
         // Calculate downpayment based on FINAL total (including extra hours)
-        const downpayment = total * 0.25;
+        const minDownpayment = total * 0.25;
+        const downpaymentInput = document.getElementById('downpaymentInput');
+        const downpaymentHint = document.getElementById('downpaymentHint');
+
+        let finalDownpayment = minDownpayment;
+
+        if (downpaymentInput) {
+            // Update constraints
+            downpaymentInput.min = minDownpayment.toFixed(2);
+            downpaymentInput.max = total.toFixed(2);
+
+            // Update hint text
+            if (downpaymentHint) {
+                downpaymentHint.textContent = `Minimum required: ₱${minDownpayment.toLocaleString()} (25% of ₱${total.toLocaleString()})`;
+            }
+
+            // Get user value or default to min
+            const userValue = parseFloat(downpaymentInput.value);
+
+            // If user hasn't touched it yet or it's invalid (less than min), set to min
+            // We check if it's the active element to avoid overwriting while typing
+            if (document.activeElement !== downpaymentInput) {
+                if (isNaN(userValue) || userValue < minDownpayment) {
+                    downpaymentInput.value = minDownpayment.toFixed(2);
+                    finalDownpayment = minDownpayment;
+                } else if (userValue > total) {
+                    downpaymentInput.value = total.toFixed(2);
+                    finalDownpayment = total;
+                } else {
+                    finalDownpayment = userValue;
+                }
+            } else {
+                // If typing, just use the value for summary if valid, otherwise min for summary
+                finalDownpayment = (!isNaN(userValue) && userValue >= minDownpayment) ? userValue : minDownpayment;
+
+                // Real-time validation feedback
+                if (userValue > total) {
+                    downpaymentInput.classList.add('is-invalid');
+                    if (downpaymentHint) {
+                        downpaymentHint.textContent = `Amount cannot exceed total price (₱${total.toLocaleString()})`;
+                        downpaymentHint.classList.remove('text-muted');
+                        downpaymentHint.classList.add('text-danger');
+                    }
+                } else if (userValue < minDownpayment && !isNaN(userValue) && downpaymentInput.value !== '') {
+                    // Only show error if they typed something and it's too low
+                    // We don't auto-correct while typing to allow them to finish typing
+                    // But we can show visual feedback
+                    // downpaymentInput.classList.add('is-invalid'); // Optional: might be annoying while typing "1000"
+                } else {
+                    downpaymentInput.classList.remove('is-invalid');
+                    if (downpaymentHint) {
+                        downpaymentHint.textContent = `Minimum required: ₱${minDownpayment.toLocaleString()} (25% of ₱${total.toLocaleString()})`;
+                        downpaymentHint.classList.add('text-muted');
+                        downpaymentHint.classList.remove('text-danger');
+                    }
+                }
+            }
+        }
 
         // Update prices with animation
         if (totalPriceEl) {
@@ -341,9 +398,9 @@ document.addEventListener("DOMContentLoaded", function () {
 
         if (downpaymentEl) {
             const currentDown = parseFloat(downpaymentEl.textContent.replace(/[^0-9.]/g, '')) || 0;
-            if (currentDown !== downpayment) {
+            if (currentDown !== finalDownpayment) {
                 downpaymentEl.style.transform = 'scale(1.1)';
-                downpaymentEl.textContent = `₱${downpayment.toLocaleString()}`;
+                downpaymentEl.textContent = `₱${finalDownpayment.toLocaleString()}`;
                 setTimeout(() => downpaymentEl.style.transform = 'scale(1)', 200);
             }
         }
@@ -360,7 +417,7 @@ document.addEventListener("DOMContentLoaded", function () {
     }
 
     // Add listeners to all inputs for real-time updates
-    const allInputs = document.querySelectorAll('input[name="fname"], input[name="lname"], input[name="email"], input[name="phone"], input[name="eventDate"], input[name="startTime"], input[name="endTime"], input[name="location"], textarea[name="specialRequests"]');
+    const allInputs = document.querySelectorAll('input[name="fname"], input[name="lname"], input[name="email"], input[name="phone"], input[name="eventDate"], #startTime, #endTime, input[name="location"], textarea[name="specialRequests"], input[name="downpayment"]');
     allInputs.forEach(input => {
         input.addEventListener('input', updateBookingSummary);
         input.addEventListener('change', updateBookingSummary);
@@ -375,8 +432,8 @@ document.addEventListener("DOMContentLoaded", function () {
 
     const eventDateInput = document.getElementById('eventDate');
     const feedbackDiv = document.getElementById('date-availability-feedback');
-    const startTimeInput = document.querySelector('input[name="startTime"]');
-    const endTimeInput = document.querySelector('input[name="endTime"]');
+    const startTimeInput = document.getElementById('startTime');
+    const endTimeInput = document.getElementById('endTime');
 
     // Real-time date validation
     if (eventDateInput) {
@@ -467,93 +524,53 @@ document.addEventListener("DOMContentLoaded", function () {
     }
 
     // Real-time time validation
-    function validateTime(timeInput, feedbackId, label) {
-        const value = timeInput.value;
-        if (!value) return true;
-
-        const [hours, minutes] = value.split(':').map(Number);
-        const timeInMinutes = hours * 60 + minutes;
-        const minTime = 7 * 60; // 7:00 AM
-        const maxTime = 22 * 60; // 10:00 PM
-
-        let feedbackEl = document.getElementById(feedbackId);
-        if (!feedbackEl) {
-            feedbackEl = document.createElement('div');
-            feedbackEl.id = feedbackId;
-            feedbackEl.className = 'invalid-feedback';
-            timeInput.parentElement.appendChild(feedbackEl);
-        }
-
-        if (timeInMinutes < minTime || timeInMinutes > maxTime) {
-            timeInput.classList.add('is-invalid');
-            timeInput.classList.remove('is-valid');
-            feedbackEl.textContent = `${label} must be between 7:00 AM and 10:00 PM`;
-            feedbackEl.style.display = 'block';
-            return false;
-        } else {
-            timeInput.classList.remove('is-invalid');
-            timeInput.classList.add('is-valid');
-            feedbackEl.textContent = '';
-            feedbackEl.style.display = 'none';
-            return true;
-        }
-    }
-
     function validateTimeRange() {
-        if (!startTimeInput.value || !endTimeInput.value) return;
+        const startTimeSelect = document.getElementById('startTime');
+        const endTimeSelect = document.getElementById('endTime');
 
-        const startValid = validateTime(startTimeInput, 'start-time-feedback', 'Start time');
-        const endValid = validateTime(endTimeInput, 'end-time-feedback', 'End time');
+        if (!startTimeSelect || !endTimeSelect) return;
 
-        if (!startValid || !endValid) return;
-
-        const [startHours, startMinutes] = startTimeInput.value.split(':').map(Number);
-        const [endHours, endMinutes] = endTimeInput.value.split(':').map(Number);
-
-        const startInMinutes = startHours * 60 + startMinutes;
-        const endInMinutes = endHours * 60 + endMinutes;
+        const startValue = startTimeSelect.value;
+        const endValue = endTimeSelect.value;
 
         let feedbackEl = document.getElementById('time-range-feedback');
         if (!feedbackEl) {
             feedbackEl = document.createElement('div');
             feedbackEl.id = 'time-range-feedback';
             feedbackEl.className = 'invalid-feedback';
-            endTimeInput.parentElement.appendChild(feedbackEl);
+            endTimeSelect.parentElement.appendChild(feedbackEl);
         }
 
-        if (endInMinutes <= startInMinutes) {
-            endTimeInput.classList.add('is-invalid');
-            endTimeInput.classList.remove('is-valid');
-            feedbackEl.textContent = 'End time must be after start time';
+        // Reset states
+        startTimeSelect.classList.remove('is-invalid');
+        endTimeSelect.classList.remove('is-invalid');
+        feedbackEl.style.display = 'none';
+
+        if (!startValue || !endValue) return;
+
+        const [startH, startM] = startValue.split(':').map(Number);
+        const [endH, endM] = endValue.split(':').map(Number);
+
+        const startMinutes = startH * 60 + startM;
+        const endMinutes = endH * 60 + endM;
+
+        // Enforce 2-hour minimum duration (120 minutes)
+        if (endMinutes - startMinutes < 120) {
+            endTimeSelect.classList.add('is-invalid');
+            feedbackEl.textContent = 'Minimum booking duration is 2 hours';
             feedbackEl.style.display = 'block';
         } else {
-            endTimeInput.classList.remove('is-invalid');
-            endTimeInput.classList.add('is-valid');
-            feedbackEl.textContent = '';
-            feedbackEl.style.display = 'none';
+            endTimeSelect.classList.remove('is-invalid');
+            endTimeSelect.classList.add('is-valid');
         }
     }
 
     if (startTimeInput) {
-        startTimeInput.addEventListener('change', function () {
-            validateTime(this, 'start-time-feedback', 'Start time');
-            validateTimeRange();
-        });
-        startTimeInput.addEventListener('blur', function () {
-            validateTime(this, 'start-time-feedback', 'Start time');
-            validateTimeRange();
-        });
+        startTimeInput.addEventListener('change', validateTimeRange);
     }
 
     if (endTimeInput) {
-        endTimeInput.addEventListener('change', function () {
-            validateTime(this, 'end-time-feedback', 'End time');
-            validateTimeRange();
-        });
-        endTimeInput.addEventListener('blur', function () {
-            validateTime(this, 'end-time-feedback', 'End time');
-            validateTimeRange();
-        });
+        endTimeInput.addEventListener('change', validateTimeRange);
     }
 
     // ===================================
@@ -693,7 +710,7 @@ document.addEventListener("DOMContentLoaded", function () {
             icon: 'bi-cash',
             title: 'Cash Payment',
             details: [
-                { label: 'Office Address', value: '123 Photography Street, Manila City' },
+                { label: 'Office Address', value: 'Dasmariñas City, Cavite, Philippines' },
                 { label: 'Office Hours', value: 'Mon-Fri: 9AM-6PM, Sat: 9AM-3PM' },
                 { label: 'Instructions', value: 'Please pay the downpayment at our office. Bring a valid ID.' }
             ]
@@ -904,9 +921,12 @@ document.addEventListener("DOMContentLoaded", function () {
                 // Only submit if user explicitly clicked "Confirm Booking"
                 if (result.isConfirmed) {
                     // Show loading state
+                    // Show loading state
                     const submitBtn = this.querySelector('.luxury-submit-btn') || this.querySelector('input[type="submit"]');
+                    let originalText = '';
+
                     if (submitBtn) {
-                        const originalText = submitBtn.value || submitBtn.innerHTML;
+                        originalText = submitBtn.value || submitBtn.innerHTML;
                         if (submitBtn.tagName === 'INPUT') {
                             submitBtn.value = 'Processing...';
                         } else {

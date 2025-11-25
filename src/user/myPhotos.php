@@ -5,11 +5,40 @@ require_once '../includes/functions/config.php';
 require_once '../includes/functions/session.php';
 require_once '../includes/functions/function.php';
 require_once '../includes/functions/auth.php';
+require_once '../includes/functions/gallery_helper.php';
 
 // Check if user is logged in
 if (!isset($_SESSION["userId"]) || !isset($_SESSION["role"]) || $_SESSION["role"] !== "User") {
     header("Location: ../logIn.php");
     exit;
+}
+
+// Fetch latest completed booking for gallery sharing
+$galleryInfo = null;
+$stmt = $conn->prepare("SELECT bookingID, gallery_token, gallery_pin, event_type, event_date FROM bookings WHERE userID = ? AND booking_status IN ('completed', 'post_production') ORDER BY event_date DESC LIMIT 1");
+$stmt->bind_param("i", $_SESSION['userId']);
+$stmt->execute();
+$booking = $stmt->get_result()->fetch_assoc();
+
+if ($booking) {
+    if (empty($booking['gallery_token'])) {
+        // Generate credentials if missing
+        $creds = generateGalleryCredentials($booking['bookingID']);
+        $booking['gallery_token'] = $creds['token'];
+        $booking['gallery_pin'] = $creds['pin'];
+    }
+    
+    // Construct full URL (adjust base URL as needed)
+    $protocol = isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] === 'on' ? "https" : "http";
+    $host = $_SERVER['HTTP_HOST'];
+    $path = dirname(dirname($_SERVER['PHP_SELF'])); // Go up one level from /user/
+    $galleryUrl = "$protocol://$host$path/gallery.php?token=" . $booking['gallery_token'];
+    
+    $galleryInfo = [
+        'url' => $galleryUrl,
+        'pin' => $booking['gallery_pin'],
+        'title' => $booking['event_type'] . ' (' . date('M d, Y', strtotime($booking['event_date'])) . ')'
+    ];
 }
 ?>
 <!DOCTYPE html>
@@ -92,6 +121,38 @@ if (!isset($_SESSION["userId"]) || !isset($_SESSION["role"]) || $_SESSION["role"
                         </div>
                     </div>
                 </div>
+
+                <!-- Gallery Sharing Section -->
+                <?php if ($galleryInfo): ?>
+                <div class="neo-card p-4 mb-5">
+                    <div class="row align-items-center">
+                        <div class="col-md-6 mb-3 mb-md-0">
+                            <h4 class="text-gold serif mb-2">Share Your Gallery</h4>
+                            <p class="text-muted mb-0">Share your memories from <strong><?= htmlspecialchars($galleryInfo['title']) ?></strong> with friends and family.</p>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="bg-dark rounded p-3 border border-secondary">
+                                <div class="mb-3">
+                                    <label class="text-muted small d-block mb-1">Public Gallery Link</label>
+                                    <div class="input-group">
+                                        <input type="text" class="form-control bg-black text-light border-secondary" value="<?= htmlspecialchars($galleryInfo['url']) ?>" readonly id="galleryUrlInput">
+                                        <button class="btn btn-gold" onclick="copyToClipboard('galleryUrlInput')">
+                                            <i class="bi bi-clipboard"></i> Copy
+                                        </button>
+                                    </div>
+                                </div>
+                                <div>
+                                    <label class="text-muted small d-block mb-1">Access PIN</label>
+                                    <div class="d-flex align-items-center gap-3">
+                                        <span class="h4 text-light font-monospace m-0 tracking-wider"><?= htmlspecialchars($galleryInfo['pin']) ?></span>
+                                        <span class="badge bg-warning text-dark">Required for access</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <?php endif; ?>
 
                 <!-- Loading State -->
                 <div class="loading-state text-center py-5" id="loadingState">
@@ -258,6 +319,19 @@ if (!isset($_SESSION["userId"]) || !isset($_SESSION["role"]) || $_SESSION["role"
 
         // Load photos on page load
         loadPhotos();
+
+        function copyToClipboard(elementId) {
+            const copyText = document.getElementById(elementId);
+            copyText.select();
+            copyText.setSelectionRange(0, 99999); 
+            navigator.clipboard.writeText(copyText.value).then(() => {
+                // Could add a toast here
+                const btn = copyText.nextElementSibling;
+                const originalHtml = btn.innerHTML;
+                btn.innerHTML = '<i class="bi bi-check"></i> Copied!';
+                setTimeout(() => btn.innerHTML = originalHtml, 2000);
+            });
+        }
     </script>
 
     <style>

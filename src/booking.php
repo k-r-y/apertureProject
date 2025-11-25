@@ -174,7 +174,7 @@ if (isset($_GET['packageId'])) {
 
                                 <?php foreach ($package as $pkg) : ?>
                                     <div class="radioContainer w-100 position-relative" id="radioContainer">
-                                        <input type="radio" name="package" id="<?= $pkg['packageID'] ?>" value="<?= $pkg['packageID'] ?>" class="radio" required>
+                                        <input type="radio" name="package" id="<?= $pkg['packageID'] ?>" value="<?= $pkg['packageID'] ?>" data-price="<?= $pkg['Price'] ?>" class="radio" required>
                                         <label class="  border rounded w-100 d-block p-3 " for="<?= $pkg['packageID'] ?>">
                                             <h4 class="fw-bold serif p-0 m-0"><?= $pkg['packageName'] ?> - <span>₱<?= number_format($pkg['Price']) ?></span></h4>
                                             <p class="p-0 m-0"><?= $pkg['description'] ?></p>

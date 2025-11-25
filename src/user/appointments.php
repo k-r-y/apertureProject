@@ -96,9 +96,43 @@ if (!isset($_SESSION["userId"])) {
             </div>
         </div>
     </div>
+
+    <!-- Review Modal -->
+    <div id="reviewModal" class="modal-overlay">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 class="text-gold font-serif mb-0">Write a Review</h3>
+                <button class="modal-close" onclick="closeReviewModal()">
+                    <i class="bi bi-x-lg"></i>
+                </button>
+            </div>
+            <div class="modal-body">
+                <form id="reviewForm">
+                    <input type="hidden" id="reviewBookingId">
+                    <div class="mb-3 text-center">
+                        <label class="form-label text-light d-block">Rating</label>
+                        <div class="rating-stars">
+                            <i class="bi bi-star fs-3 text-muted" data-value="1"></i>
+                            <i class="bi bi-star fs-3 text-muted" data-value="2"></i>
+                            <i class="bi bi-star fs-3 text-muted" data-value="3"></i>
+                            <i class="bi bi-star fs-3 text-muted" data-value="4"></i>
+                            <i class="bi bi-star fs-3 text-muted" data-value="5"></i>
+                        </div>
+                        <input type="hidden" id="reviewRating" required>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label text-light">Comment</label>
+                        <textarea id="reviewComment" class="form-control bg-dark text-light border-secondary" rows="4" required></textarea>
+                    </div>
+                    <button type="submit" class="btn btn-gold w-100">Submit Review</button>
+                </form>
+            </div>
+        </div>
+    </div>
     
     <script src="../../bootstrap-5.3.8-dist/js/bootstrap.bundle.min.js"></script>
     <script src="user.js"></script>
+    <script src="js/notifications.js"></script>
     <script src="appointmentsHandler.js"></script>
 </body>
 </html>

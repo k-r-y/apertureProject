@@ -48,6 +48,12 @@ $currentPage = basename($_SERVER['PHP_SELF']);
                 <span class="nav-text">Invoicing</span>
             </a>
         </li>
+        <li class="sidebar-nav-item">
+            <a href="refunds.php" class="sidebar-nav-link <?= ($currentPage == 'refunds.php') ? 'active' : '' ?>">
+                <i class="bi bi-cash-coin nav-icon"></i>
+                <span class="nav-text">Refunds</span>
+            </a>
+        </li>
 
         <li class="nav-section-title"><span class="nav-text">Content</span></li>
         <li class="sidebar-nav-item">
@@ -68,14 +74,18 @@ $currentPage = basename($_SERVER['PHP_SELF']);
                 <span class="nav-text">Photo Upload</span>
             </a>
         </li>
+        <li class="sidebar-nav-item">
+            <a href="reviews.php" class="sidebar-nav-link <?= ($currentPage == 'reviews.php') ? 'active' : '' ?>">
+                <i class="bi bi-star-fill nav-icon"></i>
+                <span class="nav-text">Reviews</span>
+            </a>
+        </li>
     </ul>
-
 
     <div class="sidebar-footer mt-auto">
         <hr class="mx-3" style="border-color: rgba(255,255,255,0.1);">
         <div class="user-profile ">
             <a href="settings.php" class="d-flex align-items-center text-decoration-none name-card">
-
                 <div class="ms-3">
                     <span class="d-block text-light fw-bold nav-text" style="font-size: 0.9rem;"><?php echo htmlspecialchars($_SESSION['fullName'] ?? 'Admin'); ?></span>
                     <small class="text-secondary" style="font-size: 0.75rem;"><?php echo htmlspecialchars($_SESSION['role'] ?? 'Admin'); ?></small>

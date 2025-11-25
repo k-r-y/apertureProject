@@ -23,7 +23,13 @@ if (!isset($_SESSION['userId']) or !isset($_SESSION['isVerified']) or $_SESSION[
 
 if (isset($_GET['action']) and $_GET['action'] === 'logout') {
     require_once '../includes/functions/auth.php';
-    logout();
+    logout();   
+}
+session_start();
+
+if (!isset($_SESSION['fullName'])) {
+    header("Location: ../login.php");
+    exit();
 }
 ?>
 <!DOCTYPE html>
@@ -46,52 +52,7 @@ if (isset($_GET['action']) and $_GET['action'] === 'logout') {
     <script src="https://cdn.jsdelivr.net/npm/apexcharts"></script>
     
     <style>
-        .stat-trend {
-            font-size: 0.875rem;
-            font-weight: 600;
-        }
-        .trend-up {
-            color: #4CAF50;
-        }
-        .trend-down {
-            color: #F44336;
-        }
-        .activity-item {
-            display: flex;
-            gap: 1rem;
-            padding: 1rem 0;
-            border-bottom: 1px solid rgba(255,255,255,0.1);
-        }
-        .activity-item:last-child {
-            border-bottom: none;
-        }
-        .activity-icon {
-            font-size: 1.5rem;
-            color: #D4AF37;
-        }
-        .upcoming-event-item {
-            display: flex;
-            gap: 1rem;
-            padding: 1rem 0;
-            border-bottom: 1px solid rgba(255,255,255,0.1);
-        }
-        .event-date {
-            background: rgba(212,175,55,0.1);
-            border-radius: 8px;
-            padding: 0.5rem;
-            text-align: center;
-            min-width: 60px;
-        }
-        .event-day {
-            font-size: 1.5rem;
-            font-weight: 700;
-            color: #D4AF37;
-        }
-        .event-month {
-            font-size: 0.75rem;
-            text-transform: uppercase;
-            color: #999;
-        }
+        
     </style>
 </head>
 
@@ -103,10 +64,32 @@ if (isset($_GET['action']) and $_GET['action'] === 'logout') {
 
         <main class="main-content">
             <div class="container-fluid">
-                <!-- Header -->
-                <div class="mb-5">
-                    <h1 class="header-title m-0">Analytics Dashboard</h1>
-                    <p class="text-light" style="opacity: 0.7;">Welcome back, <?= htmlspecialchars($_SESSION['fullName']); ?>!</p>
+                <!-- Header with Timeframe Filter -->
+                <div class="mb-4">
+                    <div class="d-flex justify-content-between align-items-center mb-3">
+                        <div>
+                            <h1 class="header-title m-0">Analytics Dashboard</h1>
+                            <p class="text-light mb-0" style="opacity: 0.7;">Welcome back, <?= htmlspecialchars($_SESSION['fullName']); ?>!</p>
+                        </div>
+                        
+                        <!-- Timeframe Filter -->
+                        <div class="d-flex gap-2 align-items-center">
+                            <label class="text-light mb-0 me-2">
+                                <i class="bi bi-calendar3"></i> Timeframe:
+                            </label>
+                            <select id="timeframeFilter" class="form-select form-select-sm neo-input" style="width: auto; min-width: 150px;">
+                                <option value="today">Today</option>
+                                <option value="week">This Week</option>
+                                <option value="month" selected>This Month</option>
+                                <option value="quarter">This Quarter</option>
+                                <option value="year">This Year</option>
+                                <option value="all">All Time</option>
+                            </select>
+                            <button id="refreshDashboard" class="btn btn-sm btn-gold">
+                                <i class="bi bi-arrow-clockwise"></i> Refresh
+                            </button>
+                        </div>
+                    </div>
                 </div>
 
                 <!-- Stat Cards Row -->
@@ -183,7 +166,7 @@ if (isset($_GET['action']) and $_GET['action'] === 'logout') {
                         </div>
                     </div>
                     <div class="col-lg-4">
-                        <div class="neo-card h-100 ">
+                        <div class="neo-card h-100 " style="max-height: 500px; overflow-y: auto;">
                             <h4 class="card-header-title mb-4"><i class="bi bi-clock-history me-2"></i>Recent Activity</h4>
                             <div id="activityFeed" class="mt-3"></div>
                         </div>
@@ -215,7 +198,7 @@ if (isset($_GET['action']) and $_GET['action'] === 'logout') {
                         </div>
                     </div>
                     <div class="col-lg-6">
-                        <div class="neo-card h-100 h-100">
+                        <div class="neo-card h-100" style="max-height: 30rem; overflow-y: auto;">
                             <h4 class="card-header-title mb-4"><i class="bi bi-calendar-event me-2"></i>Upcoming Events (Next 7 Days)</h4>
                             <div id="upcomingEvents" class="mt-3"></div>
                         </div>
@@ -231,13 +214,11 @@ if (isset($_GET['action']) and $_GET['action'] === 'logout') {
                         </div>
                     </div>
                 </div>
-            </div>
-        </main>
-    </div>
 
     <script src="../../bootstrap-5.3.8-dist/js/bootstrap.bundle.min.js"></script>
+    <script src="../libs/sweetalert2/sweetalert2.all.min.js"></script>
     <script src="admin.js"></script>
-    <script src="js/dashboard.js"></script>
+    <script src="js/dashboard-charts.js"></script>
 </body>
 
 </html>

@@ -6,15 +6,27 @@ require_once '../includes/functions/auth.php';
 require_once '../includes/functions/csrf.php';
 
 // Check if user is logged in
+// Check if user is logged in
 if (!isset($_SESSION["userId"])) {
-    header("Location: ../logIn.php");
+    header('Content-Type: application/json');
+    http_response_code(401);
+    echo json_encode([
+        'success' => false,
+        'message' => 'Session expired. Please log in again.'
+    ]);
     exit;
 }
 
 if ($_SERVER["REQUEST_METHOD"] == "POST") {
     // Validate CSRF token
     if (!validateCSRFToken($_POST['csrfToken'] ?? '')) {
-        handleCSRFFailure('bookingForm.php');
+        header('Content-Type: application/json');
+        http_response_code(403);
+        echo json_encode([
+            'success' => false,
+            'message' => 'Security token expired. Please refresh the page and try again.'
+        ]);
+        exit;
     }
     try {
         $userId = $_SESSION["userId"];
@@ -27,6 +39,9 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         // 1. Retrieve and Sanitize Inputs
         $eventDate = sanitizeInput($_POST['eventDate']);
         $eventType = sanitizeInput($_POST['eventType']);
+        if ($eventType === 'Other' && !empty($_POST['customEventType'])) {
+            $eventType = sanitizeInput($_POST['customEventType']);
+        }
         $startTime = sanitizeInput($_POST['startTime']);
         $endTime = sanitizeInput($_POST['endTime']);
         $location = sanitizeInput($_POST['location']);
@@ -34,6 +49,8 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         $packageId = sanitizeInput($_POST['packageID']);
         $paymentMethod = sanitizeInput($_POST['paymentMethod']);
         $specialRequests = isset($_POST['specialRequests']) ? sanitizeInput($_POST['specialRequests']) : '';
+        $consultationDate = sanitizeInput($_POST['consultationDate']);
+        $consultationTime = sanitizeInput($_POST['consultationTime']);
         
         // Validate Date (3-5 days in advance)
         validateBookingDate($eventDate);
@@ -99,8 +116,26 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
             $stmt->close();
         }
 
-        $downpayment = $totalPrice * 0.25;
+        // Calculate Minimum Downpayment (25%)
+        $minDownpayment = $totalPrice * 0.25;
+        
+        // Get User's Downpayment Amount
+        $userDownpayment = isset($_POST['downpayment']) ? floatval($_POST['downpayment']) : $minDownpayment;
+        
+        // Validate Downpayment
+        if ($userDownpayment < $minDownpayment - 0.01) { // Allow small float diff
+            throw new Exception("Downpayment must be at least 25% of the total price (₱" . number_format($minDownpayment, 2) . ")");
+        }
+        
+        if ($userDownpayment > $totalPrice + 0.01) {
+            throw new Exception("Downpayment cannot exceed the total price.");
+        }
+
+        $downpayment = $userDownpayment;
         $balance = $totalPrice - $downpayment;
+        
+        // Check if fully paid
+        $isFullyPaid = ($balance <= 0) ? 1 : 0;
 
         // 3. Handle File Upload (Payment Proof) - ENHANCED SECURITY
         $referenceFilePath = null;
@@ -153,8 +188,10 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
             total_amount, 
             downpayment_amount, 
             booking_status, 
-            is_fully_paid
-        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'pending', 0)";
+            is_fully_paid,
+            consultation_date,
+            consultation_time
+        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'pending', ?, ?, ?)";
 
         $stmt = $conn->prepare($query);
         
@@ -162,7 +199,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         $clientMessage = $specialRequests;
 
         $stmt->bind_param(
-            "issssssssdd", 
+            "issssssssddiss", 
             $userId,
             $packageId,
             $eventType,
@@ -173,7 +210,10 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
             $clientMessage,
             $referenceFilePath,
             $totalPrice,
-            $downpayment
+            $downpayment,
+            $isFullyPaid,
+            $consultationDate,
+            $consultationTime
         );
 
         if ($stmt->execute()) {

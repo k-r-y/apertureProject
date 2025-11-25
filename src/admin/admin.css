@@ -361,3 +361,51 @@ body.admin-dashboard {
 .upload-progress.active {
   display: block;
 }
+
+
+.stat-trend {
+            font-size: 0.875rem;
+            font-weight: 600;
+        }
+        .trend-up {
+            color: #4CAF50;
+        }
+        .trend-down {
+            color: #F44336;
+        }
+        .activity-item {
+            display: flex;
+            gap: 1rem;
+            padding: 1rem 0;
+            border-bottom: 1px solid rgba(255,255,255,0.1);
+        }
+        .activity-item:last-child {
+            border-bottom: none;
+        }
+        .activity-icon {
+            font-size: 1.5rem;
+            color: #D4AF37;
+        }
+        .upcoming-event-item {
+            display: flex;
+            gap: 1rem;
+            padding: 1rem 0;
+            border-bottom: 1px solid rgba(255,255,255,0.1);
+        }
+        .event-date {
+            background: rgba(212,175,55,0.1);
+            border-radius: 8px;
+            padding: 0.5rem;
+            text-align: center;
+            min-width: 60px;
+        }
+        .event-day {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: #D4AF37;
+        }
+        .event-month {
+            font-size: 0.75rem;
+            text-transform: uppercase;
+            color: #999;
+        }

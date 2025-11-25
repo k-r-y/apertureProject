@@ -1,6 +1,6 @@
 /**
  * Comprehensive Admin Dashboard JavaScript
- * TEST VERSION - Load test endpoint first
+ * Handles data fetching, chart rendering, and timeframe filtering
  */
 
 let dashboardData = null;
@@ -9,6 +9,24 @@ let refreshInterval = null;
 // Initialize dashboard on page load
 document.addEventListener('DOMContentLoaded', function () {
     console.log('Dashboard loading...');
+
+    // Setup filter listener
+    const filter = document.getElementById('timeframeFilter');
+    if (filter) {
+        filter.addEventListener('change', function () {
+            loadDashboardData(this.value);
+        });
+    }
+
+    // Setup refresh button
+    const refreshBtn = document.getElementById('refreshDashboard');
+    if (refreshBtn) {
+        refreshBtn.addEventListener('click', function () {
+            const currentFilter = filter ? filter.value : 'month';
+            loadDashboardData(currentFilter);
+        });
+    }
+
     testDatabaseConnection();
 });
 
@@ -28,7 +46,8 @@ function testDatabaseConnection() {
 
             if (data.success) {
                 console.log('✅ Database OK! Loading dashboard...');
-                loadDashboardData();
+                // Load with default filter (month)
+                loadDashboardData('month');
             } else {
                 console.error('❌ Database test failed:', data.error);
                 showError('Database connection failed: ' + data.error);
@@ -43,10 +62,10 @@ function testDatabaseConnection() {
 /**
  * Load all dashboard data
  */
-function loadDashboardData() {
-    console.log('Fetching dashboard metrics...');
+function loadDashboardData(timeframe = 'month') {
+    console.log('Fetching dashboard metrics for:', timeframe);
 
-    fetch('api/get_dashboard_metrics.php')
+    fetch(`api/get_dashboard_metrics.php?timeframe=${timeframe}`)
         .then(response => {
             console.log('Metrics response status:', response.status);
             if (!response.ok) {
@@ -120,6 +139,15 @@ function updateStatCards() {
     console.log('✅ Stat cards updated');
 }
 
+// Store chart instances
+let charts = {
+    revenue: null,
+    bookings: null,
+    status: null,
+    package: null,
+    eventType: null
+};
+
 /**
  * Render all charts
  */
@@ -137,6 +165,11 @@ function renderCharts() {
  * Revenue Trend Chart (Line)
  */
 function renderRevenueChart() {
+    // Destroy existing chart if it exists
+    if (charts.revenue) {
+        charts.revenue.destroy();
+    }
+
     const months = dashboardData.revenue_trend.map(item => item.month);
     const revenue = dashboardData.revenue_trend.map(item => item.revenue);
 
@@ -151,6 +184,9 @@ function renderRevenueChart() {
             background: 'transparent',
             toolbar: {
                 show: false
+            },
+            animations: {
+                enabled: true
             }
         },
         colors: ['#D4AF37'],
@@ -200,14 +236,18 @@ function renderRevenueChart() {
         }
     };
 
-    const chart = new ApexCharts(document.querySelector("#revenueChart"), options);
-    chart.render();
+    charts.revenue = new ApexCharts(document.querySelector("#revenueChart"), options);
+    charts.revenue.render();
 }
 
 /**
  * Monthly Bookings Chart (Bar)
  */
 function renderBookingsChart() {
+    if (charts.bookings) {
+        charts.bookings.destroy();
+    }
+
     const months = dashboardData.bookings_trend.map(item => item.month);
     const bookings = dashboardData.bookings_trend.map(item => item.count);
 
@@ -263,14 +303,18 @@ function renderBookingsChart() {
         }
     };
 
-    const chart = new ApexCharts(document.querySelector("#bookingsChart"), options);
-    chart.render();
+    charts.bookings = new ApexCharts(document.querySelector("#bookingsChart"), options);
+    charts.bookings.render();
 }
 
 /**
  * Booking Status Chart (Donut)
  */
 function renderStatusChart() {
+    if (charts.status) {
+        charts.status.destroy();
+    }
+
     const statuses = Object.keys(dashboardData.status_breakdown);
     const counts = Object.values(dashboardData.status_breakdown);
 
@@ -317,14 +361,18 @@ function renderStatusChart() {
         }
     };
 
-    const chart = new ApexCharts(document.querySelector("#statusChart"), options);
-    chart.render();
+    charts.status = new ApexCharts(document.querySelector("#statusChart"), options);
+    charts.status.render();
 }
 
 /**
  * Package Performance Chart (Bar)
  */
 function renderPackageChart() {
+    if (charts.package) {
+        charts.package.destroy();
+    }
+
     const packages = dashboardData.package_performance.map(item => item.name);
     const revenue = dashboardData.package_performance.map(item => item.revenue);
 
@@ -379,14 +427,18 @@ function renderPackageChart() {
         }
     };
 
-    const chart = new ApexCharts(document.querySelector("#packageChart"), options);
-    chart.render();
+    charts.package = new ApexCharts(document.querySelector("#packageChart"), options);
+    charts.package.render();
 }
 
 /**
  * Event Type Distribution Chart (Pie)
  */
 function renderEventTypeChart() {
+    if (charts.eventType) {
+        charts.eventType.destroy();
+    }
+
     const types = dashboardData.event_types.map(item => item.type);
     const counts = dashboardData.event_types.map(item => item.count);
 
@@ -415,8 +467,8 @@ function renderEventTypeChart() {
         }
     };
 
-    const chart = new ApexCharts(document.querySelector("#eventTypeChart"), options);
-    chart.render();
+    charts.eventType = new ApexCharts(document.querySelector("#eventTypeChart"), options);
+    charts.eventType.render();
 }
 
 /**
@@ -486,9 +538,13 @@ function updateUpcomingEvents() {
  * Setup auto-refresh every 5 minutes
  */
 function setupAutoRefresh() {
+    if (refreshInterval) clearInterval(refreshInterval);
+
     refreshInterval = setInterval(() => {
         console.log('Auto-refreshing dashboard...');
-        loadDashboardData();
+        const filter = document.getElementById('timeframeFilter');
+        const currentFilter = filter ? filter.value : 'month';
+        loadDashboardData(currentFilter);
     }, 5 * 60 * 1000); // 5 minutes
 }
 
@@ -577,5 +633,5 @@ function formatTime(time) {
  */
 function showError(message) {
     console.error("Error:", message);
-    alert('Dashboard Error: ' + message);
+    // alert('Dashboard Error: ' + message); // Disabled alert to be less annoying
 }

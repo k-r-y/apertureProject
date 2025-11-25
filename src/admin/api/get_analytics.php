@@ -1,151 +1,130 @@
-   <?php
-    $revenueResult = $conn->query($revenueQuery);
-    $totalRevenue = $revenueResult->fetch_assoc()['total_revenue'] ?? 0;
+<?php
+require_once '../../includes/functions/config.php';
+require_once '../../includes/functions/session.php';
+require_once '../../includes/functions/rate_limit.php';
 
-    // Total Bookings
-    $bookingsQuery = "SELECT COUNT(*) as total_bookings FROM bookings";
-    $bookingsResult = $conn->query($bookingsQuery);
-    $totalBookings = $bookingsResult->fetch_assoc()['total_bookings'] ?? 0;
+// Enforce Rate Limit
+enforceRateLimit(60, 60);
 
-    // Upcoming Events (not cancelled, not completed, event_date in future)
-    $upcomingQuery = "SELECT COUNT(*) as upcoming_events 
-                      FROM bookings 
-                      WHERE booking_status NOT IN ('cancelled', 'completed') 
-                      AND event_date >= CURDATE()";
-    $upcomingResult = $conn->query($upcomingQuery);
-    $upcomingEvents = $upcomingResult->fetch_assoc()['upcoming_events'] ?? 0;
+// Ensure user is logged in and is an Admin
+if (!isset($_SESSION['userId']) || !isset($_SESSION['role']) || $_SESSION['role'] !== 'Admin') {
+    http_response_code(403);
+    echo json_encode(['success' => false, 'message' => 'Unauthorized']);
+    exit;
+}
 
-    // New Clients (last 30 days)
-    $newClientsQuery = "SELECT COUNT(DISTINCT userID) as new_clients 
-                        FROM bookings 
-                        WHERE created_at >= DATE_SUB(NOW(), INTERVAL 30 DAY)";
-    $newClientsResult = $conn->query($newClientsQuery);
-    $newClients = $newClientsResult->fetch_assoc()['new_clients'] ?? 0;
+header('Content-Type: application/json');
 
-    // Monthly Bookings (last 12 months)
-    $monthlyQuery = "SELECT 
-                        MONTH(created_at) as month,
-                        YEAR(created_at) as year,
-                        COUNT(*) as count
-                     FROM bookings
-                     WHERE created_at >= DATE_SUB(NOW(), INTERVAL 12 MONTH)
-                     GROUP BY YEAR(created_at), MONTH(created_at)
-                     ORDER BY year, month";
-    $monthlyResult = $conn->query($monthlyQuery);
-    
-    $monthlyBookings = array_fill(0, 12, 0);
-    $currentMonth = (int)date('n');
-    
-    while ($row = $monthlyResult->fetch_assoc()) {
-        $monthIndex = ((int)$row['month'] - $currentMonth + 11) % 12;
-        $monthlyBookings[11 - $monthIndex] = (int)$row['count'];
+$action = $_GET['action'] ?? 'all';
+$timeframe = $_GET['timeframe'] ?? 'month'; // today, week, month, year, all
+
+try {
+    $response = [];
+
+    // Date filter logic
+    $dateCondition = "";
+    $params = [];
+    $types = "";
+
+    switch ($timeframe) {
+        case 'today':
+            $dateCondition = "AND DATE(event_date) = CURDATE()";
+            break;
+        case 'week':
+            $dateCondition = "AND YEARWEEK(event_date, 1) = YEARWEEK(CURDATE(), 1)";
+            break;
+        case 'month':
+            $dateCondition = "AND MONTH(event_date) = MONTH(CURDATE()) AND YEAR(event_date) = YEAR(CURDATE())";
+            break;
+        case 'year':
+            $dateCondition = "AND YEAR(event_date) = YEAR(CURDATE())";
+            break;
+        case 'all':
+        default:
+            $dateCondition = "";
+            break;
     }
 
-    // Package Popularity
-    $packageQuery = "SELECT 
-                        p.packageName,
-                        COUNT(b.bookingID) as count
-                     FROM bookings b
-                     JOIN packages p ON b.packageID = p.packageID
-                     WHERE b.booking_status != 'cancelled'
-                     GROUP BY p.packageID, p.packageName
-                     ORDER BY count DESC
-                     LIMIT 5";
-    $packageResult = $conn->query($packageQuery);
-    
-    $packageData = [];
-    while ($row = $packageResult->fetch_assoc()) {
-        $packageData[] = [
-            'name' => $row['name'],
-            'count' => (int)$row['count']
-        ];
+    // 1. Key Metrics
+    if ($action === 'all' || $action === 'metrics') {
+        // Total Revenue (Confirmed/Completed bookings)
+        $revSql = "SELECT SUM(total_amount) as total FROM bookings WHERE booking_status IN ('confirmed', 'completed') $dateCondition";
+        $revResult = $conn->query($revSql);
+        $response['revenue'] = $revResult->fetch_assoc()['total'] ?? 0;
+
+        // Total Bookings
+        $bookSql = "SELECT COUNT(*) as total FROM bookings WHERE 1=1 $dateCondition";
+        $bookResult = $conn->query($bookSql);
+        $response['bookings'] = $bookResult->fetch_assoc()['total'] ?? 0;
+
+        // Upcoming Events (Next 7 days)
+        $upSql = "SELECT COUNT(*) as total FROM bookings WHERE booking_status IN ('confirmed', 'pending') AND event_date >= CURDATE() AND event_date <= DATE_ADD(CURDATE(), INTERVAL 7 DAY)";
+        $upResult = $conn->query($upSql);
+        $response['upcoming'] = $upResult->fetch_assoc()['total'] ?? 0;
+
+        // New Clients (Last 30 days)
+        $clientSql = "SELECT COUNT(*) as total FROM users WHERE Role = 'User' AND created_at >= DATE_SUB(CURDATE(), INTERVAL 30 DAY)";
+        $clientResult = $conn->query($clientSql);
+        $response['new_clients'] = $clientResult->fetch_assoc()['total'] ?? 0;
     }
 
-    // Response
-    echo json_encode([
-        'success' => true,
-        'stats' => []
-    ]);
-    $revenueResult = $conn->query($revenueQuery);
-    $totalRevenue = $revenueResult->fetch_assoc()['total_revenue'] ?? 0;
-
-    // Total Bookings
-    $bookingsQuery = "SELECT COUNT(*) as total_bookings FROM bookings";
-    $bookingsResult = $conn->query($bookingsQuery);
-    $totalBookings = $bookingsResult->fetch_assoc()['total_bookings'] ?? 0;
-
-    // Upcoming Events (not cancelled, not completed, event_date in future)
-    $upcomingQuery = "SELECT COUNT(*) as upcoming_events 
-                      FROM bookings 
-                      WHERE booking_status NOT IN ('cancelled', 'completed') 
-                      AND event_date >= CURDATE()";
-    $upcomingResult = $conn->query($upcomingQuery);
-    $upcomingEvents = $upcomingResult->fetch_assoc()['upcoming_events'] ?? 0;
-
-    // New Clients (last 30 days)
-    $newClientsQuery = "SELECT COUNT(DISTINCT userID) as new_clients 
-                        FROM bookings 
-                        WHERE created_at >= DATE_SUB(NOW(), INTERVAL 30 DAY)";
-    $newClientsResult = $conn->query($newClientsQuery);
-    $newClients = $newClientsResult->fetch_assoc()['new_clients'] ?? 0;
-
-    // Monthly Bookings (last 12 months)
-    $monthlyQuery = "SELECT 
-                        MONTH(created_at) as month,
-                        YEAR(created_at) as year,
-                        COUNT(*) as count
-                     FROM bookings
-                     WHERE created_at >= DATE_SUB(NOW(), INTERVAL 12 MONTH)
-                     GROUP BY YEAR(created_at), MONTH(created_at)
-                     ORDER BY year, month";
-    $monthlyResult = $conn->query($monthlyQuery);
-    
-    $monthlyBookings = array_fill(0, 12, 0);
-    $currentMonth = (int)date('n');
-    
-    while ($row = $monthlyResult->fetch_assoc()) {
-        $monthIndex = ((int)$row['month'] - $currentMonth + 11) % 12;
-        $monthlyBookings[11 - $monthIndex] = (int)$row['count'];
+    // 2. Revenue Trend (Last 12 Months)
+    if ($action === 'all' || $action === 'revenue_trend') {
+        $trendSql = "
+            SELECT 
+                DATE_FORMAT(event_date, '%Y-%m') as month,
+                SUM(total_amount) as total
+            FROM bookings 
+            WHERE booking_status IN ('confirmed', 'completed')
+            AND event_date >= DATE_SUB(CURDATE(), INTERVAL 12 MONTH)
+            GROUP BY month
+            ORDER BY month ASC
+        ";
+        $trendResult = $conn->query($trendSql);
+        $trendData = [];
+        while ($row = $trendResult->fetch_assoc()) {
+            $trendData[] = $row;
+        }
+        $response['revenue_trend'] = $trendData;
     }
 
-    // Package Popularity
-    $packageQuery = "SELECT 
-                        p.packageName,
-                        COUNT(b.bookingID) as count
-                     FROM bookings b
-                     JOIN packages p ON b.packageID = p.packageID
-                     WHERE b.booking_status != 'cancelled'
-                     GROUP BY p.packageID, p.packageName
-                     ORDER BY count DESC
-                     LIMIT 5";
-    $packageResult = $conn->query($packageQuery);
-    
-    $packageData = [];
-    while ($row = $packageResult->fetch_assoc()) {
-        $packageData[] = [
-            'name' => $row['packageName'],
-            'count' => (int)$row['count']
-        ];
+    // 3. Booking Status Distribution
+    if ($action === 'all' || $action === 'booking_status') {
+        $statusSql = "SELECT booking_status, COUNT(*) as count FROM bookings WHERE 1=1 $dateCondition GROUP BY booking_status";
+        $statusResult = $conn->query($statusSql);
+        $statusData = [];
+        while ($row = $statusResult->fetch_assoc()) {
+            $statusData[$row['booking_status']] = $row['count'];
+        }
+        $response['booking_status'] = $statusData;
     }
 
-    // Response
-    $response = [
-        'success' => true,
-        'stats' => [
-            'totalRevenue' => number_format($totalRevenue, 2),
-            'totalBookings' => $totalBookings,
-            'upcomingEvents' => $upcomingEvents,
-            'newClients' => $newClients
-        ],
-        'monthlyBookings' => $monthlyBookings,
-        'package_popularity' => $packageData
-    ];
+    // 4. Recent Activity (Latest 10 bookings)
+    if ($action === 'all' || $action === 'recent_activity') {
+        $activitySql = "
+            SELECT 
+                b.bookingID, 
+                b.event_date, 
+                b.booking_status, 
+                b.total_amount,
+                u.FirstName, 
+                u.LastName 
+            FROM bookings b
+            JOIN users u ON b.userID = u.userID
+            ORDER BY b.created_at DESC 
+            LIMIT 10
+        ";
+        $activityResult = $conn->query($activitySql);
+        $activityData = [];
+        while ($row = $activityResult->fetch_assoc()) {
+            $activityData[] = $row;
+        }
+        $response['recent_activity'] = $activityData;
+    }
 
-    // Store in cache for 15 minutes (900 seconds)
-    Cache::set($cacheKey, $response, 900);
+    echo json_encode(['success' => true, 'data' => $response]);
 
-    echo json_encode($response);
-
-
-
-?>
+} catch (Exception $e) {
+    http_response_code(500);
+    echo json_encode(['success' => false, 'message' => $e->getMessage()]);
+}
