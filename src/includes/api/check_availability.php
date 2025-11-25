@@ -1,10 +1,10 @@
 <?php
-// Enable error reporting for debugging
-error_reporting(E_ALL);
-ini_set('display_errors', 0); // Don't display errors in JSON response
-
 require_once '../functions/config.php';
 require_once '../functions/session.php';
+require_once '../functions/api_security.php';
+
+// Apply rate limiting
+enforceRateLimit('/api/check_availability', 300, 3600);
 
 header('Content-Type: application/json');
 

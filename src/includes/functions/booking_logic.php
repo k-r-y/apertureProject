@@ -131,6 +131,27 @@ function getAverageBookingDuration() {
     return $result->fetch_row()[0];
 }
 
+function getBookingsByPackageType($userId) {
+    global $conn;
+    $stmt = $conn->prepare("
+        SELECT p.packageName, COUNT(b.bookingID) as count
+        FROM bookings b
+        INNER JOIN packages p ON b.packageID = p.packageID
+        WHERE b.userID = ?
+        GROUP BY p.packageName
+        ORDER BY count DESC
+    ");
+    $stmt->bind_param("s", $userId);
+    $stmt->execute();
+    $result = $stmt->get_result();
+    
+    $data = [];
+    while ($row = $result->fetch_assoc()) {
+        $data[] = $row;
+    }
+    return $data;
+}
+
 // function 
 
 ?>

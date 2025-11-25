@@ -16,6 +16,17 @@ $bookingCount = getBookingCount($_SESSION['userId']);
 $getUpcomingBookingsCount = getUpcomingBookingsCount($_SESSION['userId']);           
 $totalSpent = getTotalSpent($_SESSION['userId']);
 
+// Get bookings by package type for chart
+$bookingsByType = getBookingsByPackageType($_SESSION['userId']);
+
+// Prepare data for JavaScript
+$packageNames = [];
+$packageCounts = [];
+foreach ($bookingsByType as $booking) {
+    $packageNames[] = $booking['packageName'];
+    $packageCounts[] = (int)$booking['count'];
+}
+
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -91,7 +102,7 @@ $totalSpent = getTotalSpent($_SESSION['userId']);
                                 <i class="bi bi-wallet2 fs-2 text-gold"></i>
                             </div>
                             <div>
-                                <div class="h2 mb-1 text-light">₱<?= number_format($totalSpent) ?></div>
+                                <div class="h2 mb-1 text-light">₱<?= isset($totalSpent) ? number_format($totalSpent) : '0'; ?></div>
                                 <div class="text-muted small text-uppercase letter-spacing-1">Total Spent</div>
                             </div>
                         </div>
@@ -106,7 +117,17 @@ $totalSpent = getTotalSpent($_SESSION['userId']);
                             <div class="d-flex justify-content-between align-items-center mb-4">
                                 <h5 class="m-0"><i class="bi bi-bar-chart-fill me-2 text-gold"></i>Your Bookings by Type</h5>
                             </div>
-                            <div id="userBookingsChart"></div>
+                            <?php if (empty($bookingsByType)): ?>
+                                <div class="text-center py-5">
+                                    <i class="bi bi-calendar-x fs-1 text-muted mb-3 d-block"></i>
+                                    <p class="text-muted">No bookings yet. Book your first event to see statistics!</p>
+                                    <a href="bookingForm.php" class="btn btn-gold mt-3">
+                                        <i class="bi bi-plus-circle me-2"></i>Create Booking
+                                    </a>
+                                </div>
+                            <?php else: ?>
+                                <div id="userBookingsChart"></div>
+                            <?php endif; ?>
                         </div>
                     </div>
                 </div>
@@ -119,11 +140,11 @@ $totalSpent = getTotalSpent($_SESSION['userId']);
     <script src="user.js"></script>
     <script>
         document.addEventListener("DOMContentLoaded", function() {
+            <?php if (!empty($bookingsByType)): ?>
             var options = {
                 series: [{
                     name: 'Bookings',
-                    // Replace with dynamic data from PHP
-                    data: [2, 1, 1]
+                    data: <?= json_encode($packageCounts) ?>
                 }],
                 chart: {
                     type: 'bar',
@@ -143,12 +164,12 @@ $totalSpent = getTotalSpent($_SESSION['userId']);
                         columnWidth: '40%'
                     },
                 },
-                colors: ['#D4AF37', '#AA8C2C', '#F4CF57'],
+                colors: ['#D4AF37', '#AA8C2C', '#F4CF57', '#C9A961', '#E6C86F'],
                 dataLabels: {
                     enabled: false
                 },
                 xaxis: {
-                    categories: ['Weddings', 'Corporate', 'Birthdays'],
+                    categories: <?= json_encode($packageNames) ?>,
                     axisBorder: {
                         show: false
                     },
@@ -188,6 +209,7 @@ $totalSpent = getTotalSpent($_SESSION['userId']);
 
             var chart = new ApexCharts(document.querySelector("#userBookingsChart"), options);
             chart.render();
+            <?php endif; ?>
         });
     </script>
 </body>

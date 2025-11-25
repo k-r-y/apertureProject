@@ -114,9 +114,9 @@ while ($row = $result->fetch_assoc()) {
                                 <tr>
                                     <th>UserID</th>
                                     <th>Email</th>
-                                    <th>First Name</th>
-                                    <th>Last Name</th>
-                                    <th>Contact No.</th>
+                                    <th>First_Name</th>
+                                    <th>Last_Name</th>
+                                    <th>Contact_No.</th>
                                     <th>Role</th>
                                     <th>Status</th>
                                     <th>Profile</th>
@@ -132,9 +132,9 @@ while ($row = $result->fetch_assoc()) {
                                     <tr data-user-id="<?= $user['userID'] ?>">
                                         <td><span class="text-muted">#<?= htmlspecialchars($user['userID']); ?></span></td>
                                         <td><?= htmlspecialchars($user['Email']); ?></td>
-                                        <td class="fw-bold text-gold"><?= htmlspecialchars($user['FirstName']); ?></td>
-                                        <td class="fw-bold text-gold"><?= htmlspecialchars($user['LastName']); ?></td>
-                                        <td><?= htmlspecialchars($user['contactNo']); ?></td>
+                                        <td class=" text-gold" style="min-width: 200px; max-width: 200px; "><?= isset($user['FirstName']) ? htmlspecialchars($user['FirstName']) : '-'; ?></td>
+                                        <td class="text-gold"><?= isset($user['LastName']) ? htmlspecialchars($user['LastName']) : '-'; ?></td>
+                                        <td><?= isset($user['contactNo']) ? htmlspecialchars($user['contactNo']) : '-'; ?></td>
                                         <td class="user-role">
                                             <?php 
                                                 $roleClass = $user['Role'] === 'Admin' ? 'bg-danger' : 'bg-soft-gold text-gold';
@@ -170,12 +170,12 @@ while ($row = $result->fetch_assoc()) {
                                         </td>
                                         <td>
                                             <div class="d-flex gap-2">
-                                                <button type="button" class="btn btn-sm btn-ghost" 
+                                                <button type="button" class="btn btn-sm btn-ghost p-2" 
                                                         onclick="viewUserDetails(<?= $user['userID'] ?>)" 
                                                         title="View Details">
                                                     <i class="bi bi-eye"></i>
                                                 </button>
-                                                <button type="button" class="btn btn-sm btn-ghost" 
+                                                <button type="button" class="btn btn-sm btn-ghost p-2" 
                                                         onclick="editUser(<?= $user['userID'] ?>)" 
                                                         title="Edit User">
                                                     <i class="bi bi-pencil"></i>

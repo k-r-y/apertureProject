@@ -65,6 +65,17 @@ function resendCode($email)
 function registerUser($email, $password)
 {
     global $conn;
+    
+    // Validate password strength
+    require_once __DIR__ . '/validation.php';
+    $passwordValidation = validatePassword($password);
+    
+    if (!$passwordValidation['valid']) {
+        return [
+            'success' => false,
+            'error' => implode('. ', $passwordValidation['errors'])
+        ];
+    }
 
     // Inserting user data into the database
     $hashedPassword = password_hash($password, PASSWORD_DEFAULT);
@@ -74,6 +85,10 @@ function registerUser($email, $password)
 
     if ($query->execute()) {
         $userId = $conn->insert_id;
+        
+        // Add password to history
+        require_once __DIR__ . '/password_history.php';
+        addPasswordToHistory($userId, $hashedPassword);
 
         // Creating and sending token for email verification
         $code = createCode($email);

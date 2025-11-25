@@ -196,11 +196,13 @@ if (isset($_GET['cancel']) and $_GET['cancel'] === 'true') {
     <title>Login - Aperture</title>
 </head>
 
-<body>
+<body class="">
 
-    <section class="w-100 min-vh-100  p-0 p-sm-2  d-flex justify-content-center align-items-center position-relative" id="logSection">
 
-        <a href="index.php"><img src="./assets/logo.png" alt="" id="logo"></a>
+    <section class="w-100 min-vh-100  p-0 p-sm-2  d-flex flex-column justify-content-center align-items-center position-relative" id="logSection">
+
+        <a href="index.php" id="logo"><img src="./assets/logo-for-light.png" alt=""></a>
+
 
         <div class="container justify-content-center px-2 p-md-4">
             <div class="row justify-content-center align-items-center bg-white shadow p-3 rounded-5">

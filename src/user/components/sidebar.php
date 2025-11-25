@@ -3,8 +3,8 @@ $currentPage = basename($_SERVER['PHP_SELF']);
 ?>
 <aside class="sidebar d-flex flex-column" id="sidebar">
     <div>
-        <a class="sidebar-brand" href="user.php">
-            <img src="../assets/logo.png" alt="Aperture Logo" class="brand-icon" style="height: 28px;">
+        <a class="sidebar-brand p-0" href="user.php">
+            <img src="../assets/logo-for-dark.png" alt="Aperture Logo" class="brand-icon m-0" style="height: 50px; width: 150px; object-fit: cover;">
         </a>
     </div>
 

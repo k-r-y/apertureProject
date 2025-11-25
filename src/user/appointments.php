@@ -43,7 +43,7 @@ if (!isset($_SESSION["userId"])) {
                     <button class="filter-btn active" data-status="all">
                         <i class="bi bi-grid-fill me-2"></i>All Appointments
                     </button>
-                    <button class="filter-btn" data-status="pending_consultation">
+                    <button class="filter-btn" data-status="pending">
                         <i class="bi bi-clock-fill me-2"></i>Pending
                     </button>
                     <button class="filter-btn" data-status="confirmed">

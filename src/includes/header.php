@@ -5,7 +5,7 @@
 
       <div class="d-flex gap-1 align-items-center">
         
-        <a class="navbar-brand fw-bold p-2 rounded-pill" href="index.php#home"><img src="./assets/logo.png" alt="" style="height: 30px;"></a>
+        <a class="navbar-brand fw-bold rounded-pill img-fluid" href="index.php#home"><img src="./assets/logo-for-light.png" alt="" style="width: 100px; height: 40px; object-fit: cover;" ></a>
       </div>
 
       <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarContent" aria-controls="navbarContent" aria-expanded="false" aria-label="Toggle navigation">

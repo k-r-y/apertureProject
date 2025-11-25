@@ -179,11 +179,11 @@ if (isset($_GET['cancel']) and $_GET['cancel'] === 'true') {
     <title>Sign up - Aperture</title>
 </head>
 
-<body>
+<body class="">
+    <section class="w-100 min-vh-100   p-0 p-sm-2  d-flex flex-column justify-content-center align-items-center position-relative" id="reg">
 
-    <section class="w-100 min-vh-100  p-0 p-sm-2  d-flex justify-content-center align-items-center position-relative" id="reg">
+        <a href="index.php"><img src="./assets/logo-for-light.png" alt="" id="logo"></a>
 
-        <a href="index.php"><img src="./assets/logo.png" alt="" id="logo"></a>
 
 
         <!-- Main container for the form -->
@@ -203,27 +203,23 @@ if (isset($_GET['cancel']) and $_GET['cancel'] === 'true') {
                             </div>
 
                             <!-- Email  -->
-
                             <div class="mb-2">
                                 <label class="form-label" for="email">Email<span class="text-danger">*</span></label>
-                                <input type="email" name="email" id="email" value="<?= (isset($errors['email']) ? htmlspecialchars($email) : (isset($errors['password']) ? htmlspecialchars($email) : (isset($errors['ConfirmPassword']) ? htmlspecialchars($email) : ''))) ?>" class="form-control <?= (!isset($errors['email']) ? '' : 'is-invalid')  ?> " required>
-
+                                <input type="email" name="email" id="email" value="<?= htmlspecialchars($email ?? '') ?>" class="form-control <?= (!isset($errors['email']) ? '' : 'is-invalid')  ?> " required>
                                 <p class="text-danger"><?= (isset($errors['email'])) ? htmlspecialchars($errors['email']) : '' ?></p>
                             </div>
 
                             <!-- Password -->
-
-                            <div class="mb-2">
+                            <div class="mb-3">
                                 <label class="form-label" for="password">Password<span class="text-danger">*</span></label>
-                                <input type="password" name="password" id="password" class="form-control <?= (isset($errors['password'])  ? 'is-invalid' : '')   ?> " required>
+                                <input type="password" name="password" id="password" class="form-control <?= (isset($errors['password'])  ? 'is-invalid' : '')   ?> "  required>
                                 <p class="text-danger"><?= (isset($errors['password'])) ? htmlspecialchars($errors['password']) : '' ?></p>
                             </div>
 
                             <!-- Confirm Password -->
-
                             <div class="mb-3">
                                 <label class="form-label" for="confirmPassword">Confirm Password<span class="text-danger">*</span></label>
-                                <input type="password" name="confirmPassword" id="confirmPassword" class="form-control <?= htmlspecialchars(!isset($errors['ConfirmPassword']) ? '' : 'is-invalid')  ?> " required>
+                                <input type="password" name="confirmPassword" id="confirmPassword" class="form-control <?= htmlspecialchars(!isset($errors['ConfirmPassword']) ? '' : 'is-invalid')  ?> "  required>
                                 <p class="text-danger"><?= (isset($errors['ConfirmPassword'])) ? htmlspecialchars($errors['ConfirmPassword']) : '' ?></p>
                             </div>
 
@@ -300,7 +296,15 @@ if (isset($_GET['cancel']) and $_GET['cancel'] === 'true') {
 
     <script src="../bootstrap-5.3.8-dist/sweetalert2.min.js"></script>
     <script src="../bootstrap-5.3.8-dist/js/bootstrap.bundle.min.js"></script>
+    <!-- Password strength removed for minimalist design -->
     <script src="script.js"></script>
+    
+    <script>
+        // Initialize password strength meter
+        document.addEventListener('DOMContentLoaded', function() {
+            // Password strength meter removed for minimalist design
+        });
+    </script>
 
     <?php if ($showVerification && $lastSentTime): ?>
         <script>

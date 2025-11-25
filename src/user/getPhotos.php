@@ -4,6 +4,10 @@
 require_once '../includes/functions/config.php';
 require_once '../includes/functions/session.php';
 require_once '../includes/functions/auth.php';
+require_once '../includes/functions/api_security.php';
+
+// Apply rate limiting
+enforceRateLimit('/api/getPhotos', 200, 3600);
 
 header('Content-Type: application/json');
 

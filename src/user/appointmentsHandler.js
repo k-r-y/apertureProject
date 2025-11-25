@@ -108,7 +108,7 @@ function renderAppointments(appointments) {
 // Format status text
 function formatStatus(status) {
     const statusMap = {
-        'pending_consultation': 'Pending',
+        'pending': 'Pending',
         'confirmed': 'Confirmed',
         'post_production': 'Post Production',
         'completed': 'Completed',
@@ -236,14 +236,49 @@ function openAppointmentModal(bookingID) {
         
         <div class="divider"></div>
         
-        <div class="mt-4">
+        <div class="mt-4 d-flex justify-content-between align-items-center">
             <small class="text-muted">Booked on ${appointment.createdAtFormatted}</small>
+            ${appointment.bookingStatus === 'pending_consultation' ? `
+            <button class="btn btn-outline-danger btn-sm" onclick="cancelBooking(${appointment.bookingID})">
+                <i class="bi bi-x-circle me-2"></i>Cancel Booking
+            </button>
+            ` : ''}
         </div>
     `;
 
     // Show modal
     modal.classList.add('active');
     document.body.style.overflow = 'hidden';
+}
+
+// Cancel Booking
+function cancelBooking(bookingID) {
+    if (!confirm('Are you sure you want to cancel this booking? This action cannot be undone.')) {
+        return;
+    }
+
+    fetch('cancelBooking.php', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ bookingId: bookingID })
+    })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                // Show success message (using alert for now, or LuxuryToast if available)
+                alert('Booking cancelled successfully');
+                closeModal();
+                fetchAppointments(currentFilter); // Refresh list
+            } else {
+                alert('Error: ' + data.message);
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            alert('An error occurred while cancelling the booking');
+        });
 }
 
 // Close modal

@@ -121,14 +121,37 @@ if ($_SERVER["REQUEST_METHOD"] === 'POST') {
         $forgotEmail = $_SESSION['forgotEmail'];
         $forgotUserId = $_SESSION['forgotPasswordUserID'];
 
+        // Password validation
         if (empty($password)) {
             $errors['password'] = "Password is required";
         } else if (strlen($password) < 8) {
-            $errors['password'] = "The password must be at least 8 characters";
+            $errors['password'] = "Password must be at least 8 characters";
+        } else if (!preg_match('/[A-Z]/', $password)) {
+            $errors['password'] = "Password must contain at least one uppercase letter";
+        } else if (!preg_match('/[a-z]/', $password)) {
+            $errors['password'] = "Password must contain at least one lowercase letter";
+        } else if (!preg_match('/[0-9]/', $password)) {
+            $errors['password'] = "Password must contain at least one number";
+        } else if (!preg_match('/[^A-Za-z0-9]/', $password)) {
+            $errors['password'] = "Password must contain at least one special character";
         }
 
         if ($password !== $confirmPassword) {
-            $errors['ConfirmPassword'] = "Password Mismatched";
+            $errors['ConfirmPassword'] = "Passwords do not match";
+        }
+
+        // Check if new password is same as old password
+        if (empty($errors)) {
+            $stmt = $conn->prepare("SELECT Password FROM users WHERE Email = ?");
+            $stmt->bind_param("s", $forgotEmail);
+            $stmt->execute();
+            $result = $stmt->get_result();
+            
+            if ($result && $row = $result->fetch_assoc()) {
+                if (password_verify($password, $row['Password'])) {
+                    $errors['password'] = "New password cannot be the same as your current password";
+                }
+            }
         }
 
         // If validation passes, update the password in the database.
@@ -192,9 +215,9 @@ if (isset($_GET['resend']) and $_GET['resend'] === 'true') {
 
 <body>
 
-    <section class="w-100 min-vh-100  p-0 p-sm-2  d-flex justify-content-center align-items-center position-relative" id="forgot1">
+    <section class="w-100 min-vh-100  p-0 p-sm-2  d-flex flex-column justify-content-center align-items-center position-relative" id="forgot1">
 
-        <a href="index.php"><img src="./assets/logo.png" alt="" id="logo"></a>
+        <a href="index.php"><img src="./assets/logo-for-light.png" alt="" id="logo"></a>
 
 
         <div class="container justify-content-center px-2 p-md-3">

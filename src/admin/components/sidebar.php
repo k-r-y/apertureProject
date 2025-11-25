@@ -4,7 +4,7 @@ $currentPage = basename($_SERVER['PHP_SELF']);
 <aside class="sidebar d-flex flex-column" id="sidebar">
     <div>
         <a class="sidebar-brand" href="adminDashboard.php">
-            <img src="../assets/logo.png" alt="Aperture Logo" class="brand-icon" style="height: 28px;">
+            <img src="../assets/logo-for-dark.png" alt="Aperture Logo" class="brand-icon m-0" style="height: 50px; width: 150px; object-fit: cover;">
         </a>
     </div>
 
@@ -30,7 +30,12 @@ $currentPage = basename($_SERVER['PHP_SELF']);
         </li>
 
         <li class="nav-section-title"><span class="nav-text">Management</span></li>
-       
+       <li class="sidebar-nav-item">
+            <a href="bookings.php" class="sidebar-nav-link <?= ($currentPage == 'bookings.php') ? 'active' : '' ?>">
+                <i class="bi bi-calendar-check nav-icon"></i>
+                <span class="nav-text">Bookings</span>
+            </a>
+        </li>
         <li class="sidebar-nav-item">
             <a href="client.php" class="sidebar-nav-link <?= ($currentPage == 'client.php') ? 'active' : '' ?>">
                 <i class="bi bi-people-fill nav-icon"></i>

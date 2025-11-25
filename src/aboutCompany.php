@@ -16,7 +16,7 @@ $dotenv->load();
 $response = [];
 
 
-if ($_SERVER['REQUEST_METHOD'] == "POST") {
+if ($_SERVER['REQUEST_METHOD'] == "POST") { 
   $fullName = trim($_POST['fullName'] ?? '');
   $email = trim($_POST['email'] ?? '');
   $message = trim($_POST['mess'] ?? '');
@@ -76,6 +76,21 @@ if ($_SERVER['REQUEST_METHOD'] == "POST") {
 
 
 
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="stylesheet" href="../bootstrap-5.3.8-dist/css/bootstrap.min.css">
+  <link rel="stylesheet" href="../bootstrap-5.3.8-dist/sweetalert2.min.css">
+  <link rel="stylesheet" href="style.css">
+  <link rel="icon" href="./assets/camera.png" type="image/x-icon">
+  <title>Aperture</title>
+</head>
+
+<body>
+  <?php include './includes/header.php'; ?>
 
   <section class="w-100 min-vh-100 p-5 d-flex justify-content-center align-content-center position-relative" id="aboutCompanyHero">
     <div class="overlay"></div>

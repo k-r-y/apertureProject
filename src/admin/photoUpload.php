@@ -190,7 +190,7 @@ if ($result) {
                                     <option value="" selected disabled>Choose a user...</option>
                                     <?php foreach ($users as $user): ?>
                                         <option value="<?= $user['userID'] ?>">
-                                            <?= htmlspecialchars($user['fullName']) ?> (<?= htmlspecialchars($user['email']) ?>)
+                                            <?= isset($user['fullName']) ? htmlspecialchars($user['fullName']) : 'Unknown' ?> (<?= isset($user['email']) ? htmlspecialchars($user['email']) : 'Unknown' ?>)
                                         </option>
                                     <?php endforeach; ?>
                                 </select>
@@ -202,7 +202,7 @@ if ($result) {
                                 <h4 class="text-light mb-2">Drag & Drop Photos Here</h4>
                                 <p class="text-secondary mb-3">or click to browse</p>
                                 <button type="button" class="btn btn-gold" id="browseBtn">
-                                    <i class="bi bi-folder2-open me-2"></i>Browse Files
+                                    <i class="bi bi-folder2-open me-2 text-dark"></i>Browse Files
                                 </button>
                                 <input type="file" id="fileInput" multiple accept="image/*" class="d-none">
                                 <p class="text-secondary small mt-3 mb-0">Supported: JPG, PNG, GIF (Max 5MB each)</p>
@@ -230,7 +230,7 @@ if ($result) {
                     </div>
 
                     <div class="col-lg-4">
-                        <div class="neo-card h-100">
+                        <div class="neo-card">
                             <h5 class="text-gold"><i class="bi bi-info-circle me-2"></i>Upload Guidelines</h5>
                             <ul class="text-light small mb-auto" style="line-height: 1.8;">
                                 <li>Select the user who will receive these photos</li>

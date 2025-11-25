@@ -1,9 +1,10 @@
 <?php
-error_reporting(E_ALL);
-ini_set('display_errors', 0);
-
 require_once '../functions/config.php';
 require_once '../functions/session.php';
+require_once '../functions/api_security.php';
+
+// Apply rate limiting
+enforceRateLimit('/api/get_booked_dates', 300, 3600);
 
 header('Content-Type: application/json');
 

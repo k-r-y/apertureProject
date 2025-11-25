@@ -3,10 +3,7 @@ require_once '../includes/functions/config.php';
 require_once '../includes/functions/session.php';
 require_once '../includes/functions/function.php';
 require_once '../includes/functions/auth.php';
-
-// Enable error reporting for debugging (disable in production)
-error_reporting(E_ALL);
-ini_set('display_errors', 1);
+require_once '../includes/functions/csrf.php';
 
 // Check if user is logged in
 if (!isset($_SESSION["userId"])) {
@@ -15,6 +12,10 @@ if (!isset($_SESSION["userId"])) {
 }
 
 if ($_SERVER["REQUEST_METHOD"] == "POST") {
+    // Validate CSRF token
+    if (!validateCSRFToken($_POST['csrfToken'] ?? '')) {
+        handleCSRFFailure('bookingForm.php');
+    }
     try {
         $userId = $_SESSION["userId"];
         
@@ -101,31 +102,40 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         $downpayment = $totalPrice * 0.25;
         $balance = $totalPrice - $downpayment;
 
-        // 3. Handle File Upload (Payment Proof)
+        // 3. Handle File Upload (Payment Proof) - ENHANCED SECURITY
         $referenceFilePath = null;
-        if ($paymentMethod !== 'Cash' && isset($_FILES['paymentProof']) && $_FILES['paymentProof']['error'] == 0) {
+        if ($paymentMethod !== 'Cash' && isset($_FILES['paymentProof']) && $_FILES['paymentProof']['error'] !== UPLOAD_ERR_NO_FILE) {
+            require_once '../includes/functions/validation.php';
+            
+            // Validate file upload
+            $fileValidation = validateFileUpload(
+                $_FILES['paymentProof'],
+                ['image/jpeg', 'image/png', 'application/pdf'],
+                5242880 // 5MB in bytes
+            );
+            
+            if (!$fileValidation['valid']) {
+                throw new Exception($fileValidation['error']);
+            }
+            
+            // Create upload directory with proper permissions
             $uploadDir = '../uploads/payment_proofs/';
             if (!file_exists($uploadDir)) {
-                mkdir($uploadDir, 0777, true);
+                mkdir($uploadDir, 0755, true); // More secure than 0777
             }
-
-            $file = $_FILES['paymentProof'];
-            $fileName = time() . '_' . basename($file['name']);
-            $targetPath = $uploadDir . $fileName;
             
-            $allowedTypes = ['image/jpeg', 'image/png', 'image/jpg', 'application/pdf'];
-            if (!in_array($file['type'], $allowedTypes)) {
-                throw new Exception("Invalid file type. Only JPG, PNG, and PDF are allowed.");
-            }
-
-            if ($file['size'] > 5 * 1024 * 1024) { // 5MB limit
-                throw new Exception("File size exceeds 5MB limit.");
-            }
-
-            if (move_uploaded_file($file['tmp_name'], $targetPath)) {
+            // Generate safe filename
+            $safeFileName = generateSafeFilename($_FILES['paymentProof']['name']);
+            $targetPath = $uploadDir . $safeFileName;
+            
+            // Move uploaded file
+            if (move_uploaded_file($_FILES['paymentProof']['tmp_name'], $targetPath)) {
                 $referenceFilePath = $targetPath;
+                
+                // Set proper file permissions
+                chmod($targetPath, 0644);
             } else {
-                throw new Exception("Failed to upload payment proof.");
+                throw new Exception("Failed to upload payment proof. Please try again.");
             }
         }
 

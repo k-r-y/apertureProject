@@ -6,6 +6,7 @@ require_once '../includes/functions/session.php';
 require_once '../includes/functions/function.php';
 require_once '../includes/functions/auth.php';
 require_once '../includes/functions/booking_logic.php';
+require_once '../includes/functions/csrf.php';
 
 // Session validation
 if (!isset($_SESSION["userId"]) || !isset($_SESSION["role"]) || $_SESSION["role"] !== "User") {
@@ -19,7 +20,7 @@ if (!isset($_SESSION["isVerified"]) || !$_SESSION["isVerified"]) {
 
 
 // Fetch packages
-$query = ("SELECT * FROM packages");
+$query = ("SELECT * FROM packages ORDER BY Price ASC");
 $result = $conn->query($query);
 
 $packages = [];
@@ -86,7 +87,8 @@ $minBookingDate = date('Y-m-d', strtotime('+5 days'));
                     <p class="text-muted">Experience premium photography services</p>
                 </div>
 
-                <form action="processBooking.php" method="POST" enctype="multipart/form-data" id="bookingForm">
+                <form action="processBooking.php" method="POST" enctype="multipart/form-data" id="bookingForm" class="needs-validation-luxury" novalidate>
+                    <?php csrfField(); ?>
                     <div class="row g-4">
                         
                         <!-- Left Column: Form -->
@@ -142,10 +144,39 @@ $minBookingDate = date('Y-m-d', strtotime('+5 days'));
                                         <label class="text-muted small mb-2 text-uppercase letter-spacing-1">Event Type <span class="text-gold">*</span></label>
                                         <select name="eventType" id="eventType" class="neo-input" required>
                                             <option value="" class="text-light" selected disabled>Select event type</option>
-                                            <option value="Wedding" class="text-light" <?= (isset($savedData['eventType']) && $savedData['eventType'] === 'Wedding') ? 'selected' : '' ?>>Wedding</option>
-                                            <option value="Birthday" class="text-light" <?= (isset($savedData['eventType']) && $savedData['eventType'] === 'Birthday') ? 'selected' : '' ?>>Birthday</option>
-                                            <option value="Corporate" class="text-light" <?= (isset($savedData['eventType']) && $savedData['eventType'] === 'Corporate') ? 'selected' : '' ?>>Corporate Event</option>
-                                            <option value="Portrait" class="text-light" <?= (isset($savedData['eventType']) && $savedData['eventType'] === 'Portrait') ? 'selected' : '' ?>>Portrait Session</option>
+                                            
+                                            <optgroup label="Weddings & Romance">
+                                                <option value="Wedding Ceremony & Reception" <?= (isset($savedData['eventType']) && $savedData['eventType'] === 'Wedding Ceremony & Reception') ? 'selected' : '' ?>>Wedding Ceremony & Reception</option>
+                                                <option value="Engagement / Pre-Nup Session" <?= (isset($savedData['eventType']) && $savedData['eventType'] === 'Engagement / Pre-Nup Session') ? 'selected' : '' ?>>Engagement / Pre-Nup Session</option>
+                                                <option value="Proposal Coverage" <?= (isset($savedData['eventType']) && $savedData['eventType'] === 'Proposal Coverage') ? 'selected' : '' ?>>Proposal Coverage</option>
+                                                <option value="Anniversary Celebration" <?= (isset($savedData['eventType']) && $savedData['eventType'] === 'Anniversary Celebration') ? 'selected' : '' ?>>Anniversary Celebration</option>
+                                                <option value="Bridal Boudoir" <?= (isset($savedData['eventType']) && $savedData['eventType'] === 'Bridal Boudoir') ? 'selected' : '' ?>>Bridal Boudoir</option>
+                                            </optgroup>
+
+                                            <optgroup label="Milestones & Family">
+                                                <option value="Debut / 18th Birthday" <?= (isset($savedData['eventType']) && $savedData['eventType'] === 'Debut / 18th Birthday') ? 'selected' : '' ?>>Debut / 18th Birthday</option>
+                                                <option value="Maternity / Pregnancy Shoot" <?= (isset($savedData['eventType']) && $savedData['eventType'] === 'Maternity / Pregnancy Shoot') ? 'selected' : '' ?>>Maternity / Pregnancy Shoot</option>
+                                                <option value="Newborn & Baby Milestones" <?= (isset($savedData['eventType']) && $savedData['eventType'] === 'Newborn & Baby Milestones') ? 'selected' : '' ?>>Newborn & Baby Milestones</option>
+                                                <option value="Family Reunion / Generational Portrait" <?= (isset($savedData['eventType']) && $savedData['eventType'] === 'Family Reunion / Generational Portrait') ? 'selected' : '' ?>>Family Reunion / Generational Portrait</option>
+                                                <option value="Baptism / Christening" <?= (isset($savedData['eventType']) && $savedData['eventType'] === 'Baptism / Christening') ? 'selected' : '' ?>>Baptism / Christening</option>
+                                                <option value="Graduation / Toga Portrait" <?= (isset($savedData['eventType']) && $savedData['eventType'] === 'Graduation / Toga Portrait') ? 'selected' : '' ?>>Graduation / Toga Portrait</option>
+                                            </optgroup>
+
+                                            <optgroup label="Corporate & Professional">
+                                                <option value="Corporate Headshots & Personal Branding" <?= (isset($savedData['eventType']) && $savedData['eventType'] === 'Corporate Headshots & Personal Branding') ? 'selected' : '' ?>>Corporate Headshots & Personal Branding</option>
+                                                <option value="Gala Dinner / Awards Night" <?= (isset($savedData['eventType']) && $savedData['eventType'] === 'Gala Dinner / Awards Night') ? 'selected' : '' ?>>Gala Dinner / Awards Night</option>
+                                                <option value="Conference / Seminar Coverage" <?= (isset($savedData['eventType']) && $savedData['eventType'] === 'Conference / Seminar Coverage') ? 'selected' : '' ?>>Conference / Seminar Coverage</option>
+                                                <option value="Product Photography" <?= (isset($savedData['eventType']) && $savedData['eventType'] === 'Product Photography') ? 'selected' : '' ?>>Product Photography</option>
+                                                <option value="Real Estate / Interior Photography" <?= (isset($savedData['eventType']) && $savedData['eventType'] === 'Real Estate / Interior Photography') ? 'selected' : '' ?>>Real Estate / Interior Photography</option>
+                                                <option value="Food & Menu Photography" <?= (isset($savedData['eventType']) && $savedData['eventType'] === 'Food & Menu Photography') ? 'selected' : '' ?>>Food & Menu Photography</option>
+                                            </optgroup>
+
+                                            <optgroup label="Lifestyle & Creative">
+                                                <option value="Fashion / Editorial Shoot" <?= (isset($savedData['eventType']) && $savedData['eventType'] === 'Fashion / Editorial Shoot') ? 'selected' : '' ?>>Fashion / Editorial Shoot</option>
+                                                <option value="Pet Photography" <?= (isset($savedData['eventType']) && $savedData['eventType'] === 'Pet Photography') ? 'selected' : '' ?>>Pet Photography</option>
+                                                <option value="Music Concert / Live Performance" <?= (isset($savedData['eventType']) && $savedData['eventType'] === 'Music Concert / Live Performance') ? 'selected' : '' ?>>Music Concert / Live Performance</option>
+                                            </optgroup>
+
                                             <option value="Other" class="text-light" <?= (isset($savedData['eventType']) && $savedData['eventType'] === 'Other') ? 'selected' : '' ?>>Other (Please Specify)</option>
                                         </select>
                                     </div>
@@ -260,7 +291,7 @@ $minBookingDate = date('Y-m-d', strtotime('+5 days'));
 
                         <!-- Right Column: Real-time Summary -->
                         <div class="col-lg-4">
-                            <div class="sticky-top" style="top: 20px; z-index: 100;">
+                            <div class="sticky-luxury-summary">
                                 <div class="neo-card-light shadow-lg shadow-light">
                                     <div class="mb-4 pb-2 border-bottom border-secondary">
                                         <h4 class="m-0"><i class="bi bi-receipt me-2 text-gold"></i>Booking Summary</h4>
@@ -366,6 +397,8 @@ $minBookingDate = date('Y-m-d', strtotime('+5 days'));
     
     <script src="../../bootstrap-5.3.8-dist/js/bootstrap.bundle.min.js"></script>
     <script src="../js/modal.js"></script>
+    <script src="../js/feedback.js"></script>
+    <script src="../js/validation.js"></script>
     
     <!-- Restore saved form state -->
     <?php if (!empty($savedData)): ?>
