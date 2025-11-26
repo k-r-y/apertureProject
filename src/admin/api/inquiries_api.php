@@ -28,6 +28,13 @@ try {
             echo json_encode(['success' => true, 'inquiries' => $inquiries]);
             break;
 
+        case 'get_activity_log':
+            require_once '../../includes/functions/activity_logger.php';
+            // Fetch all activities (no user filter)
+            $activities = getUserActivities($conn); 
+            echo json_encode(['success' => true, 'activities' => $activities]);
+            break;
+
         case 'update_status':
             $data = json_decode(file_get_contents('php://input'), true);
             $id = intval($data['id']);

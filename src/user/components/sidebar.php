@@ -40,29 +40,4 @@ $currentPage = basename($_SERVER['PHP_SELF']);
             </a>
         </li>
     </ul>
-
-    <!-- Sidebar Footer: User Profile + Logout -->
-    <div class="sidebar-footer">
-        <div class="user-profile">
-            <a href="profile.php" class="name-card">
-                <div class="user-avatar">
-                    <?php 
-                        $name = $_SESSION['fullName'] ?? 'Client';
-                        $initials = substr($name, 0, 1);
-                        echo strtoupper($initials);
-                    ?>
-                </div>
-                <div class="user-info">
-                    <span class="user-name"><?php echo htmlspecialchars($_SESSION['fullName'] ?? 'Client'); ?></span>
-                    <small class="user-role">Client</small>
-                </div>
-            </a>
-        </div>
-        <div class="sidebar-nav-item">
-            <a href="../logout.php" class="sidebar-nav-link">
-                <i class="bi bi-box-arrow-left nav-icon"></i>
-                <span class="nav-text">Logout</span>
-            </a>
-        </div>
-    </div>
 </aside>

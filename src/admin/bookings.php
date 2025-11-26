@@ -160,7 +160,17 @@ $currentPage = 'bookings.php';
                                         <div id="modalAddons" class="small text-muted"></div>
                                     </div>
                                     <div class="col-md-6 text-md-end">
-                                        <h6 class="text-gold mb-2">Payment</h6>
+                                        <h6 class="text-gold mb-2">Payment Status</h6>
+                                        <div class="mb-3 d-flex flex-column align-items-end gap-2">
+                                            <div class="form-check form-switch">
+                                                <label class="form-check-label text-light small me-2" for="confirmDownpayment">Downpayment Paid</label>
+                                                <input class="form-check-input" type="checkbox" id="confirmDownpayment">
+                                            </div>
+                                            <div class="form-check form-switch">
+                                                <label class="form-check-label text-light small me-2" for="confirmFinalPayment">Final Payment Paid</label>
+                                                <input class="form-check-input" type="checkbox" id="confirmFinalPayment">
+                                            </div>
+                                        </div>
                                         <p class="mb-1">Total: <span id="modalTotalAmount" class="text-light fw-bold"></span></p>
                                         <p class="mb-1">Downpayment: <span id="modalDownpayment" class="text-light"></span></p>
                                         <p class="mb-0">Balance: <span id="modalBalance" class="text-light"></span></p>

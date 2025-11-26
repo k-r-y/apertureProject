@@ -72,64 +72,22 @@ if (isset($_GET['action']) and $_GET['action'] === 'logout') {
                                 <span>General Settings</span>
                             </div>
                             <div class="neo-card-body">
-                                <form>
+                                <form id="generalSettingsForm">
                                     <div class="mb-3">
-                                        <label for="siteName" class="luxury-label">Site Name</label>
-                                        <input type="text" class="neo-input" id="siteName" value="Aperture">
+                                        <label for="site_name" class="luxury-label">Site Name</label>
+                                        <input type="text" class="neo-input" id="site_name" name="site_name">
                                     </div>
                                     <div class="mb-3">
-                                        <label for="adminEmail" class="luxury-label">Admin Email</label>
-                                        <input type="email" class="neo-input" id="adminEmail" value="admin@aperture.com">
+                                        <label for="admin_email" class="luxury-label">Admin Email</label>
+                                        <input type="email" class="neo-input" id="admin_email" name="admin_email">
                                     </div>
                                     <div class="mb-3">
-                                        <label for="contactPhone" class="luxury-label">Public Contact Phone</label>
-                                        <input type="text" class="neo-input" id="contactPhone" value="+63 912 345 6789">
+                                        <label for="contact_phone" class="luxury-label">Public Contact Phone</label>
+                                        <input type="text" class="neo-input" id="contact_phone" name="contact_phone">
                                     </div>
                                     <div class="form-check form-switch mb-3">
-                                        <input class="form-check-input" type="checkbox" role="switch" id="maintenanceMode">
-                                        <label class="form-check-label" for="maintenanceMode">Enable Maintenance Mode</label>
-                                    </div>
-                                    <button type="submit" class="btn btn-gold w-100 mt-2">Save Changes</button>
-                                </form>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- Theme & Appearance -->
-                    <div class="col-lg-6">
-                        <div class="neo-card h-100">
-                            <div class="neo-card-header">
-                                <i class="bi bi-palette me-2"></i>
-                                <span>Appearance</span>
-                            </div>
-                            <div class="neo-card-body">
-                                <form>
-                                    <div class="mb-3">
-                                        <label for="primaryColor" class="luxury-label">Primary Accent Color</label>
-                                        <div class="d-flex align-items-center">
-                                            <input type="color" class="form-control form-control-color" id="primaryColor" value="#D4AF37" title="Choose your color">
-                                            <input type="text" class="neo-input ms-2" value="#D4AF37">
-                                        </div>
-                                    </div>
-                                    <div class="mb-3">
-                                        <label class="luxury-label">Logo Upload</label>
-                                        <div class="input-group">
-                                            <input type="file" class="form-control" id="logoUpload">
-                                            <button class="btn btn-outline-gold" type="button">Upload</button>
-                                        </div>
-                                        <div class="mt-3">
-                                            <img src="../assets/logo.png" alt="Current Logo" style="height: 40px; background: #333; padding: 5px; border-radius: 4px;">
-                                        </div>
-                                    </div>
-                                    <div class="mb-3">
-                                        <label class="luxury-label">Favicon Upload</label>
-                                        <div class="input-group">
-                                            <input type="file" class="form-control" id="faviconUpload">
-                                            <button class="btn btn-outline-gold" type="button">Upload</button>
-                                        </div>
-                                        <div class="mt-3">
-                                            <img src="../assets/camera.png" alt="Current Favicon" style="height: 32px; width: 32px; background: #333; padding: 5px; border-radius: 4px;">
-                                        </div>
+                                        <input class="form-check-input" type="checkbox" role="switch" id="maintenance_mode" name="maintenance_mode">
+                                        <label class="form-check-label" for="maintenance_mode">Enable Maintenance Mode</label>
                                     </div>
                                     <button type="submit" class="btn btn-gold w-100 mt-2">Save Changes</button>
                                 </form>
@@ -145,7 +103,7 @@ if (isset($_GET['action']) and $_GET['action'] === 'logout') {
                                 <span>Security</span>
                             </div>
                             <div class="neo-card-body">
-                                <form>
+                                <form id="securitySettingsForm">
                                     <div class="mb-3">
                                         <label for="adminPassword" class="luxury-label">New Password</label>
                                         <input type="password" class="neo-input" id="adminPassword" placeholder="Enter new password">
@@ -154,38 +112,7 @@ if (isset($_GET['action']) and $_GET['action'] === 'logout') {
                                         <label for="confirmAdminPassword" class="luxury-label">Confirm New Password</label>
                                         <input type="password" class="neo-input" id="confirmAdminPassword" placeholder="Confirm new password">
                                     </div>
-                                    <div class="form-check form-switch mb-3">
-                                        <input class="form-check-input" type="checkbox" role="switch" id="twoFactorAuth" checked>
-                                        <label class="form-check-label" for="twoFactorAuth">Enable Two-Factor Authentication</label>
-                                    </div>
                                     <button type="submit" class="btn btn-outline-gold w-100 mt-2">Update Password</button>
-                                </form>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- SMTP Settings -->
-                    <div class="col-lg-6">
-                        <div class="neo-card h-100">
-                            <div class="neo-card-header">
-                                <i class="bi bi-envelope me-2"></i>
-                                <span>Email (SMTP) Settings</span>
-                            </div>
-                            <div class="neo-card-body">
-                                <form>
-                                    <div class="mb-3">
-                                        <label for="smtpHost" class="luxury-label">SMTP Host</label>
-                                        <input type="text" class="neo-input" id="smtpHost" value="smtp.example.com">
-                                    </div>
-                                    <div class="mb-3">
-                                        <label for="smtpUser" class="luxury-label">SMTP Username</label>
-                                        <input type="text" class="neo-input" id="smtpUser" value="user@example.com">
-                                    </div>
-                                    <div class="mb-3">
-                                        <label for="smtpPass" class="luxury-label">SMTP Password</label>
-                                        <input type="password" class="neo-input" id="smtpPass" value="••••••••">
-                                    </div>
-                                    <button type="submit" class="btn btn-gold w-100 mt-2">Save Changes</button>
                                 </form>
                             </div>
                         </div>

@@ -50,7 +50,8 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         $paymentMethod = sanitizeInput($_POST['paymentMethod']);
         $specialRequests = isset($_POST['specialRequests']) ? sanitizeInput($_POST['specialRequests']) : '';
         $consultationDate = sanitizeInput($_POST['consultationDate']);
-        $consultationTime = sanitizeInput($_POST['consultationTime']);
+        $consultationStartTime = sanitizeInput($_POST['consultationStartTime']);
+        $consultationEndTime = sanitizeInput($_POST['consultationEndTime']);
         
         // Validate Date (3-5 days in advance)
         validateBookingDate($eventDate);
@@ -186,20 +187,23 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
             client_message, 
             proof_payment, 
             total_amount, 
-            downpayment_amount, 
+            downpayment_amount,
+            balance_amount, 
             booking_status, 
             is_fully_paid,
             consultation_date,
-            consultation_time
-        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'pending', ?, ?, ?)";
+            consultation_start_time,
+            consultation_end_time
+        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'pending', ?, ?, ?, ?)";
 
         $stmt = $conn->prepare($query);
         
         $eventLocation = $location . ($landmark ? " (Near: $landmark)" : "");
         $clientMessage = $specialRequests;
+        $balanceAmount = $totalPrice - $downpayment;
 
         $stmt->bind_param(
-            "issssssssddiss", 
+            "issssssssdddiisss", 
             $userId,
             $packageId,
             $eventType,
@@ -211,13 +215,31 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
             $referenceFilePath,
             $totalPrice,
             $downpayment,
+            $balanceAmount,
             $isFullyPaid,
             $consultationDate,
-            $consultationTime
+            $consultationStartTime,
+            $consultationEndTime
         );
 
         if ($stmt->execute()) {
             $bookingId = $stmt->insert_id;
+            
+            // Log booking creation activity
+            require_once '../includes/functions/activity_logger.php';
+            logUserActivity(
+                $userId,
+                'booking_created',
+                "Created new booking for {$eventType} on " . date('M d, Y', strtotime($eventDate)),
+                $bookingId,
+                [
+                    'event_type' => $eventType,
+                    'event_date' => $eventDate,
+                    'total_amount' => $totalPrice,
+                    'downpayment' => $downpayment,
+                    'is_full_payment' => $isFullyPaid
+                ]
+            );
             
             // Send Confirmation Email
             $userEmail = $_SESSION['email'] ?? ''; // Assuming email is in session, otherwise fetch from DB

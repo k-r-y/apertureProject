@@ -149,6 +149,44 @@ function populateModal(booking) {
         }
     }
 
+    // Payment Status Checkboxes
+    const dpCheckbox = document.getElementById('confirmDownpayment');
+    const fpCheckbox = document.getElementById('confirmFinalPayment');
+
+    if (dpCheckbox) {
+        dpCheckbox.checked = booking.downpayment_paid == 1;
+        dpCheckbox.disabled = booking.downpayment_paid == 1; // Disable if already paid? Or allow toggle? Usually confirm is one-way. Let's keep it enabled but warn if unchecking (if we implement uncheck).
+        // Actually, the API supports confirming. Unconfirming might be tricky if we don't support it.
+        // Let's assume one-way for now or just allow clicking.
+        // If disabled, user can't click. Let's disable if paid to prevent accidental clicks, or allow re-clicking if we want to toggle (but API needs to support it).
+        // The requirement says "admin confirms it".
+        dpCheckbox.disabled = booking.downpayment_paid == 1;
+
+        // Remove old listeners to prevent duplicates (cloning is a quick hack, or just setting onclick)
+        const newDp = dpCheckbox.cloneNode(true);
+        dpCheckbox.parentNode.replaceChild(newDp, dpCheckbox);
+
+        newDp.addEventListener('change', function () {
+            if (this.checked) {
+                confirmPayment(booking.bookingID, 'downpayment', this);
+            }
+        });
+    }
+
+    if (fpCheckbox) {
+        fpCheckbox.checked = booking.final_payment_paid == 1;
+        fpCheckbox.disabled = booking.final_payment_paid == 1;
+
+        const newFp = fpCheckbox.cloneNode(true);
+        fpCheckbox.parentNode.replaceChild(newFp, fpCheckbox);
+
+        newFp.addEventListener('change', function () {
+            if (this.checked) {
+                confirmPayment(booking.bookingID, 'final', this);
+            }
+        });
+    }
+
     // Proof of Payment
     const paymentContainer = document.getElementById('modalPaymentProof');
     if (paymentContainer) {
@@ -171,16 +209,9 @@ function populateModal(booking) {
             html += `
                 <div class="mt-3 border-top border-secondary pt-3">
                     <h6 class="text-gold mb-2">Balance Payment Proof</h6>
-                    <div class="d-flex align-items-center gap-2">
-                        <a href="${booking.balance_payment_proof}" target="_blank" class="btn btn-sm btn-outline-light">
-                            <i class="bi bi-file-earmark-image me-2"></i>View Receipt
-                        </a>
-                        ${booking.is_fully_paid == 0 ? `
-                        <button class="btn btn-sm btn-success" onclick="markAsPaid(${booking.bookingID})">
-                            <i class="bi bi-check-circle me-1"></i>Confirm Payment
-                        </button>
-                        ` : '<span class="badge bg-success">Confirmed</span>'}
-                    </div>
+                    <a href="${booking.balance_payment_proof}" target="_blank" class="btn btn-sm btn-outline-light">
+                        <i class="bi bi-file-earmark-image me-2"></i>View Receipt
+                    </a>
                 </div>
             `;
         }
@@ -353,33 +384,45 @@ function updateMeetingLink(bookingId, link) {
         });
 }
 
-// Mark as Paid
-window.markAsPaid = function (bookingId) {
-    if (!confirm('Are you sure you want to mark the balance as PAID? This cannot be undone.')) return;
+// Confirm Payment (Downpayment or Final)
+function confirmPayment(bookingId, type, checkbox) {
+    if (!confirm(`Are you sure you want to confirm the ${type} payment? This cannot be undone.`)) {
+        checkbox.checked = false;
+        return;
+    }
 
-    fetch('api/manage_booking.php?action=mark_paid', {
+    // Disable checkbox while processing
+    checkbox.disabled = true;
+
+    fetch('api/confirm_payment.php', {
         method: 'POST',
-        credentials: 'include',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ bookingId: bookingId })
+        body: JSON.stringify({
+            bookingId: bookingId,
+            paymentType: type
+        })
     })
         .then(response => response.json())
         .then(data => {
             if (data.success) {
-                LuxuryToast.show({ message: 'Payment updated & booking confirmed', type: 'success' });
-                viewBooking(bookingId); // Refresh modal
+                LuxuryToast.show({ message: `${type.charAt(0).toUpperCase() + type.slice(1)} confirmed successfully`, type: 'success' });
+                viewBooking(bookingId); // Refresh modal to show updated status/badges
                 if (typeof fetchBookings === 'function') {
-                    fetchBookings();
+                    fetchBookings(); // Refresh list
                 }
             } else {
-                LuxuryToast.show({ message: data.message || 'Failed to update payment', type: 'error' });
+                LuxuryToast.show({ message: data.message || 'Failed to confirm payment', type: 'error' });
+                checkbox.checked = false;
+                checkbox.disabled = false;
             }
         })
         .catch(error => {
             console.error('Error:', error);
             LuxuryToast.show({ message: 'An error occurred', type: 'error' });
+            checkbox.checked = false;
+            checkbox.disabled = false;
         });
-};
+}
 
 // Helpers
 function formatDate(dateString) {

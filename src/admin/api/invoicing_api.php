@@ -1,147 +1,152 @@
 <?php
+/**
+ * Invoicing API
+ * Fetches transaction-level data for the invoicing page
+ */
+
 require_once '../../includes/functions/config.php';
 require_once '../../includes/functions/session.php';
-require_once '../../includes/functions/rate_limit.php';
-
-// Enforce Rate Limit
-enforceRateLimit(60, 60);
-
-// Ensure user is logged in and is an Admin
-if (!isset($_SESSION['userId']) || !isset($_SESSION['role']) || $_SESSION['role'] !== 'Admin') {
-    http_response_code(403);
-    echo json_encode(['success' => false, 'message' => 'Unauthorized']);
-    exit;
-}
 
 header('Content-Type: application/json');
 
+// Check admin authentication
+if (!isset($_SESSION['userId']) || $_SESSION['role'] !== 'Admin') {
+    echo json_encode(['success' => false, 'message' => 'Unauthorized access']);
+    exit;
+}
+
 $action = $_GET['action'] ?? '';
 
-try {
-    switch ($action) {
-        case 'get_all':
-            $sql = "
-                (SELECT 
-                    'Invoice' as type,
-                    i.invoiceID as id,
-                    CONCAT('INV-', LPAD(i.invoiceID, 5, '0')) as ref_number,
-                    CONCAT(u.FirstName, ' ', u.LastName) as client_name,
-                    b.total_amount as amount,
-                    b.downpayment_amount as downpayment,
-                    i.issue_date as date,
-                    i.status as status,
-                    NULL as proof
-                FROM invoices i
-                JOIN bookings b ON i.bookingID = b.bookingID
-                JOIN users u ON b.userID = u.userID)
-                
-                UNION ALL
-                
-                (SELECT 
-                    'Refund' as type,
-                    r.refundID as id,
-                    CONCAT('REF-', LPAD(r.refundID, 5, '0')) as ref_number,
-                    CONCAT(u.FirstName, ' ', u.LastName) as client_name,
-                    r.amount as amount,
-                    NULL as downpayment,
-                    r.requested_at as date,
-                    r.status as status,
-                    r.proof_image as proof
-                FROM refunds r
-                JOIN bookings b ON r.bookingID = b.bookingID
-                JOIN users u ON b.userID = u.userID)
-                
-                UNION ALL
-                
-                (SELECT 
-                    'Downpayment' as type,
-                    b.bookingID as id,
-                    CONCAT('BK-', LPAD(b.bookingID, 5, '0')) as ref_number,
-                    CONCAT(u.FirstName, ' ', u.LastName) as client_name,
-                    b.downpayment_amount as amount,
-                    NULL as downpayment,
-                    b.created_at as date,
-                    'Paid' as status,
-                    b.proof_payment as proof
-                FROM bookings b
-                JOIN users u ON b.userID = u.userID
-                WHERE b.downpayment_amount > 0 AND b.booking_status != 'cancelled')
-                
-                UNION ALL
-                
-                (SELECT 
-                    'Balance Payment' as type,
-                    b.bookingID as id,
-                    CONCAT('BK-', LPAD(b.bookingID, 5, '0')) as ref_number,
-                    CONCAT(u.FirstName, ' ', u.LastName) as client_name,
-                    (b.total_amount - b.downpayment_amount) as amount,
-                    NULL as downpayment,
-                    b.updated_at as date,
-                    'Paid' as status,
-                    b.balance_payment_proof as proof
-                FROM bookings b
-                JOIN users u ON b.userID = u.userID
-                WHERE b.is_fully_paid = 1)
-                
-                ORDER BY date DESC
-            ";
-            $result = $conn->query($sql);
-            $transactions = [];
-            while ($row = $result->fetch_assoc()) {
-                $transactions[] = $row;
-            }
-            echo json_encode(['success' => true, 'transactions' => $transactions]);
-            break;
-
-        case 'create_invoice':
-            $data = json_decode(file_get_contents('php://input'), true);
-            $bookingId = intval($data['bookingId']);
-            $dueDate = $data['dueDate'];
-            $issueDate = date('Y-m-d');
-
-            $stmt = $conn->prepare("INSERT INTO invoices (bookingID, issue_date, due_date, status) VALUES (?, ?, ?, 'pending')");
-            $stmt->bind_param("iss", $bookingId, $issueDate, $dueDate);
-            if ($stmt->execute()) {
-                echo json_encode(['success' => true]);
-            } else {
-                throw new Exception("Failed to create invoice");
-            }
-            break;
-
-        case 'update_status':
-            $data = json_decode(file_get_contents('php://input'), true);
-            $id = intval($data['id']);
-            $status = $data['status'];
-
-            $stmt = $conn->prepare("UPDATE invoices SET status = ? WHERE invoiceID = ?");
-            $stmt->bind_param("si", $status, $id);
-            if ($stmt->execute()) {
-                echo json_encode(['success' => true]);
-            } else {
-                throw new Exception("Failed to update status");
-            }
-            break;
-            
-        case 'get_bookings_without_invoice':
-             $sql = "
-                SELECT b.bookingID, b.event_type, b.event_date, u.FirstName, u.LastName 
-                FROM bookings b
-                JOIN users u ON b.userID = u.userID
-                LEFT JOIN invoices i ON b.bookingID = i.bookingID
-                WHERE i.invoiceID IS NULL AND b.booking_status != 'cancelled'
-            ";
-            $result = $conn->query($sql);
-            $bookings = [];
-            while ($row = $result->fetch_assoc()) {
-                $bookings[] = $row;
-            }
-            echo json_encode(['success' => true, 'bookings' => $bookings]);
-            break;
-
-        default:
-            throw new Exception("Invalid action");
-    }
-} catch (Exception $e) {
-    http_response_code(400);
-    echo json_encode(['success' => false, 'message' => $e->getMessage()]);
+switch ($action) {
+    case 'get_all':
+        getAllTransactions($conn);
+        break;
+    case 'update_status':
+        updateTransactionStatus($conn);
+        break;
+    default:
+        echo json_encode(['success' => false, 'message' => 'Invalid action']);
 }
+
+function getAllTransactions($conn) {
+    $transactions = [];
+    
+    // 1. Fetch Downpayments
+    $stmt = $conn->prepare("
+        SELECT 
+            b.bookingID,
+            b.userID,
+            u.fullName as client_name,
+            'Downpayment' as type,
+            b.downpayment_amount as amount,
+            b.downpayment_paid as is_paid,
+            b.downpayment_paid_date as date_paid,
+            b.created_at as created_date,
+            b.proof_payment
+        FROM bookings b
+        JOIN users u ON b.userID = u.userID
+        WHERE b.booking_status != 'cancelled'
+    ");
+    $stmt->execute();
+    $result = $stmt->get_result();
+    while ($row = $result->fetch_assoc()) {
+        $status = $row['is_paid'] ? 'Paid' : 'Pending';
+        $date = $row['date_paid'] ? $row['date_paid'] : $row['created_date'];
+        
+        $transactions[] = [
+            'id' => 'DP-' . $row['bookingID'],
+            'booking_id' => $row['bookingID'],
+            'type' => 'Downpayment',
+            'client_name' => $row['client_name'],
+            'amount' => $row['amount'],
+            'status' => $status,
+            'date' => $date,
+            'proof' => $row['proof_payment'],
+            'raw_status' => $row['is_paid'] // For logic
+        ];
+    }
+    $stmt->close();
+    
+    // 2. Fetch Final Payments
+    $stmt = $conn->prepare("
+        SELECT 
+            b.bookingID,
+            b.userID,
+            u.fullName as client_name,
+            'Final Payment' as type,
+            b.balance_amount as amount,
+            b.final_payment_paid as is_paid,
+            b.final_payment_paid_date as date_paid,
+            b.event_date
+        FROM bookings b
+        JOIN users u ON b.userID = u.userID
+        WHERE b.booking_status != 'cancelled'
+    ");
+    $stmt->execute();
+    $result = $stmt->get_result();
+    while ($row = $result->fetch_assoc()) {
+        $status = $row['is_paid'] ? 'Paid' : 'Pending';
+        // For final payment, if not paid, show event date as due date
+        $date = $row['date_paid'] ? $row['date_paid'] : $row['event_date'];
+        
+        $transactions[] = [
+            'id' => 'FP-' . $row['bookingID'],
+            'booking_id' => $row['bookingID'],
+            'type' => 'Final Payment',
+            'client_name' => $row['client_name'],
+            'amount' => $row['amount'],
+            'status' => $status,
+            'date' => $date,
+            'proof' => null, // Usually no proof for final payment unless uploaded separately
+            'raw_status' => $row['is_paid']
+        ];
+    }
+    $stmt->close();
+    
+    // 3. Fetch Refunds (if any)
+    $stmt = $conn->prepare("
+        SELECT 
+            r.refundID,
+            r.bookingID,
+            u.fullName as client_name,
+            'Refund' as type,
+            r.amount,
+            r.status,
+            r.created_at
+        FROM refunds r
+        JOIN bookings b ON r.bookingID = b.bookingID
+        JOIN users u ON b.userID = u.userID
+    ");
+    if ($stmt) { // Check if refunds table exists/query works
+        $stmt->execute();
+        $result = $stmt->get_result();
+        while ($row = $result->fetch_assoc()) {
+            $transactions[] = [
+                'id' => 'RF-' . $row['refundID'],
+                'booking_id' => $row['bookingID'],
+                'type' => 'Refund',
+                'client_name' => $row['client_name'],
+                'amount' => $row['amount'],
+                'status' => ucfirst($row['status']),
+                'date' => $row['created_at'],
+                'proof' => null,
+                'raw_status' => $row['status']
+            ];
+        }
+        $stmt->close();
+    }
+
+    // Sort by date descending
+    usort($transactions, function($a, $b) {
+        return strtotime($b['date']) - strtotime($a['date']);
+    });
+    
+    echo json_encode(['success' => true, 'transactions' => $transactions]);
+}
+
+function updateTransactionStatus($conn) {
+    // This would handle manual status updates if needed
+    // For now, we rely on the confirm_payment.php API
+    echo json_encode(['success' => false, 'message' => 'Use confirm payment API']);
+}
+?>

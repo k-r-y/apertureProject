@@ -58,7 +58,7 @@ if (isset($_GET['action']) and $_GET['action'] === 'logout') {
 
                 <div class="d-flex justify-content-between align-items-center mb-4">
                     <h1 class="header-title m-0">Financial Overview</h1>
-                    <button class="btn btn-gold" onclick="showCreateInvoiceModal()">+ Create New Invoice</button>
+                    <!-- <button class="btn btn-gold" onclick="showCreateInvoiceModal()">+ Create New Invoice</button> -->
                 </div>
 
                 <!-- Transactions Table -->
@@ -72,49 +72,19 @@ if (isset($_GET['action']) and $_GET['action'] === 'logout') {
                                     <th>Client</th>
                                     <th>Date</th>
                                     <th>Amount</th>
-                                    <th>Downpayment</th>
                                     <th>Status</th>
                                     <th>Proof</th>
                                     <th class="text-end pe-3">Actions</th>
                                 </tr>
                             </thead>
                             <tbody id="transactionsTableBody">
-                                <tr><td colspan="9" class="text-center text-muted">Loading...</td></tr>
+                                <tr><td colspan="8" class="text-center text-muted">Loading...</td></tr>
                             </tbody>
                         </table>
                     </div>
                 </div>
             </div>
         </main>
-    </div>
-
-    <!-- Create Invoice Modal -->
-    <div class="modal fade" id="createInvoiceModal" tabindex="-1">
-        <div class="modal-dialog">
-            <div class="modal-content bg-dark border-secondary">
-                <div class="modal-header border-secondary">
-                    <h5 class="modal-title text-gold">Create Invoice</h5>
-                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
-                </div>
-                <div class="modal-body">
-                    <div class="mb-3">
-                        <label class="form-label text-light">Select Booking</label>
-                        <select id="bookingSelect" class="form-select bg-dark text-light border-secondary">
-                            <option value="">Loading bookings...</option>
-                        </select>
-                        <small class="text-muted">Only confirmed bookings without invoices are shown.</small>
-                    </div>
-                    <div class="mb-3">
-                        <label class="form-label text-light">Due Date</label>
-                        <input type="date" id="dueDate" class="form-control bg-dark text-light border-secondary">
-                    </div>
-                </div>
-                <div class="modal-footer border-secondary">
-                    <button type="button" class="btn btn-ghost" data-bs-dismiss="modal">Cancel</button>
-                    <button type="button" class="btn btn-gold" onclick="createInvoice()">Create</button>
-                </div>
-            </div>
-        </div>
     </div>
 
     <script src="../../bootstrap-5.3.8-dist/js/bootstrap.bundle.min.js"></script>
@@ -129,106 +99,44 @@ if (isset($_GET['action']) and $_GET['action'] === 'logout') {
                 .then(data => {
                     const tbody = document.getElementById('transactionsTableBody');
                     if (data.success && data.transactions.length > 0) {
-                        tbody.innerHTML = data.transactions.map(t => `
+                        tbody.innerHTML = data.transactions.map(t => {
+                            let typeClass = 'bg-dark border-secondary text-light';
+                            if (t.type === 'Downpayment') typeClass = 'bg-primary bg-opacity-10 text-primary border-primary';
+                            if (t.type === 'Final Payment') typeClass = 'bg-success bg-opacity-10 text-success border-success';
+                            if (t.type === 'Refund') typeClass = 'bg-danger bg-opacity-10 text-danger border-danger';
+
+                            let statusClass = 'status-pending';
+                            if (t.status === 'Paid' || t.status === 'Completed') statusClass = 'status-confirmed';
+                            if (t.status === 'Cancelled' || t.status === 'Refunded') statusClass = 'status-cancelled';
+
+                            return `
                             <tr>
-                                <td class="ps-3"><span class="badge bg-dark border border-secondary text-light">${t.type}</span></td>
-                                <td class="text-gold font-monospace">${t.ref_number}</td>
+                                <td class="ps-3"><span class="badge ${typeClass}">${t.type}</span></td>
+                                <td class="text-gold font-monospace">#${t.booking_id}</td>
                                 <td>${t.client_name}</td>
                                 <td>${new Date(t.date).toLocaleDateString()}</td>
                                 <td>₱${Number(t.amount).toLocaleString()}</td>
-                                <td>${t.downpayment ? '₱' + Number(t.downpayment).toLocaleString() : '<span class="text-muted">-</span>'}</td>
                                 <td>
-                                    <span class="status-badge status-${t.status.toLowerCase()}">${t.status.toUpperCase()}</span>
+                                    <span class="status-badge ${statusClass}">${t.status.toUpperCase()}</span>
                                 </td>
                                 <td>
                                     ${t.proof ? `<a href="${t.proof}" target="_blank" class="btn btn-sm btn-outline-light"><i class="bi bi-image"></i> View</a>` : '<span class="text-muted">-</span>'}
                                 </td>
                                 <td class="text-end pe-3">
-                                    ${t.type === 'Invoice' ? `
-                                    <div class="dropdown">
-                                        <button class="btn btn-sm btn-ghost" type="button" data-bs-toggle="dropdown">
-                                            <i class="bi bi-three-dots-vertical"></i>
-                                        </button>
-                                        <ul class="dropdown-menu dropdown-menu-dark">
-                                            <li><a class="dropdown-item" href="#" onclick="updateStatus(${t.id}, 'paid')">Mark as Paid</a></li>
-                                            <li><a class="dropdown-item" href="#" onclick="updateStatus(${t.id}, 'pending')">Mark as Pending</a></li>
-                                            <li><a class="dropdown-item text-danger" href="#" onclick="updateStatus(${t.id}, 'cancelled')">Cancel Invoice</a></li>
-                                        </ul>
-                                    </div>` : ''}
+                                    <button class="btn btn-sm btn-ghost" onclick="viewBooking(${t.booking_id})">
+                                        <i class="bi bi-eye"></i> Details
+                                    </button>
                                 </td>
                             </tr>
-                        `).join('');
+                        `}).join('');
                     } else {
-                        tbody.innerHTML = '<tr><td colspan="9" class="text-center text-muted">No transactions found</td></tr>';
+                        tbody.innerHTML = '<tr><td colspan="8" class="text-center text-muted">No transactions found</td></tr>';
                     }
                 });
         }
-
-        function showCreateInvoiceModal() {
-            // Load eligible bookings
-            fetch('api/invoicing_api.php?action=get_bookings_without_invoice')
-                .then(r => r.json())
-                .then(data => {
-                    const select = document.getElementById('bookingSelect');
-                    if (data.success && data.bookings.length > 0) {
-                        select.innerHTML = data.bookings.map(b => `
-                            <option value="${b.bookingID}">
-                                #${b.bookingID} - ${b.FirstName} ${b.LastName} (${b.event_type} on ${b.event_date})
-                            </option>
-                        `).join('');
-                    } else {
-                        select.innerHTML = '<option value="">No eligible bookings found</option>';
-                    }
-                    new bootstrap.Modal(document.getElementById('createInvoiceModal')).show();
-                });
-        }
-
-        function createInvoice() {
-            const bookingId = document.getElementById('bookingSelect').value;
-            const dueDate = document.getElementById('dueDate').value;
-
-            if (!bookingId || !dueDate) {
-                Swal.fire('Error', 'Please select a booking and due date', 'error');
-                return;
-            }
-
-            fetch('api/invoicing_api.php?action=create_invoice', {
-                method: 'POST',
-                headers: {'Content-Type': 'application/json'},
-                body: JSON.stringify({bookingId, dueDate})
-            })
-            .then(r => r.json())
-            .then(data => {
-                if (data.success) {
-                    bootstrap.Modal.getInstance(document.getElementById('createInvoiceModal')).hide();
-                    loadTransactions();
-                    Swal.fire('Success', 'Invoice created successfully', 'success');
-                }
-            });
-        }
-
-        function updateStatus(id, status) {
-            fetch('api/invoicing_api.php?action=update_status', {
-                method: 'POST',
-                headers: {'Content-Type': 'application/json'},
-                body: JSON.stringify({id, status})
-            })
-            .then(r => r.json())
-            .then(data => {
-                if (data.success) {
-                    loadTransactions();
-                    const Toast = Swal.mixin({
-                        toast: true,
-                        position: 'top-end',
-                        showConfirmButton: false,
-                        timer: 3000
-                    });
-                    Toast.fire({
-                        icon: 'success',
-                        title: 'Status updated'
-                    });
-                }
-            });
+        
+        function viewBooking(id) {
+            window.location.href = `bookings.php?id=${id}`;
         }
     </script>
 </body>

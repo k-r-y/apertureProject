@@ -44,4 +44,4 @@ function enforceRateLimit($limit = 60, $timeWindow = 60) {
         exit;
     }
 }
-?>
+

@@ -136,7 +136,7 @@ while ($row = $result->fetch_assoc()) {
         }
     </style>
 </head>
-<body class="user-dashboard">
+<body class="admin-dashboard">
     <?php include_once 'components/sidebar.php'; ?>
 
     <div class="page-wrapper" id="page-wrapper">

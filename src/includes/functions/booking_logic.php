@@ -92,11 +92,22 @@ function getUpcomingBookingsCount($userId) {
 
 function getTotalSpent($userId) {
     global $conn;
-    $stmt = $conn->prepare("SELECT SUM(total_amount) FROM bookings WHERE userID = ?");
-    $stmt->bind_param("s", $userId);
+    // Sum of confirmed downpayments + confirmed final payments - refunds
+    $query = "
+        SELECT 
+            (
+                COALESCE(SUM(CASE WHEN downpayment_paid = 1 THEN downpayment_amount ELSE 0 END), 0) +
+                COALESCE(SUM(CASE WHEN final_payment_paid = 1 THEN balance_amount ELSE 0 END), 0) -
+                COALESCE(SUM(refund_amount), 0)
+            ) as total_spent
+        FROM bookings 
+        WHERE userID = ?
+    ";
+    $stmt = $conn->prepare($query);
+    $stmt->bind_param("i", $userId);
     $stmt->execute();
     $result = $stmt->get_result();
-    return $result->fetch_row()[0];
+    return $result->fetch_row()[0] ?? 0;
 }
 
 function getAllBookingsCount() {
@@ -117,10 +128,21 @@ function getAllBookings() {
 
 function getTotalRevenue() {
     global $conn;
-    $stmt = $conn->prepare("SELECT SUM(total_amount) FROM bookings");
+    // Sum of confirmed downpayments + confirmed final payments - refunds
+    // This represents actual cash flow
+    $query = "
+        SELECT 
+            (
+                COALESCE(SUM(CASE WHEN downpayment_paid = 1 THEN downpayment_amount ELSE 0 END), 0) +
+                COALESCE(SUM(CASE WHEN final_payment_paid = 1 THEN balance_amount ELSE 0 END), 0) -
+                COALESCE(SUM(refund_amount), 0)
+            ) as total_revenue
+        FROM bookings
+    ";
+    $stmt = $conn->prepare($query);
     $stmt->execute();
     $result = $stmt->get_result();
-    return $result->fetch_row()[0];
+    return $result->fetch_row()[0] ?? 0;
 }
 
 function getAverageBookingDuration() {

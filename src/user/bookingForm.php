@@ -327,26 +327,39 @@ $minBookingDate = date('Y-m-d', strtotime('+3 days'));
                                 <div class="mb-4 pb-2 border-bottom border-secondary">
                                     <h4 class="m-0"><i class="bi bi-camera-video me-2 text-gold"></i>Consultation Schedule</h4>
                                 </div>
-                                <p class="text-muted small mb-3">Schedule a Google Meet / Zoom call with our team to discuss your event details.</p>
+                                <p class="text-muted small mb-3">Schedule a Google Meet / Zoom call with our team to discuss your event details. <span class="text-gold">Maximum duration: 1.5 hours</span></p>
+                                
                                 <div class="row g-3">
-                                    <div class="col-md-6">
+                                    <div class="col-md-12">
                                         <label class="text-muted small mb-2 text-uppercase letter-spacing-1">Preferred Date <span class="text-gold">*</span></label>
-                                        <input type="date" name="consultationDate" class="neo-input" min="<?= date('Y-m-d', strtotime('+1 day')) ?>" required>
+                                        <input type="date" name="consultationDate" id="consultationDate" class="neo-input" min="<?= date('Y-m-d') ?>" required>
                                     </div>
                                     <div class="col-md-6">
-                                        <label class="text-muted small mb-2 text-uppercase letter-spacing-1">Preferred Time <span class="text-gold">*</span></label>
-                                        <select name="consultationTime" class="neo-input" required>
-                                            <option value="" disabled selected>Select time</option>
+                                        <label class="text-muted small mb-2 text-uppercase letter-spacing-1">Start Time <span class="text-gold">*</span></label>
+                                        <select name="consultationStartTime" id="consultationStartTime" class="neo-input" required>
+                                            <option value="" disabled selected>Select start time</option>
                                             <?php
                                             $cStart = strtotime('09:00');
                                             $cEnd = strtotime('18:00');
-                                            for ($i = $cStart; $i <= $cEnd; $i += 1800) {
+                                            for ($i = $cStart; $i < $cEnd; $i += 1800) { // 30-minute intervals
                                                 $timeValue = date('H:i', $i);
                                                 $timeLabel = date('g:i A', $i);
                                                 echo "<option value=\"$timeValue\">$timeLabel</option>";
                                             }
                                             ?>
                                         </select>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <label class="text-muted small mb-2 text-uppercase letter-spacing-1">End Time <span class="text-gold">*</span></label>
+                                        <select name="consultationEndTime" id="consultationEndTime" class="neo-input" required disabled>
+                                            <option value="" disabled selected>Select start time first</option>
+                                        </select>
+                                        <small class="text-muted d-block mt-1" id="duractionInfo"></small>
+                                    </div>
+                                    <div class="col-12">
+                                        <div id="conflictWarning" class="alert alert-warning d-none" style="background: rgba(255, 193, 7, 0.1); border: 1px solid rgba(255, 193, 7, 0.3); color: #ffc107;">
+                                            <i class="bi bi-exclamation-triangle me-2"></i><span id="conflictMessage"></span>
+                                        </div>
                                     </div>
                                 </div>
                             </div>
@@ -556,6 +569,164 @@ $minBookingDate = date('Y-m-d', strtotime('+3 days'));
                 }, 500);
             }
         });
+    </script>
+    
+    <!-- Consultation Time Validation -->
+    <script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const consultationDate = document.getElementById('consultationDate');
+        const startTimeSelect = document.getElementById('consultationStartTime');
+        const endTimeSelect = document.getElementById('consultationEndTime');
+        const conflictWarning = document.getElementById('conflictWarning');
+        const conflictMessage = document.getElementById('conflictMessage');
+        const durationInfo = document.getElementById('duractionInfo');
+        
+        // Enable end time when start time is selected
+        startTimeSelect.addEventListener('change', function() {
+            const startTime = this.value;
+            if (!startTime) return;
+            
+            // Clear and enable end time
+            endTimeSelect.innerHTML = '<option value="" disabled selected>Select end time</option>';
+            endTimeSelect.disabled = false;
+            
+            // Generate end time options (start + 30min to start + 90min)
+            const startMinutes = timeToMinutes(startTime);
+            const minEnd = startMinutes + 30;  // Min 30 minutes
+            const maxEnd = startMinutes + 90;  // Max 1.5 hours
+            
+            // Generate 30-minute intervals
+            for (let minutes = minEnd; minutes <= maxEnd && minutes <= 1080; minutes += 30) { // 1080 = 18:00
+                const timeValue = minutesToTime(minutes);
+                const timeLabel = formatTime(timeValue);
+                const option = document.createElement('option');
+                option.value = timeValue;
+                option.textContent = timeLabel;
+                endTimeSelect.appendChild(option);
+            }
+        });
+        
+        // Check for conflicts when end time is selected
+        endTimeSelect.addEventListener('change', function() {
+            checkConsultationConflict();
+        });
+        
+        // Also check when date changes
+        consultationDate.addEventListener('change', function() {
+            if (startTimeSelect.value && endTimeSelect.value) {
+                checkConsultationConflict();
+            }
+            validateDateTime();
+        });
+        
+        startTimeSelect.addEventListener('change', function() {
+            validateDateTime();
+        });
+        
+        function validateDateTime() {
+            const selectedDate = consultationDate.value;
+            const selectedTime = startTimeSelect.value;
+            
+            if (!selectedDate || !selectedTime) return;
+            
+            const now = new Date();
+            const selected = new Date(selectedDate + 'T' + selectedTime);
+            
+            if (selected <= now) {
+                conflictWarning.classList.remove('d-none');
+                conflictMessage.textContent = 'Cannot schedule consultation in the past. Please select a future date and time.';
+                conflictWarning.style.background = 'rgba(220, 53, 69, 0.1)';
+                conflictWarning.style.borderColor = 'rgba(220, 53, 69, 0.3)';
+                conflictWarning.style.color = '#dc3545';
+                startTimeSelect.setCustomValidity('Invalid time');
+                return false;
+            } else {
+                startTimeSelect.setCustomValidity('');
+                if (conflictMessage.textContent.includes('past')) {
+                    conflictWarning.classList.add('d-none');
+                }
+                return true;
+            }
+        }
+        
+        function checkConsultationConflict() {
+            const date = consultationDate.value;
+            const startTime = startTimeSelect.value;
+            const endTime = endTimeSelect.value;
+            
+            if (!date || !startTime || !endTime) return;
+            
+            // Validate date/time first
+            if (!validateDateTime()) return;
+            
+            // Calculate and show duration
+            const duration = (timeToMinutes(endTime) - timeToMinutes(startTime));
+            if (duration > 0) {
+                const hours = Math.floor(duration / 60);
+                const mins = duration % 60;
+                let durationText = '';
+                if (hours > 0) durationText += hours + (hours === 1 ? ' hour' : ' hours');
+                if (mins > 0) durationText += (hours > 0 ? ' ' : '') + mins + (mins === 1 ? ' minute' : ' minutes');
+                durationInfo.textContent = 'Duration: ' + durationText;
+            }
+            
+            // Check for conflicts
+            fetch('api/check_consultation_conflict.php', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    consultationDate: date,
+                    startTime: startTime + ':00',
+                    endTime: endTime + ':00'
+                })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (!data.success) {
+                    conflictWarning.classList.remove('d-none');
+                    conflictWarning.style.background = 'rgba(220, 53, 69, 0.1)';
+                    conflictWarning.style.borderColor = 'rgba(220, 53, 69, 0.3)';
+                    conflictWarning.style.color = '#dc3545';
+                    
+                    if (data.conflicts && data.conflicts.length > 0) {
+                        const conflictTimes = data.conflicts.map(c => `${c.startTime} - ${c.endTime}`).join(', ');
+                        conflictMessage.innerHTML = `${data.message}:<br><strong>${conflictTimes}</strong><br>Please choose a different time.`;
+                    } else {
+                        conflictMessage.textContent = data.message;
+                    }
+                    endTimeSelect.setCustomValidity('Time conflict');
+                } else {
+                    conflictWarning.classList.add('d-none');
+                    endTimeSelect.setCustomValidity('');
+                }
+            })
+            .catch(error => {
+                console.error('Error checking conflicts:', error);
+            });
+        }
+        
+        // Helper functions
+        function timeToMinutes(time) {
+            const [hours, minutes] = time.split(':').map(Number);
+            return hours * 60 + minutes;
+        }
+        
+        function minutesToTime(minutes) {
+            const hours = Math.floor(minutes / 60);
+            const mins = minutes % 60;
+            return String(hours).padStart(2, '0') + ':' + String(mins).padStart(2, '0');
+        }
+        
+        function formatTime(time) {
+            const [hours, minutes] = time.split(':');
+            const hour = parseInt(hours);
+            const ampm = hour >= 12 ? 'PM' : 'AM';
+            const displayHour = hour % 12 || 12;
+            return displayHour + ':' + minutes + ' ' + ampm;
+        }
+    });
     </script>
     
     <script src="booking.js"></script>

@@ -32,7 +32,7 @@ if (isset($_GET['action']) and $_GET['action'] === 'logout') {
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Inquiries - Aperture Admin</title>
+    <title>Inquiries & Activity - Aperture Admin</title>
 
     <link rel="stylesheet" href="../../bootstrap-5.3.8-dist/css/bootstrap.min.css">
     <link rel="stylesheet" href="../../bootstrap-5.3.8-dist/font/bootstrap-icons.css">
@@ -57,29 +57,66 @@ if (isset($_GET['action']) and $_GET['action'] === 'logout') {
             <div class="container-fluid p-0">
 
                 <div class="d-flex justify-content-between align-items-center mb-4">
-                    <h1 class="header-title m-0">Inquiries</h1>
-                    <button class="btn btn-sm btn-gold" onclick="loadInquiries()"><i class="bi bi-arrow-clockwise"></i> Refresh</button>
+                    <h1 class="header-title m-0">Inquiries & Activity</h1>
+                    <button class="btn btn-sm btn-gold" onclick="refreshCurrentTab()"><i class="bi bi-arrow-clockwise"></i> Refresh</button>
                 </div>
 
-                <!-- Inquiries Table -->
-                <div class="glass-panel p-4">
-                    <div class="table-responsive">
-                        <table class="table table-luxury align-middle mb-0">
-                            <thead>
-                                <tr>
-                                    <th class="ps-3">From</th>
-                                    <th>Subject</th>
-                                    <th>Date</th>
-                                    <th>Status</th>
-                                    <th class="text-end pe-3">Actions</th>
-                                </tr>
-                            </thead>
-                            <tbody id="inquiriesTableBody">
-                                <tr><td colspan="5" class="text-center text-muted">Loading...</td></tr>
-                            </tbody>
-                        </table>
+                <!-- Tabs -->
+                <ul class="nav nav-tabs border-secondary mb-4" id="inquiryTabs" role="tablist">
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link active text-gold" id="messages-tab" data-bs-toggle="tab" data-bs-target="#messages" type="button" role="tab">Contact Messages</button>
+                    </li>
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link text-gold" id="activity-tab" data-bs-toggle="tab" data-bs-target="#activity" type="button" role="tab">User Activity Log</button>
+                    </li>
+                </ul>
+
+                <div class="tab-content" id="inquiryTabsContent">
+                    <!-- Messages Tab -->
+                    <div class="tab-pane fade show active" id="messages" role="tabpanel">
+                        <div class="glass-panel p-4">
+                            <div class="table-responsive">
+                                <table class="table table-luxury align-middle mb-0">
+                                    <thead>
+                                        <tr>
+                                            <th class="ps-3">From</th>
+                                            <th>Subject</th>
+                                            <th>Date</th>
+                                            <th>Status</th>
+                                            <th class="text-end pe-3">Actions</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="inquiriesTableBody">
+                                        <tr><td colspan="5" class="text-center text-muted">Loading...</td></tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Activity Log Tab -->
+                    <div class="tab-pane fade" id="activity" role="tabpanel">
+                        <div class="glass-panel p-4">
+                            <div class="table-responsive">
+                                <table class="table table-luxury align-middle mb-0">
+                                    <thead>
+                                        <tr>
+                                            <th class="ps-3">User</th>
+                                            <th>Activity</th>
+                                            <th>Description</th>
+                                            <th>Date</th>
+                                            <th class="text-end pe-3">Details</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="activityTableBody">
+                                        <tr><td colspan="5" class="text-center text-muted">Loading...</td></tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
                     </div>
                 </div>
+
             </div>
         </main>
     </div>
@@ -119,7 +156,19 @@ if (isset($_GET['action']) and $_GET['action'] === 'logout') {
     <script src="../libs/sweetalert2/sweetalert2.all.min.js"></script>
     <script src="admin.js"></script>
     <script>
-        document.addEventListener('DOMContentLoaded', loadInquiries);
+        document.addEventListener('DOMContentLoaded', function() {
+            loadInquiries();
+            
+            // Tab change listeners
+            document.getElementById('activity-tab').addEventListener('shown.bs.tab', loadActivityLog);
+            document.getElementById('messages-tab').addEventListener('shown.bs.tab', loadInquiries);
+        });
+
+        function refreshCurrentTab() {
+            const activeTab = document.querySelector('.nav-link.active');
+            if (activeTab.id === 'messages-tab') loadInquiries();
+            else loadActivityLog();
+        }
 
         function loadInquiries() {
             fetch('api/inquiries_api.php?action=get_all')
@@ -151,6 +200,38 @@ if (isset($_GET['action']) and $_GET['action'] === 'logout') {
                         tbody.innerHTML = '<tr><td colspan="5" class="text-center text-muted">No inquiries found</td></tr>';
                     }
                 });
+        }
+
+        function loadActivityLog() {
+            fetch('api/inquiries_api.php?action=get_activity_log')
+                .then(r => r.json())
+                .then(data => {
+                    const tbody = document.getElementById('activityTableBody');
+                    if (data.success && data.activities.length > 0) {
+                        tbody.innerHTML = data.activities.map(act => `
+                            <tr>
+                                <td class="ps-3">
+                                    <div class="fw-bold text-light">${act.FirstName} ${act.LastName}</div>
+                                    <small class="text-muted">ID: ${act.user_id}</small>
+                                </td>
+                                <td><span class="badge bg-dark border border-secondary text-gold">${formatActivityType(act.activity_type)}</span></td>
+                                <td class="text-light small">${act.activity_description}</td>
+                                <td class="text-muted small">${new Date(act.created_at).toLocaleString()}</td>
+                                <td class="text-end pe-3">
+                                    ${act.related_booking_id ? 
+                                        `<a href="bookings.php?id=${act.related_booking_id}" class="btn btn-sm btn-outline-light"><i class="bi bi-eye"></i> Booking #${act.related_booking_id}</a>` 
+                                        : '<span class="text-muted">-</span>'}
+                                </td>
+                            </tr>
+                        `).join('');
+                    } else {
+                        tbody.innerHTML = '<tr><td colspan="5" class="text-center text-muted">No activity recorded</td></tr>';
+                    }
+                });
+        }
+
+        function formatActivityType(type) {
+            return type.split('_').map(word => word.charAt(0).toUpperCase() + word.slice(1)).join(' ');
         }
 
         function viewInquiry(inq) {
@@ -192,5 +273,4 @@ if (isset($_GET['action']) and $_GET['action'] === 'logout') {
         }
     </script>
 </body>
-
 </html>

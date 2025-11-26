@@ -1,133 +1,160 @@
 /**
- * Admin Settings Password Change Handler
+ * Admin Settings Handler
  */
 
 document.addEventListener('DOMContentLoaded', function () {
-    // Find the security form
-    const securityCard = document.querySelector('.card-solid .card-body:has(#adminPassword)');
+    loadSettings();
+    setupForms();
+});
 
-    if (securityCard) {
-        const securityForm = securityCard.querySelector('form');
-        const adminPasswordInput = document.getElementById('adminPassword');
-        const confirmAdminPasswordInput = document.getElementById('confirmAdminPassword');
+// Load Settings
+function loadSettings() {
+    fetch('api/settings_api.php?action=get_settings')
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                const settings = data.settings;
 
-        if (securityForm && adminPasswordInput && confirmAdminPasswordInput) {
-            securityForm.addEventListener('submit', async function (e) {
+                // Populate inputs
+                for (const [key, value] of Object.entries(settings)) {
+                    const input = document.getElementById(key);
+                    if (input) {
+                        if (input.type === 'checkbox') {
+                            input.checked = value == '1';
+                        } else {
+                            input.value = value;
+                        }
+                    }
+                }
+            }
+        })
+        .catch(error => console.error('Error loading settings:', error));
+}
+
+// Setup Forms
+function setupForms() {
+    const forms = [
+        'generalSettingsForm'
+    ];
+
+    forms.forEach(formId => {
+        const form = document.getElementById(formId);
+        if (form) {
+            form.addEventListener('submit', function (e) {
                 e.preventDefault();
-
-                // Since admin doesn't have current password field, we need to add one
-                // Or use a modal to get it
-                Swal.fire({
-                    title: 'Confirm Identity',
-                    html: `
-                        <input type="password" id="swal-current-password" class="swal2-input" placeholder="Enter current password">
-                    `,
-                    showCancelButton: true,
-                    confirmButtonText: 'Continue',
-                    confirmButtonColor: '#d4af37',
-                    preConfirm: () => {
-                        const currentPassword = document.getElementById('swal-current-password').value;
-                        if (!currentPassword) {
-                            Swal.showValidationMessage('Current password is required');
-                            return false;
-                        }
-                        return currentPassword;
-                    }
-                }).then(async (result) => {
-                    if (result.isConfirmed) {
-                        const currentPassword = result.value;
-                        const newPassword = adminPasswordInput.value.trim();
-                        const confirmPassword = confirmAdminPasswordInput.value.trim();
-
-                        // Client-side validation
-                        const errors = {};
-
-                        if (!newPassword) {
-                            errors.newPassword = 'New password is required';
-                        } else if (newPassword.length < 8) {
-                            errors.newPassword = 'Password must be at least 8 characters';
-                        } else if (!/[A-Z]/.test(newPassword)) {
-                            errors.newPassword = 'Password must contain at least one uppercase letter';
-                        } else if (!/[a-z]/.test(newPassword)) {
-                            errors.newPassword = 'Password must contain at least one lowercase letter';
-                        } else if (!/[0-9]/.test(newPassword)) {
-                            errors.newPassword = 'Password must contain at least one number';
-                        } else if (!/[^A-Za-z0-9]/.test(newPassword)) {
-                            errors.newPassword = 'Password must contain at least one special character';
-                        }
-
-                        if (newPassword !== confirmPassword) {
-                            errors.confirmPassword = 'Passwords do not match';
-                        }
-
-                        if (Object.keys(errors).length > 0) {
-                            const errorMessage = Object.values(errors).join('\n');
-                            Swal.fire({
-                                icon: 'error',
-                                title: 'Validation Error',
-                                text: errorMessage,
-                                confirmButtonColor: '#d4af37'
-                            });
-                            return;
-                        }
-
-                        // Show loading
-                        Swal.fire({
-                            title: 'Updating Password...',
-                            allowOutsideClick: false,
-                            didOpen: () => {
-                                Swal.showLoading();
-                            }
-                        });
-
-                        try {
-                            const response = await fetch('api/change_password.php', {
-                                method: 'POST',
-                                headers: {
-                                    'Content-Type': 'application/json'
-                                },
-                                body: JSON.stringify({
-                                    currentPassword: currentPassword,
-                                    newPassword: newPassword,
-                                    confirmPassword: confirmPassword
-                                })
-                            });
-
-                            const data = await response.json();
-
-                            if (data.success) {
-                                Swal.fire({
-                                    icon: 'success',
-                                    title: 'Success!',
-                                    text: 'Your password has been updated successfully',
-                                    confirmButtonColor: '#d4af37'
-                                }).then(() => {
-                                    // Clear the form
-                                    securityForm.reset();
-                                });
-                            } else {
-                                const errorMsg = data.errors ?
-                                    Object.values(data.errors).join('\n') :
-                                    data.error || 'Failed to update password';
-
-                                Swal.fire({
-                                    icon: 'error',
-                                    title: 'Error',
-                                    text: errorMsg,
-                                    confirmButtonColor: '#d4af37'
-                                });
-                            }
-                        } catch (error) {
-                            Swal.fire({
-                                icon: 'error',
-                                title: 'Error',
-                                text: 'An error occurred while updating your password',
-                                confirmButtonColor: '#d4af37'
-                            });
-                        }
-                    }
-                });
+                saveSettings(new FormData(this));
             });
         }
+    });
+
+    // Security Form (Password Change) - Keep existing logic or adapt
+    const securityForm = document.getElementById('securitySettingsForm');
+    if (securityForm) {
+        securityForm.addEventListener('submit', handlePasswordChange);
     }
-});
+}
+
+// Save Settings
+function saveSettings(formData) {
+    const data = {};
+    formData.forEach((value, key) => {
+        data[key] = value;
+    });
+
+    // Handle checkboxes (unchecked ones don't appear in FormData)
+    const checkboxes = document.querySelectorAll('input[type="checkbox"]');
+    checkboxes.forEach(cb => {
+        if (cb.name && !data.hasOwnProperty(cb.name)) {
+            data[cb.name] = cb.checked ? '1' : '0';
+        } else if (cb.name) {
+            data[cb.name] = cb.checked ? '1' : '0';
+        }
+    });
+
+    fetch('api/settings_api.php?action=update_settings', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(data)
+    })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                Swal.fire({
+                    icon: 'success',
+                    title: 'Settings Saved',
+                    text: 'Your changes have been saved successfully.',
+                    confirmButtonColor: '#d4af37'
+                });
+            } else {
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Error',
+                    text: data.message || 'Failed to save settings.',
+                    confirmButtonColor: '#d4af37'
+                });
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            Swal.fire({
+                icon: 'error',
+                title: 'Error',
+                text: 'An unexpected error occurred.',
+                confirmButtonColor: '#d4af37'
+            });
+        });
+}
+
+// Password Change Handler (Adapted from original)
+async function handlePasswordChange(e) {
+    e.preventDefault();
+
+    const adminPasswordInput = document.getElementById('adminPassword');
+    const confirmAdminPasswordInput = document.getElementById('confirmAdminPassword');
+
+    Swal.fire({
+        title: 'Confirm Identity',
+        html: `<input type="password" id="swal-current-password" class="swal2-input" placeholder="Enter current password">`,
+        showCancelButton: true,
+        confirmButtonText: 'Continue',
+        confirmButtonColor: '#d4af37',
+        preConfirm: () => {
+            const currentPassword = document.getElementById('swal-current-password').value;
+            if (!currentPassword) {
+                Swal.showValidationMessage('Current password is required');
+                return false;
+            }
+            return currentPassword;
+        }
+    }).then(async (result) => {
+        if (result.isConfirmed) {
+            const currentPassword = result.value;
+            const newPassword = adminPasswordInput.value.trim();
+            const confirmPassword = confirmAdminPasswordInput.value.trim();
+
+            // Validation
+            if (!newPassword) return Swal.fire('Error', 'New password is required', 'error');
+            if (newPassword !== confirmPassword) return Swal.fire('Error', 'Passwords do not match', 'error');
+            if (newPassword.length < 8) return Swal.fire('Error', 'Password must be at least 8 characters', 'error');
+
+            // API Call
+            try {
+                const response = await fetch('api/change_password.php', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ currentPassword, newPassword, confirmPassword })
+                });
+                const data = await response.json();
+
+                if (data.success) {
+                    Swal.fire('Success', 'Password updated successfully', 'success');
+                    e.target.reset();
+                } else {
+                    Swal.fire('Error', data.message || 'Failed to update password', 'error');
+                }
+            } catch (error) {
+                Swal.fire('Error', 'An error occurred', 'error');
+            }
+        }
+    });
+}
