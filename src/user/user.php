@@ -40,6 +40,8 @@ foreach ($bookingsByType as $booking) {
     <link rel="stylesheet" href="../../bootstrap-5.3.8-dist/css/bootstrap.min.css">
     <!-- Bootstrap Icons -->
     <link rel="stylesheet" href="../../bootstrap-5.3.8-dist/font/bootstrap-icons.css">
+    <!-- Sidebar CSS -->
+    <link rel="stylesheet" href="../css/sidebar.css">
     <!-- Luxury Design System -->
     <link rel="stylesheet" href="../luxuryDesignSystem.css">
     <!-- Custom User CSS -->

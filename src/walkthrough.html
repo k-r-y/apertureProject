@@ -1,0 +1,923 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>System Walkthrough - Aperture Studios</title>
+    <link
+      rel="stylesheet"
+      href="../bootstrap-5.3.8-dist/css/bootstrap.min.css"
+    />
+    <link
+      rel="stylesheet"
+      href="../bootstrap-5.3.8-dist/font/bootstrap-icons.css"
+    />
+    <link rel="stylesheet" href="luxuryDesignSystem.css" />
+    <link rel="icon" href="assets/camera.png" type="image/x-icon" />
+    <style>
+      body {
+        background-color: #121212;
+        color: #e0e0e0;
+        font-family: "Inter", sans-serif;
+      }
+      .sidebar {
+        width: 280px;
+        background: #0a0a0a;
+        border-right: 1px solid #333;
+        height: 100vh;
+        position: fixed;
+        overflow-y: auto;
+        padding-top: 2rem;
+      }
+      .main-content {
+        margin-left: 280px;
+        padding: 3rem;
+      }
+      .nav-link {
+        color: #a0a0a0;
+        padding: 0.75rem 1.5rem;
+        border-left: 3px solid transparent;
+      }
+      .nav-link:hover,
+      .nav-link.active {
+        color: #d4af37;
+        background: rgba(212, 175, 55, 0.05);
+        border-left-color: #d4af37;
+      }
+      .section-title {
+        color: #d4af37;
+        border-bottom: 1px solid #333;
+        padding-bottom: 1rem;
+        margin-bottom: 2rem;
+        margin-top: 3rem;
+      }
+      .card {
+        background: #1a1a1a;
+        border: 1px solid #333;
+        transition: transform 0.2s;
+      }
+      .card:hover {
+        transform: translateY(-5px);
+        border-color: #d4af37;
+      }
+      .badge-role {
+        font-size: 0.7rem;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+      }
+      code {
+        color: #d4af37;
+      }
+      .workflow-step {
+        position: relative;
+        padding-left: 2rem;
+        margin-bottom: 1.5rem;
+      }
+      .workflow-step::before {
+        content: "";
+        position: absolute;
+        left: 0;
+        top: 0.5rem;
+        width: 12px;
+        height: 12px;
+        background: #d4af37;
+        border-radius: 50%;
+      }
+      .workflow-step::after {
+        content: "";
+        position: absolute;
+        left: 5px;
+        top: 1.5rem;
+        width: 2px;
+        height: 100%;
+        background: #333;
+      }
+      .workflow-step:last-child::after {
+        display: none;
+      }
+      .accordion-button {
+        background-color: #1a1a1a;
+        color: #d4af37;
+        border: 1px solid #333;
+      }
+      .accordion-button:not(.collapsed) {
+        background-color: #2a2a2a;
+        color: #d4af37;
+        box-shadow: none;
+      }
+      .accordion-button:focus {
+        box-shadow: none;
+        border-color: #d4af37;
+      }
+      .accordion-item {
+        border: 1px solid #333;
+        margin-bottom: 1rem;
+      }
+    </style>
+  </head>
+  <body>
+    <!-- Sidebar Navigation -->
+    <nav class="sidebar">
+      <div class="px-4 mb-4">
+        <h4 class="text-gold font-serif">Aperture Docs</h4>
+        <p class="text-muted small">System Documentation</p>
+      </div>
+      <div class="nav flex-column">
+        <a href="#overview" class="nav-link active">Overview</a>
+        <a href="#admin-module" class="nav-link">Admin Module</a>
+        <a href="#user-module" class="nav-link">User Module</a>
+        <a href="#financials" class="nav-link">Financial Features</a>
+        <a href="#workflows" class="nav-link">Comprehensive Process Guide</a>
+        <a href="#api" class="nav-link">API Structure</a>
+      </div>
+    </nav>
+
+    <!-- Main Content -->
+    <main class="main-content">
+      <!-- Overview -->
+      <section id="overview">
+        <h1 class="display-4 text-gold font-serif mb-4">System Walkthrough</h1>
+        <p class="lead text-light">
+          Comprehensive documentation for the Aperture Studios Booking &
+          Management System.
+        </p>
+        <div class="row g-4 mt-4">
+          <div class="col-md-4">
+            <div class="card h-100 p-4">
+              <h5 class="text-gold">
+                <i class="bi bi-shield-lock me-2"></i>Admin Portal
+              </h5>
+              <p class="text-muted">
+                Manage bookings, process refunds, handle invoices, and update
+                content.
+              </p>
+            </div>
+          </div>
+          <div class="col-md-4">
+            <div class="card h-100 p-4">
+              <h5 class="text-gold">
+                <i class="bi bi-person me-2"></i>Client Portal
+              </h5>
+              <p class="text-muted">
+                Book appointments, view photos, pay balances, and track history.
+              </p>
+            </div>
+          </div>
+          <div class="col-md-4">
+            <div class="card h-100 p-4">
+              <h5 class="text-gold">
+                <i class="bi bi-code-slash me-2"></i>Core System
+              </h5>
+              <p class="text-muted">
+                Built on PHP/MySQL with a custom Luxury Design System.
+              </p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Admin Module -->
+      <section id="admin-module">
+        <h2 class="section-title">Admin Module</h2>
+        <p class="text-muted mb-4">
+          Located in <code>src/admin/</code>. This module is for managing the
+          entire studio operation.
+        </p>
+
+        <div class="accordion" id="adminAccordion">
+          <!-- Dashboard -->
+          <div class="accordion-item bg-dark border-secondary">
+            <h2 class="accordion-header">
+              <button
+                class="accordion-button collapsed bg-dark text-gold"
+                type="button"
+                data-bs-toggle="collapse"
+                data-bs-target="#adminDash"
+              >
+                Dashboard (adminDashboard.php)
+              </button>
+            </h2>
+            <div
+              id="adminDash"
+              class="accordion-collapse collapse"
+              data-bs-parent="#adminAccordion"
+            >
+              <div class="accordion-body text-light">
+                <h6 class="text-gold">What You See</h6>
+                <ul class="small text-muted">
+                  <li>
+                    <strong>Key Metrics:</strong> Total Revenue, Total Bookings,
+                    Pending Requests, Avg. Booking Value.
+                  </li>
+                  <li>
+                    <strong>Notifications:</strong> Bell icon in header shows
+                    pending bookings and refund requests.
+                  </li>
+                  <li>
+                    <strong>Sidebar:</strong> Collapsible sidebar for better
+                    screen real estate management.
+                  </li>
+                  <li>
+                    <strong>Charts:</strong> Revenue Trend (Line chart), Top
+                    Packages (Bar chart), Booking Status (Pie chart), Event Type
+                    Distribution.
+                  </li>
+                  <li>
+                    <strong>Action Center:</strong> A feed of Pending and
+                    Upcoming bookings requiring attention.
+                  </li>
+                </ul>
+                <h6 class="text-gold mt-3">Key Actions</h6>
+                <ul class="small text-muted">
+                  <li>
+                    <strong>Filter Timeframe:</strong> Dropdown to view stats
+                    for Today, Week, Month, Year, etc.
+                  </li>
+                  <li><strong>Refresh:</strong> Reloads the dashboard data.</li>
+                </ul>
+              </div>
+            </div>
+          </div>
+
+          <!-- Manage Bookings -->
+          <div class="accordion-item bg-dark border-secondary">
+            <h2 class="accordion-header">
+              <button
+                class="accordion-button collapsed bg-dark text-gold"
+                type="button"
+                data-bs-toggle="collapse"
+                data-bs-target="#adminBookings"
+              >
+                Manage Bookings (bookings.php)
+              </button>
+            </h2>
+            <div
+              id="adminBookings"
+              class="accordion-collapse collapse"
+              data-bs-parent="#adminAccordion"
+            >
+              <div class="accordion-body text-light">
+                <h6 class="text-gold">What You See</h6>
+                <p class="small text-muted">
+                  A comprehensive table of all bookings with columns for Ref #,
+                  Client, Date, Package, Status, and Payment.
+                </p>
+
+                <h6 class="text-gold mt-3">Key Actions</h6>
+                <ul class="small text-muted">
+                  <li>
+                    <strong>Filter:</strong> Search by client name or filter by
+                    status (Pending, Confirmed, etc.).
+                  </li>
+                  <li>
+                    <strong>View Details:</strong> Opens a modal with full
+                    booking info, payment proofs, and timeline.
+                  </li>
+                  <li>
+                    <strong>Update Status:</strong> Change status to Confirmed,
+                    Completed, or Cancelled.
+                  </li>
+                  <li>
+                    <strong>Confirm Payment:</strong> Verify uploaded proofs for
+                    Downpayment or Balance.
+                  </li>
+                  <li>
+                    <strong>Add Notes:</strong> Internal notes for admin use.
+                  </li>
+                  <li>
+                    <strong>Meeting Link:</strong> Add Google Meet/Zoom link for
+                    consultations.
+                  </li>
+                </ul>
+                <h6 class="text-gold mt-3">Automated Actions</h6>
+                <ul class="small text-muted">
+                  <li>
+                    <strong>Mark Paid:</strong> Automatically updates status to
+                    <strong>Confirmed</strong>.
+                  </li>
+                  <li>
+                    <strong>Event Done:</strong> Past confirmed events
+                    auto-update to <strong>Post Production</strong>.
+                  </li>
+                  <li>
+                    <strong>Photo Upload:</strong> Uploading photos auto-updates
+                    status to <strong>Completed</strong>.
+                  </li>
+                </ul>
+              </div>
+            </div>
+          </div>
+
+          <!-- Financial Overview -->
+          <div class="accordion-item bg-dark border-secondary">
+            <h2 class="accordion-header">
+              <button
+                class="accordion-button collapsed bg-dark text-gold"
+                type="button"
+                data-bs-toggle="collapse"
+                data-bs-target="#adminFinance"
+              >
+                Financial Overview (invoicing.php)
+              </button>
+            </h2>
+            <div
+              id="adminFinance"
+              class="accordion-collapse collapse"
+              data-bs-parent="#adminAccordion"
+            >
+              <div class="accordion-body text-light">
+                <h6 class="text-gold">What You See</h6>
+                <p class="small text-muted">
+                  A unified table of all financial transactions: Invoices,
+                  Refunds, Downpayments, and Balance Payments.
+                </p>
+                <ul class="small text-muted">
+                  <li>
+                    <strong>Columns:</strong> Type, Ref #, Client, Date, Amount,
+                    Downpayment (for Invoices), Status, Proof.
+                  </li>
+                </ul>
+
+                <h6 class="text-gold mt-3">Key Actions</h6>
+                <ul class="small text-muted">
+                  <li>
+                    <strong>Create Invoice:</strong> Manually generate an
+                    invoice for a booking.
+                  </li>
+                  <li>
+                    <strong>Mark Paid/Pending:</strong> Manually update invoice
+                    status.
+                  </li>
+                  <li>
+                    <strong>View Proof:</strong> Click to see the uploaded
+                    receipt image.
+                  </li>
+                </ul>
+              </div>
+            </div>
+          </div>
+
+          <!-- Refunds -->
+          <div class="accordion-item bg-dark border-secondary">
+            <h2 class="accordion-header">
+              <button
+                class="accordion-button collapsed bg-dark text-gold"
+                type="button"
+                data-bs-toggle="collapse"
+                data-bs-target="#adminRefunds"
+              >
+                Refunds (refunds.php)
+              </button>
+            </h2>
+            <div
+              id="adminRefunds"
+              class="accordion-collapse collapse"
+              data-bs-parent="#adminAccordion"
+            >
+              <div class="accordion-body text-light">
+                <h6 class="text-gold">What You See</h6>
+                <p class="small text-muted">
+                  List of refund requests initiated by cancellations.
+                </p>
+
+                <h6 class="text-gold mt-3">Inputs & Validations</h6>
+                <ul class="small text-muted">
+                  <li>
+                    <strong>Status Update:</strong> Change to 'Processed' or
+                    'Rejected'.
+                  </li>
+                  <li>
+                    <strong>Proof Upload:</strong> Required when marking as
+                    'Processed'. Accepts Images/PDF (Max 5MB).
+                  </li>
+                  <li><strong>Notes:</strong> Optional text for context.</li>
+                </ul>
+              </div>
+            </div>
+          </div>
+
+          <!-- Photo Upload -->
+          <div class="accordion-item bg-dark border-secondary">
+            <h2 class="accordion-header">
+              <button
+                class="accordion-button collapsed bg-dark text-gold"
+                type="button"
+                data-bs-toggle="collapse"
+                data-bs-target="#adminPhotos"
+              >
+                Photo Upload (photoUpload.php)
+              </button>
+            </h2>
+            <div
+              id="adminPhotos"
+              class="accordion-collapse collapse"
+              data-bs-parent="#adminAccordion"
+            >
+              <div class="accordion-body text-light">
+                <h6 class="text-gold">What You See</h6>
+                <p class="small text-muted">
+                  Interface to upload final photos for clients.
+                </p>
+
+                <h6 class="text-gold mt-3">Inputs & Validations</h6>
+                <ul class="small text-muted">
+                  <li>
+                    <strong>Select Booking:</strong> Dropdown of
+                    <strong>fully paid or completed</strong> bookings only.
+                  </li>
+                  <li>
+                    <strong>Photo Type:</strong> Choose between
+                    <strong>Edited</strong> or <strong>Raw</strong> photos.
+                  </li>
+                  <li>
+                    <strong>Google Drive Link:</strong> Optional field to
+                    provide a full gallery link.
+                  </li>
+                  <li>
+                    <strong>File Upload:</strong> Drag & drop zone. Supports
+                    multiple files (JPG, PNG).
+                  </li>
+                </ul>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- User Module -->
+      <section id="user-module">
+        <h2 class="section-title">User Module</h2>
+        <p class="text-muted mb-4">
+          Located in <code>src/user/</code>. This is the client-facing portal.
+        </p>
+
+        <div class="accordion" id="userAccordion">
+          <!-- Dashboard -->
+          <div class="accordion-item bg-dark border-secondary">
+            <h2 class="accordion-header">
+              <button
+                class="accordion-button collapsed bg-dark text-gold"
+                type="button"
+                data-bs-toggle="collapse"
+                data-bs-target="#userDash"
+              >
+                Dashboard (user.php)
+              </button>
+            </h2>
+            <div
+              id="userDash"
+              class="accordion-collapse collapse"
+              data-bs-parent="#userAccordion"
+            >
+              <div class="accordion-body text-light">
+                <h6 class="text-gold">What You See</h6>
+                <ul class="small text-muted">
+                  <li>
+                    <strong>Summary Cards:</strong> Upcoming Events count, Total
+                    Bookings, Total Spent.
+                  </li>
+                  <li>
+                    <strong>Chart:</strong> Bar chart showing your bookings by
+                    package type.
+                  </li>
+                  <li>
+                    <strong>Notifications:</strong> Bell icon in header shows
+                    updates on bookings and refunds.
+                  </li>
+                </ul>
+              </div>
+            </div>
+          </div>
+
+          <!-- New Booking -->
+          <div class="accordion-item bg-dark border-secondary">
+            <h2 class="accordion-header">
+              <button
+                class="accordion-button collapsed bg-dark text-gold"
+                type="button"
+                data-bs-toggle="collapse"
+                data-bs-target="#userBooking"
+              >
+                New Booking (bookingForm.php)
+              </button>
+            </h2>
+            <div
+              id="userBooking"
+              class="accordion-collapse collapse"
+              data-bs-parent="#userAccordion"
+            >
+              <div class="accordion-body text-light">
+                <h6 class="text-gold">Inputs & Validations</h6>
+                <ul class="small text-muted">
+                  <li>
+                    <strong>Event Date:</strong> Must be at least 3 days in
+                    advance. Cannot select already booked dates.
+                  </li>
+                  <li>
+                    <strong>Time:</strong> Must be between 7:00 AM and 10:00 PM.
+                  </li>
+                  <li>
+                    <strong>Package:</strong> Select from available packages
+                    (Basic, Standard, Premium, Wedding).
+                  </li>
+                  <li>
+                    <strong>Add-ons:</strong> Optional checkboxes for extra
+                    services.
+                  </li>
+                  <li>
+                    <strong>Downpayment:</strong> Input field. Minimum 25% of
+                    total. Maximum is Total Price.
+                  </li>
+                  <li>
+                    <strong>Payment Proof:</strong> File upload required for
+                    non-cash payments.
+                  </li>
+                </ul>
+              </div>
+            </div>
+          </div>
+
+          <!-- My Appointments -->
+          <div class="accordion-item bg-dark border-secondary">
+            <h2 class="accordion-header">
+              <button
+                class="accordion-button collapsed bg-dark text-gold"
+                type="button"
+                data-bs-toggle="collapse"
+                data-bs-target="#userAppt"
+              >
+                My Appointments (appointments.php)
+              </button>
+            </h2>
+            <div
+              id="userAppt"
+              class="accordion-collapse collapse"
+              data-bs-parent="#userAccordion"
+            >
+              <div class="accordion-body text-light">
+                <h6 class="text-gold">What You See</h6>
+                <p class="small text-muted">
+                  Grid view of all your bookings with status badges.
+                </p>
+
+                <h6 class="text-gold mt-3">Key Actions</h6>
+                <ul class="small text-muted">
+                  <li>
+                    <strong>View Details:</strong> See full booking info,
+                    timeline, and payment status.
+                  </li>
+                  <li>
+                    <strong>Pay Balance:</strong> Available if balance > 0.
+                    Opens modal to upload proof.
+                  </li>
+                  <li>
+                    <strong>Cancel Booking:</strong> Available for
+                    Pending/Confirmed bookings. Triggers refund if applicable.
+                  </li>
+                  <li>
+                    <strong>Write Review:</strong> Available after booking is
+                    Completed.
+                  </li>
+                class="accordion-button collapsed bg-dark text-gold"
+                type="button"
+                data-bs-toggle="collapse"
+                data-bs-target="#userBilling"
+              >
+                Billing History (billing.php)
+              </button>
+            </h2>
+            <div
+              id="userBilling"
+              class="accordion-collapse collapse"
+              data-bs-parent="#userAccordion"
+            >
+              <div class="accordion-body text-light">
+                <h6 class="text-gold">What You See</h6>
+                <p class="small text-muted">Complete financial record.</p>
+                <ul class="small text-muted">
+                  <li><strong>Invoices:</strong> Downloadable PDF invoices.</li>
+                  <li>
+                    <strong>Payments:</strong> Record of your downpayments and
+                    balance payments.
+                  </li>
+                  <li>
+                    <strong>Refunds:</strong> Status of refund requests and
+                    admin-uploaded proofs.
+                  </li>
+                </ul>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Financial Features -->
+      <section id="financials">
+        <h2 class="section-title">Financial Features</h2>
+        <div class="row g-4">
+          <div class="col-md-6">
+            <div class="card p-4">
+              <h5 class="text-gold">Invoicing</h5>
+              <p class="text-light">
+                System automatically generates invoices when a booking is
+                confirmed. Invoices can be downloaded as PDF.
+              </p>
+              <small class="text-muted"
+                >Handled by <code>api/generate_invoice.php</code></small
+              >
+            </div>
+          </div>
+          <div class="col-md-6">
+            <div class="card p-4">
+              <h5 class="text-gold">Refunds</h5>
+              <p class="text-light">
+                Automated refund requests upon cancellation. Admins process
+                refunds offline and upload proof.
+              </p>
+              <small class="text-muted"
+                >Handled by <code>admin/api/refunds.php</code></small
+              >
+            </div>
+          </div>
+          <div class="col-md-6">
+            <div class="card p-4">
+              <h5 class="text-gold">Balance Payments</h5>
+              <p class="text-light">
+                Users can pay remaining balances via the portal by uploading
+                payment proof. Admins verify and confirm.
+              </p>
+              <small class="text-muted"
+                >Handled by <code>user/api/payment_api.php</code></small
+              >
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Comprehensive Process Guide -->
+      <section id="workflows">
+        <h2 class="section-title">Comprehensive Process Guide</h2>
+
+        <div class="accordion" id="workflowAccordion">
+          <!-- 1. Booking to Gallery Process -->
+          <div class="accordion-item bg-dark border-secondary">
+            <h2 class="accordion-header">
+              <button
+                class="accordion-button bg-dark text-gold"
+                type="button"
+                data-bs-toggle="collapse"
+                data-bs-target="#flow1"
+              >
+                <i class="bi bi-camera-fill me-2"></i> From Booking to Gallery
+              </button>
+            </h2>
+            <div
+              id="flow1"
+              class="accordion-collapse collapse show"
+              data-bs-parent="#workflowAccordion"
+            >
+              <div class="accordion-body text-light">
+                <div class="workflow-step">
+                  <strong>Step 1: Booking (User)</strong>
+                  <p class="small text-muted mb-2">
+                    User fills out the booking form, selects a package, and pays
+                    the downpayment.
+                  </p>
+                </div>
+                <div class="workflow-step">
+                  <strong>Step 2: Confirmation (Admin)</strong>
+                  <p class="small text-muted mb-2">
+                    Admin reviews the booking and downpayment proof. Upon
+                    approval, status becomes <strong>Confirmed</strong>.
+                  </p>
+                </div>
+                <div class="workflow-step">
+                  <strong>Step 3: The Event</strong>
+                  <p class="small text-muted mb-2">
+                    The photoshoot/event takes place as scheduled.
+                  </p>
+                </div>
+                <div class="workflow-step">
+                  <strong>Step 4: Photo Upload (Admin)</strong>
+                  <p class="small text-muted mb-2">
+                    Admin selects the best photos and uploads them via the
+                    <strong>Photo Upload</strong> page, assigning them to the
+                    specific booking.
+                  </p>
+                </div>
+                <div class="workflow-step">
+                  <strong>Step 5: Gallery Access (User)</strong>
+                  <p class="small text-muted mb-2">
+                    User logs in, goes to <strong>My Photos</strong>, and can
+                    view/download their exclusive gallery.
+                  </p>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- 2. Payments & Balance -->
+          <div class="accordion-item bg-dark border-secondary">
+            <h2 class="accordion-header">
+              <button
+                class="accordion-button collapsed bg-dark text-gold"
+                type="button"
+                data-bs-toggle="collapse"
+                data-bs-target="#flow2"
+              >
+                <i class="bi bi-credit-card-fill me-2"></i> Payments & Balance
+              </button>
+            </h2>
+            <div
+              id="flow2"
+              class="accordion-collapse collapse"
+              data-bs-parent="#workflowAccordion"
+            >
+              <div class="accordion-body text-light">
+                <h6 class="text-gold">Downpayment Rules</h6>
+                <p class="small">
+                  The system requires a minimum downpayment of
+                  <strong>25%</strong>. If a user pays <em>more</em> than 25%,
+                  the system automatically deducts the full amount paid from the
+                  total price. The remaining balance will be lower.
+                </p>
+
+                <h6 class="text-gold mt-3">How to Pay Remaining Balance</h6>
+                <ol class="small ps-3">
+                  <li>
+                    User logs in and goes to <strong>My Appointments</strong>.
+                  </li>
+                  <li>Find the booking with a pending balance.</li>
+                  <li>Click the <strong>Pay Balance</strong> button.</li>
+                  <li>Upload the proof of payment (screenshot/receipt).</li>
+                  <li>
+                    Status updates to <em>Payment Pending Confirmation</em>.
+                  </li>
+                  <li>
+                    Admin verifies the proof in
+                    <strong>Manage Bookings</strong> and clicks
+                    <strong>Confirm Payment</strong>.
+                  </li>
+                </ol>
+              </div>
+            </div>
+          </div>
+
+          <!-- 3. Refund Process -->
+          <div class="accordion-item bg-dark border-secondary">
+            <h2 class="accordion-header">
+              <button
+                class="accordion-button collapsed bg-dark text-gold"
+                type="button"
+                data-bs-toggle="collapse"
+                data-bs-target="#flow3"
+              >
+                <i class="bi bi-arrow-counterclockwise me-2"></i> Refund Process
+              </button>
+            </h2>
+            <div
+              id="flow3"
+              class="accordion-collapse collapse"
+              data-bs-parent="#workflowAccordion"
+            >
+              <div class="accordion-body text-light">
+                <p class="small">
+                  Refunds are handled securely with proof verification.
+                </p>
+                <div class="workflow-step">
+                  <strong>Initiation</strong>
+                  <p class="small text-muted mb-2">
+                    When a booking is cancelled (by User or Admin), a
+                    <strong>Refund Request</strong> is automatically generated
+                    if a payment was made.
+                  </p>
+                </div>
+                <div class="workflow-step">
+                  <strong>Processing (Admin)</strong>
+                  <p class="small text-muted mb-2">
+                    Admin goes to <strong>Refunds</strong> page, reviews the
+                    request, and processes the refund offline (e.g., bank
+                    transfer).
+                  </p>
+                </div>
+                <div class="workflow-step">
+                  <strong>Proof Submission (Admin)</strong>
+                  <p class="small text-muted mb-2">
+                    Admin marks the refund as <strong>Processed</strong> and
+                    uploads the transaction receipt/proof.
+                  </p>
+                </div>
+                <div class="workflow-step">
+                  <strong>Verification (User)</strong>
+                  <p class="small text-muted mb-2">
+                    User receives a notification. They can view the status and
+                    the uploaded proof in their
+                    <strong>Billing History</strong> page.
+                  </p>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- 4. Notifications -->
+          <div class="accordion-item bg-dark border-secondary">
+            <h2 class="accordion-header">
+              <button
+                class="accordion-button collapsed bg-dark text-gold"
+                type="button"
+                data-bs-toggle="collapse"
+                data-bs-target="#flow4"
+              >
+                <i class="bi bi-bell-fill me-2"></i> Notifications
+              </button>
+            </h2>
+            <div
+              id="flow4"
+              class="accordion-collapse collapse"
+              data-bs-parent="#workflowAccordion"
+            >
+              <div class="accordion-body text-light">
+                <p class="small">
+                  The system keeps users informed about important updates.
+                </p>
+                <ul class="list-unstyled small">
+                  <li class="mb-2">
+                    <i class="bi bi-check-circle text-gold me-2"></i>
+                    <strong>Bell Icon:</strong> Located in the top header. It
+                    shows a red badge count for unread notifications. Clicking
+                    it reveals a dropdown with the latest updates.
+                  </li>
+                  <li class="mb-2">
+                    <i class="bi bi-check-circle text-gold me-2"></i>
+                    <strong>Sidebar:</strong> The sidebar highlights the
+                    <em>current page</em> you are on, but does not show
+                    notification badges. Users should rely on the header bell
+                    icon.
+                  </li>
+                  <li class="mb-2">
+                    <i class="bi bi-check-circle text-gold me-2"></i>
+                    <strong>Email:</strong> Critical updates like Booking
+                    Confirmation are also sent via email.
+                  </li>
+                </ul>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- API Structure -->
+      <section id="api" class="mt-5">
+        <h2 class="section-title">API Structure</h2>
+        <p class="text-light">
+          The system uses a REST-like API architecture for dynamic data
+          fetching.
+        </p>
+
+        <div class="card p-4">
+          <h5 class="text-gold mb-3">Key Endpoints</h5>
+          <ul class="list-unstyled">
+            <li class="mb-2 text-light">
+              <code class="me-2">GET</code>
+              <code>admin/api/manage_booking.php</code> - Fetch booking details
+            </li>
+            <li class="mb-2 text-light">
+              <code class="me-2">POST</code>
+              <code>admin/api/manage_booking.php</code> - Update status/notes
+            </li>
+            <li class="mb-2 text-light">
+              <code class="me-2">GET</code>
+              <code>user/getAppointments.php</code> - Fetch user bookings
+            </li>
+            <li class="mb-2 text-light">
+              <code class="me-2">POST</code>
+              <code>user/api/payment_api.php</code> - Upload balance payment
+              proof
+            </li>
+            <li class="mb-2 text-light">
+              <code class="me-2">GET</code>
+              <code>user/api/billing_api.php</code> - Fetch financial history
+            </li>
+          </ul>
+        </div>
+      </section>
+    </main>
+
+    <script src="../bootstrap-5.3.8-dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+      // Simple scroll spy
+      document.querySelectorAll(".nav-link").forEach((link) => {
+        link.addEventListener("click", function (e) {
+          e.preventDefault();
+          document.querySelector(this.getAttribute("href")).scrollIntoView({
+            behavior: "smooth",
+          });
+          document
+            .querySelectorAll(".nav-link")
+            .forEach((l) => l.classList.remove("active"));
+          this.classList.add("active");
+        });
+      });
+    </script>
+  </body>
+</html>

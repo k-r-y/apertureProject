@@ -1,5 +1,5 @@
 <?php
-require_once 'config.php';
+require_once __DIR__ . '/config.php';
 
 /**
  * Update booking status and log the action
@@ -148,4 +148,4 @@ function createNotification($userId, $type, $title, $message, $link = null) {
     $stmt->execute();
     $stmt->close();
 }
-?>
+

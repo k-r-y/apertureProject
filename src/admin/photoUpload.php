@@ -11,16 +11,6 @@ if (!isset($_SESSION["userId"]) || !isset($_SESSION["role"]) || $_SESSION["role"
     header("Location: ../logIn.php");
     exit;
 }
-
-// Fetch all users (clients) for the dropdown
-$query = "SELECT userID, fullName, email FROM users WHERE role = 'User' ORDER BY fullName";
-$result = $conn->query($query);
-$users = [];
-if ($result) {
-    while ($row = $result->fetch_assoc()) {
-        $users[] = $row;
-    }
-}
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -181,19 +171,44 @@ if ($result) {
                 <div class="row">
                     <div class="col-lg-8">
                         <div class="stat-card">
-                            <h3 class="serif text-gold mb-4">Select User & Upload Photos</h3>
+                            <h3 class="serif text-gold mb-4">Select Booking & Upload Photos</h3>
 
-                            <!-- User Selection -->
-                            <div class="mb-4">
-                                <label for="userSelect" class="form-label text-light">Select User</label>
-                                <select id="userSelect" class="form-select" required>
-                                    <option value="" selected disabled>Choose a user...</option>
-                                    <?php foreach ($users as $user): ?>
-                                        <option value="<?= $user['userID'] ?>">
-                                            <?= isset($user['fullName']) ? htmlspecialchars($user['fullName']) : 'Unknown' ?> (<?= isset($user['email']) ? htmlspecialchars($user['email']) : 'Unknown' ?>)
-                                        </option>
-                                    <?php endforeach; ?>
+                            <!-- Booking Selection -->
+                            <div class="mb-3">
+                                <label for="bookingSelect" class="form-label text-light">Select Booking</label>
+                                <select id="bookingSelect" class="form-select" required>
+                                    <option value="" selected disabled>Loading eligible bookings...</option>
                                 </select>
+                                <div class="form-text text-muted">Only fully paid AND completed bookings are shown.</div>
+                            </div>
+
+                            <!-- Google Drive Link -->
+                            <div class="mb-4">
+                                <label for="gdriveLink" class="form-label text-light">Google Drive Link (Optional)</label>
+                                <div class="input-group">
+                                    <span class="input-group-text bg-dark border-secondary text-gold"><i class="bi bi-google"></i></span>
+                                    <input type="url" class="form-control bg-dark text-light border-secondary" id="gdriveLink" placeholder="https://drive.google.com/...">
+                                </div>
+                                <div class="form-text text-muted">This link will be accessible to the user in their gallery.</div>
+                            </div>
+
+                            <!-- Photo Type Selection -->
+                            <div class="mb-4">
+                                <label class="form-label text-light">Photo Type</label>
+                                <div class="d-flex gap-3">
+                                    <div class="form-check">
+                                        <input class="form-check-input" type="radio" name="photoType" id="typeEdited" value="edited" checked>
+                                        <label class="form-check-label text-light" for="typeEdited">
+                                            Edited Photos (Final Delivery)
+                                        </label>
+                                    </div>
+                                    <div class="form-check">
+                                        <input class="form-check-input" type="radio" name="photoType" id="typeRaw" value="raw">
+                                        <label class="form-check-label text-light" for="typeRaw">
+                                            Raw Photos (Unedited)
+                                        </label>
+                                    </div>
+                                </div>
                             </div>
 
                             <!-- Upload Area -->
@@ -222,7 +237,7 @@ if ($result) {
 
                             <!-- Upload Button -->
                             <div class="mt-4">
-                                <button type="button" class="btn btn-gold btn-lg" id="uploadBtn">
+                                <button type="button" class="btn btn-gold btn-lg" id="uploadBtn" disabled>
                                     <i class="bi bi-upload me-2"></i>Upload Photos
                                 </button>
                             </div>
@@ -233,12 +248,11 @@ if ($result) {
                         <div class="neo-card">
                             <h5 class="text-gold"><i class="bi bi-info-circle me-2"></i>Upload Guidelines</h5>
                             <ul class="text-light small mb-auto" style="line-height: 1.8;">
-                                <li>Select the user who will receive these photos</li>
-                                <li>Upload multiple photos at once</li>
-                                <li>Add optional captions to each photo</li>
+                                <li>Select a completed/paid booking</li>
+                                <li>Add a Google Drive link for full gallery access</li>
+                                <li>Upload highlight photos directly to the site</li>
                                 <li>Maximum file size: 5MB per photo</li>
                                 <li>Supported formats: JPG, JPEG, PNG, GIF</li>
-                                <li>Photos will be visible only to the selected user</li>
                             </ul>
                         </div>
                     </div>
@@ -250,6 +264,7 @@ if ($result) {
     <script src="../../bootstrap-5.3.8-dist/js/bootstrap.bundle.min.js"></script>
     <script src="../libs/sweetalert2/sweetalert2.all.min.js"></script>
     <script src="admin.js"></script>
+    <script src="js/notifications.js"></script>
 
     <script>
         const uploadArea = document.getElementById('uploadArea');
@@ -257,12 +272,40 @@ if ($result) {
         const browseBtn = document.getElementById('browseBtn');
         const previewGrid = document.getElementById('previewGrid');
         const uploadBtn = document.getElementById('uploadBtn');
-        const userSelect = document.getElementById('userSelect');
+        const bookingSelect = document.getElementById('bookingSelect');
+        const gdriveLinkInput = document.getElementById('gdriveLink');
         const uploadProgress = document.getElementById('uploadProgress');
         const progressBar = document.getElementById('progressBar');
         const progressText = document.getElementById('progressText');
 
         let selectedFiles = [];
+        let bookingsData = {};
+
+        // Load eligible bookings
+        fetch('api/get_eligible_bookings.php')
+            .then(r => r.json())
+            .then(data => {
+                if (data.success && data.bookings.length > 0) {
+                    bookingSelect.innerHTML = '<option value="" selected disabled>Choose a booking...</option>' + 
+                        data.bookings.map(b => {
+                            bookingsData[b.bookingID] = b;
+                            return `<option value="${b.bookingID}">#${b.bookingID} - ${b.FirstName} ${b.LastName} (${b.event_type} on ${b.event_date})</option>`;
+                        }).join('');
+                } else {
+                    bookingSelect.innerHTML = '<option value="" disabled>No eligible bookings found</option>';
+                }
+            });
+
+        // Auto-fill GDrive link if exists
+        bookingSelect.addEventListener('change', () => {
+            const bookingId = bookingSelect.value;
+            if (bookingId && bookingsData[bookingId] && bookingsData[bookingId].gdrive_link) {
+                gdriveLinkInput.value = bookingsData[bookingId].gdrive_link;
+            } else {
+                gdriveLinkInput.value = '';
+            }
+            updateUploadButton();
+        });
 
         // Browse button click
         browseBtn.addEventListener('click', () => fileInput.click());
@@ -371,25 +414,33 @@ if ($result) {
         }
 
         function updateUploadButton() {
-            uploadBtn.disabled = selectedFiles.length === 0 || !userSelect.value;
+            // Enable if booking selected AND (files selected OR gdrive link changed)
+            // For simplicity, we'll just require booking selected and at least one file OR a link
+            // But the backend expects photos. If user just wants to update link, we should allow that too?
+            // The current backend requires photos. Let's stick to requiring photos for now, or modify backend.
+            // Requirement: "uploading an image... also add the gdrive link". Implies both.
+            // But practically, one might want to just add link.
+            // Let's allow upload if booking is selected. If no files, we just update link.
+            
+            const hasBooking = !!bookingSelect.value;
+            const hasFiles = selectedFiles.length > 0;
+            const hasLink = !!gdriveLinkInput.value;
+            
+            uploadBtn.disabled = !(hasBooking && (hasFiles || hasLink));
         }
-
-        userSelect.addEventListener('change', updateUploadButton);
+        
+        gdriveLinkInput.addEventListener('input', updateUploadButton);
 
         // Upload photos
         uploadBtn.addEventListener('click', async () => {
-            if (!userSelect.value) {
-                alert('Please select a user');
-                return;
-            }
-
-            if (selectedFiles.length === 0) {
-                alert('Please select at least one photo');
+            if (!bookingSelect.value) {
+                alert('Please select a booking');
                 return;
             }
 
             const formData = new FormData();
-            formData.append('userID', userSelect.value);
+            formData.append('bookingID', bookingSelect.value);
+            formData.append('gdriveLink', gdriveLinkInput.value);
 
             selectedFiles.forEach((file, index) => {
                 formData.append('photos[]', file);
@@ -418,7 +469,14 @@ if ($result) {
 
                 xhr.addEventListener('load', () => {
                     if (xhr.status === 200) {
-                        const response = JSON.parse(xhr.responseText);
+                        let response;
+                        try {
+                             response = JSON.parse(xhr.responseText);
+                        } catch (e) {
+                            console.error("Invalid JSON response", xhr.responseText);
+                            alert("Server error: Invalid response");
+                            return;
+                        }
                         
                         // Mark successful uploads
                         if (response.successful && response.successful.length > 0) {
@@ -446,28 +504,35 @@ if ($result) {
                             showErrorModal(response);
                         }
                         
-                        // Remove successful files after a delay
-                        setTimeout(() => {
-                            selectedFiles = selectedFiles.filter(f => f !== null);
-                            
-                            if (selectedFiles.length === 0) {
-                                if (response.uploaded > 0 && response.failed.length === 0) {
+                        // Handle success (link updated or photos uploaded)
+                        if (response.success) {
+                             setTimeout(() => {
+                                selectedFiles = selectedFiles.filter(f => f !== null);
+                                
+                                if (selectedFiles.length === 0) {
                                     Swal.fire({
                                         icon: 'success',
-                                        title: 'Upload Complete!',
-                                        text: `Successfully uploaded ${response.uploaded} photo(s)`,
+                                        title: 'Success!',
+                                        text: response.message,
                                         timer: 3000,
                                         showConfirmButton: false
                                     });
+                                    previewGrid.innerHTML = '';
+                                    fileInput.value = '';
+                                    // Don't clear booking/link immediately so user sees it
+                                } else {
+                                    renderPreviews();
                                 }
-                                previewGrid.innerHTML = '';
-                                fileInput.value = '';
-                                userSelect.value = '';
-                            } else {
-                                renderPreviews();
-                            }
-                            updateUploadButton();
-                        }, 1500);
+                                updateUploadButton();
+                            }, 1500);
+                        } else {
+                             Swal.fire({
+                                icon: 'error',
+                                title: 'Error',
+                                text: response.message || 'Operation failed'
+                            });
+                        }
+
                     } else {
                         Swal.fire({
                             icon: 'error',

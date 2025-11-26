@@ -38,6 +38,7 @@ if (isset($_GET['action']) and $_GET['action'] === 'logout') {
     <link rel="stylesheet" href="../../bootstrap-5.3.8-dist/font/bootstrap-icons.css">
     <link rel="stylesheet" href="../luxuryDesignSystem.css">
     <link rel="stylesheet" href="../css/modal.css">
+    <link rel="stylesheet" href="../css/sidebar.css">
     <link rel="stylesheet" href="admin.css">
     <link rel="stylesheet" href="../style.css">
     <link rel="icon" href="../assets/camera.png" type="image/x-icon">
@@ -78,9 +79,103 @@ if (isset($_GET['action']) and $_GET['action'] === 'logout') {
         </main>
     </div>
 
+    <!-- Booking Details Modal -->
+    <div class="modal fade" id="bookingDetailsModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-lg modal-dialog-centered">
+            <div class="modal-content bg-dark border border-secondary">
+                <div class="modal-header border-bottom border-secondary">
+                    <h5 class="modal-title text-gold font-serif">Booking Details #<span id="modalBookingId"></span></h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="row g-4">
+                        <!-- Status & Actions -->
+                        <div class="col-12">
+                            <div class="neo-card p-3 bg-opacity-10 bg-white">
+                                <div class="d-flex justify-content-between align-items-center flex-wrap gap-3">
+                                    <div>
+                                        <label class="text-muted small d-block mb-1">Current Status</label>
+                                        <span id="modalStatusBadge" class="badge bg-warning text-dark">Pending</span>
+                                    </div>
+                                    <div class="d-flex gap-2">
+                                        <select id="modalStatusSelect" class="neo-input" style="width: auto;">
+                                            <option class="bg-dark text-light" value="pending_consultation">Pending Consultation</option>
+                                            <option class="bg-dark text-light" value="confirmed">Confirmed</option>
+                                            <option class="bg-dark text-light" value="post_production">Post Production</option>
+                                            <option class="bg-dark text-light" value="completed">Completed</option>
+                                            <option class="bg-dark text-light" value="cancelled">Cancelled</option>
+                                        </select>
+                                        <button id="updateStatusBtn" class="btn btn-sm btn-gold">Update</button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Client & Event Info -->
+                        <div class="col-md-6">
+                            <h6 class="text-gold mb-3">Client Information</h6>
+                            <p class="mb-1"><i class="bi bi-person me-2 text-muted"></i> <span id="modalClientName" class="text-light"></span></p>
+                            <p class="mb-1"><i class="bi bi-envelope me-2 text-muted"></i> <span id="modalClientEmail" class="text-light"></span></p>
+                            <p class="mb-1"><i class="bi bi-phone me-2 text-muted"></i> <span id="modalClientPhone" class="text-light"></span></p>
+                        </div>
+                        <div class="col-md-6">
+                            <h6 class="text-gold mb-3">Event Details</h6>
+                            <p class="mb-1"><i class="bi bi-calendar-event me-2 text-muted"></i> <span id="modalEventDate" class="text-light"></span></p>
+                            <p class="mb-1"><i class="bi bi-clock me-2 text-muted"></i> <span id="modalEventTime" class="text-light"></span></p>
+                            <p class="mb-1"><i class="bi bi-geo-alt me-2 text-muted"></i> <span id="modalEventLocation" class="text-light"></span></p>
+                            <p class="mb-1"><i class="bi bi-camera me-2 text-muted"></i> <span id="modalEventType" class="text-light"></span></p>
+                            
+                            <!-- Consultation Info Container -->
+                            <div id="modalConsultation"></div>
+                        </div>
+
+                        <!-- Package & Payment -->
+                        <div class="col-12">
+                            <div class="border-top border-secondary pt-3">
+                                <div class="row">
+                                    <div class="col-md-6">
+                                        <h6 class="text-gold mb-2">Package</h6>
+                                        <p id="modalPackageName" class="text-light mb-1"></p>
+                                        <div id="modalAddons" class="small text-muted"></div>
+                                    </div>
+                                    <div class="col-md-6 text-md-end">
+                                        <h6 class="text-gold mb-2">Payment</h6>
+                                        <p class="mb-1">Total: <span id="modalTotalAmount" class="text-light fw-bold"></span></p>
+                                        <p class="mb-1">Downpayment: <span id="modalDownpayment" class="text-light"></span></p>
+                                        <p class="mb-0">Balance: <span id="modalBalance" class="text-light"></span></p>
+                                        
+                                        <!-- Proof of Payment Container -->
+                                        <div id="modalPaymentProof"></div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Admin Notes -->
+                        <div class="col-12">
+                            <h6 class="text-gold mb-2">Admin Notes</h6>
+                            <textarea id="modalAdminNotes" class="form-control bg-dark text-light border-secondary mb-2" rows="3" placeholder="Add internal notes here..."></textarea>
+                            <button id="saveNotesBtn" class="btn btn-sm btn-outline-gold">Save Notes</button>
+                            <button id="downloadInvoiceBtn" class="btn btn-sm btn-gold ms-2"><i class="bi bi-file-pdf me-1"></i>Download Invoice</button>
+                        </div>
+
+                        <!-- Activity Log -->
+                        <div class="col-12">
+                            <h6 class="text-gold mb-2">Activity Log</h6>
+                            <div id="modalActivityLog" class="bg-darker p-3 rounded border border-secondary" style="max-height: 200px; overflow-y: auto;">
+                                <!-- Populated by JS -->
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <script src="../../bootstrap-5.3.8-dist/js/bootstrap.bundle.min.js"></script>
     <script src="../libs/sweetalert2/sweetalert2.all.min.js"></script>
     <script src="admin.js"></script>
+    <script src="js/booking-modal.js?v=<?= time() ?>"></script>
     <script>
         document.addEventListener('DOMContentLoaded', function() {
             var calendarEl = document.getElementById('calendar');
@@ -115,8 +210,7 @@ if (isset($_GET['action']) and $_GET['action'] === 'logout') {
                         cancelButtonColor: '#6c757d'
                     }).then((result) => {
                         if (result.isConfirmed) {
-                            // Redirect to bookings page or open modal (simplified for now)
-                            window.location.href = `bookings.php?search=${event.id}`;
+                            viewBooking(event.id);
                         }
                     });
                 }

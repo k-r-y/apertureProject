@@ -14,7 +14,7 @@ function getTotalRevenue() {
 
 function getPendingBookingsCount() {
     global $conn;
-    $stmt = $conn->prepare("SELECT COUNT(*) as count FROM bookings WHERE booking_status = 'Pending'");
+    $stmt = $conn->prepare("SELECT COUNT(*) as count FROM bookings WHERE booking_status = 'pending'");
     $stmt->execute();
     $result = $stmt->get_result()->fetch_assoc();
     return $result['count'] ?? 0;
@@ -205,12 +205,12 @@ function getBookingEventsForCalendar() {
         
         // Determine color based on status
         $backgroundColor = '#666'; // Default
-        if ($row['booking_status'] === 'Confirmed') {
-            $backgroundColor = '#d4af37'; // Gold
-        } elseif ($row['booking_status'] === 'Pending') {
-            $backgroundColor = '#ffc107'; // Amber
-        } elseif ($row['booking_status'] === 'Completed') {
+        if ($row['booking_status'] === 'confirmed') {
             $backgroundColor = '#28a745'; // Green
+        } elseif ($row['booking_status'] === 'pending') {
+            $backgroundColor = '#ffc107'; // Amber  
+        } elseif ($row['booking_status'] === 'completed') {
+            $backgroundColor = '#17a2b8'; // Blue
         }
         
         $events[] = [

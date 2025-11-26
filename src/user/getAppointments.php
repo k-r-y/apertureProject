@@ -40,13 +40,16 @@ try {
                 b.downpayment_amount,
                 b.booking_status,
                 b.is_fully_paid,
+                b.balance_payment_proof,
                 {$proofPaymentField}
                 b.gdrive_link,
                 b.created_at,
                 p.packageName as package_name,
-                p.description as package_description
+                p.description as package_description,
+                r.status as refund_status
               FROM bookings b
               LEFT JOIN packages p ON b.packageID = p.packageID
+              LEFT JOIN refunds r ON b.bookingID = r.bookingID
               WHERE b.userID = ?";
     
     // Add status filter if not 'all'
@@ -88,7 +91,9 @@ try {
             'balanceAmount' => floatval($row['total_amount']) - floatval($row['downpayment_amount']),
             'balanceFormatted' => '₱' . number_format(floatval($row['total_amount']) - floatval($row['downpayment_amount']), 2),
             'bookingStatus' => $row['booking_status'],
+            'refund_status' => $row['refund_status'],
             'isFullyPaid' => (bool)$row['is_fully_paid'],
+            'balancePaymentProof' => $row['balance_payment_proof'],
             'proofPayment' => $hasProofPaymentColumn ? ($row['proof_payment'] ?? null) : null,
             'gdriveLink' => $row['gdrive_link'],
             'packageName' => $row['package_name'],

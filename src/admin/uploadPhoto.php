@@ -18,19 +18,43 @@ if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
     exit;
 }
 
-if (!isset($_POST['userID']) || empty($_POST['userID'])) {
-    echo json_encode(['success' => false, 'message' => 'User ID is required']);
+if (!isset($_POST['bookingID']) || empty($_POST['bookingID'])) {
+    echo json_encode(['success' => false, 'message' => 'Booking ID is required']);
     exit;
 }
 
-if (!isset($_FILES['photos']) || empty($_FILES['photos']['name'][0])) {
-    echo json_encode(['success' => false, 'message' => 'No photos uploaded']);
-    exit;
-}
-
-$userID = intval($_POST['userID']);
+$bookingID = intval($_POST['bookingID']);
+$gdriveLink = isset($_POST['gdriveLink']) ? trim($_POST['gdriveLink']) : null;
 $uploadedBy = $_SESSION['userId'];
 $captions = isset($_POST['captions']) ? $_POST['captions'] : [];
+
+// Fetch userID from bookingID
+$stmt = $conn->prepare("SELECT userID FROM bookings WHERE bookingID = ?");
+$stmt->bind_param("i", $bookingID);
+$stmt->execute();
+$result = $stmt->get_result();
+$booking = $result->fetch_assoc();
+
+if (!$booking) {
+    echo json_encode(['success' => false, 'message' => 'Invalid booking ID']);
+    exit;
+}
+
+$userID = $booking['userID'];
+
+// Update GDrive link if provided
+if ($gdriveLink !== null) {
+    $updateStmt = $conn->prepare("UPDATE bookings SET gdrive_link = ? WHERE bookingID = ?");
+    $updateStmt->bind_param("si", $gdriveLink, $bookingID);
+    $updateStmt->execute();
+}
+
+// Check if photos are uploaded
+if (!isset($_FILES['photos']) || empty($_FILES['photos']['name'][0])) {
+    // If only updating link
+    echo json_encode(['success' => true, 'message' => 'Booking updated successfully', 'uploaded' => 0, 'failed' => []]);
+    exit;
+}
 
 // Create user directory if it doesn't exist
 $uploadDir = '../../uploads/user_photos/' . $userID . '/';
@@ -41,9 +65,11 @@ if (!file_exists($uploadDir)) {
 $allowedTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/gif'];
 $maxFileSize = 5 * 1024 * 1024; // 5MB
 $uploadedCount = 0;
-$errors = [];
 $successful = [];
 $failed = [];
+
+// Get Photo Type
+$photoType = isset($_POST['photoType']) && in_array($_POST['photoType'], ['edited', 'raw']) ? $_POST['photoType'] : 'edited';
 
 // Process each uploaded file
 foreach ($_FILES['photos']['tmp_name'] as $index => $tmpName) {
@@ -92,10 +118,16 @@ foreach ($_FILES['photos']['tmp_name'] as $index => $tmpName) {
         $caption = isset($captions[$index]) ? trim($captions[$index]) : '';
 
         // Insert into database
-        $stmt = $conn->prepare("INSERT INTO user_photos (userID, fileName, originalName, uploadedBy, caption) VALUES (?, ?, ?, ?, ?)");
-        $stmt->bind_param("issis", $userID, $fileName, $originalName, $uploadedBy, $caption);
+        $stmt = $conn->prepare("INSERT INTO user_photos (userID, bookingID, fileName, originalName, uploadedBy, uploadDate, caption, photo_type) VALUES (?, ?, ?, ?, ?, NOW(), ?, ?)");
+        $stmt->bind_param("iisssis", $userID, $bookingID, $fileName, $originalName, $uploadedBy, $caption, $photoType);
 
         if ($stmt->execute()) {
+            // Auto-update booking status to completed
+            $updateStatusStmt = $conn->prepare("UPDATE bookings SET booking_status = 'completed' WHERE bookingID = ?");
+            $updateStatusStmt->bind_param("i", $bookingID);
+            $updateStatusStmt->execute();
+            $updateStatusStmt->close();
+
             $photoID = $conn->insert_id;
             $uploadedCount++;
             $successful[] = [
@@ -126,6 +158,8 @@ $totalFiles = count($_FILES['photos']['name']);
 
 if ($uploadedCount > 0) {
     $message = "Successfully uploaded $uploadedCount of $totalFiles photo(s)";
+    if ($gdriveLink) $message .= " and updated GDrive link";
+    
     echo json_encode([
         'success' => true,
         'uploaded' => $uploadedCount,

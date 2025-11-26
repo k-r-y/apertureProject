@@ -311,7 +311,7 @@
       
         global $conn;
         
-        $stmt = $conn->prepare("INSERT INTO contactMessages (`name`, email, `subject`, `message`) VALUES (?, ?, 'New Contact Message', ?)");
+        $stmt = $conn->prepare("INSERT INTO inquiries (`name`, email, `subject`, `message`, `status`) VALUES (?, ?, 'New Contact Message', ?, 'new')");
         $stmt->bind_param("sss", $name, $email, $message);
         $stmt->execute();
         $stmt->close();

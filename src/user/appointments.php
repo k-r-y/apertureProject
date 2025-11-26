@@ -17,6 +17,7 @@ if (!isset($_SESSION["userId"])) {
     <title>My Appointments - Aperture Studios</title>
     <link rel="stylesheet" href="../../bootstrap-5.3.8-dist/css/bootstrap.min.css">
     <link rel="stylesheet" href="../../bootstrap-5.3.8-dist/font/bootstrap-icons.css">
+    <link rel="stylesheet" href="../css/sidebar.css">
     <link rel="stylesheet" href="../luxuryDesignSystem.css">
     <link rel="stylesheet" href="user.css">
     <link rel="stylesheet" href="../style.css">
@@ -125,6 +126,33 @@ if (!isset($_SESSION["userId"])) {
                         <textarea id="reviewComment" class="form-control bg-dark text-light border-secondary" rows="4" required></textarea>
                     </div>
                     <button type="submit" class="btn btn-gold w-100">Submit Review</button>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Pay Balance Modal -->
+    <div id="payBalanceModal" class="modal-overlay">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 class="text-gold font-serif mb-0">Pay Balance</h3>
+                <button class="modal-close" onclick="closePayBalanceModal()">
+                    <i class="bi bi-x-lg"></i>
+                </button>
+            </div>
+            <div class="modal-body">
+                <form id="payBalanceForm">
+                    <input type="hidden" id="payBalanceBookingId">
+                    <div class="mb-4 text-center">
+                        <p class="text-light mb-1">Remaining Balance</p>
+                        <h2 class="text-gold" id="payBalanceAmount">₱0.00</h2>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label text-light">Upload Proof of Payment</label>
+                        <input type="file" id="balanceProof" class="form-control bg-dark text-light border-secondary" accept="image/*,application/pdf" required>
+                        <small class="text-muted">Please upload a clear photo or screenshot of your payment receipt.</small>
+                    </div>
+                    <button type="submit" class="btn btn-gold w-100">Submit Payment Proof</button>
                 </form>
             </div>
         </div>

@@ -23,7 +23,7 @@ try {
             $status = $_GET['status'] ?? 'all';
             
             $sql = "
-                SELECT r.*, b.bookingRef, b.event_type, b.event_date, 
+                SELECT r.*, b.bookingID as bookingRef, b.event_type, b.event_date, 
                        u.FirstName, u.LastName, u.Email
                 FROM refunds r
                 JOIN bookings b ON r.bookingID = b.bookingID
@@ -50,11 +50,15 @@ try {
             break;
 
         case 'update_status':
-            $data = json_decode(file_get_contents('php://input'), true);
-            $refundId = intval($data['refundId']);
-            $status = $data['status'];
-            $notes = $data['notes'] ?? null;
+            // Handle FormData (POST)
+            $refundId = intval($_POST['refundId'] ?? 0);
+            $status = $_POST['status'] ?? '';
+            $notes = $_POST['notes'] ?? null;
             
+            if (!$refundId || !$status) {
+                throw new Exception("Missing required fields");
+            }
+
             // Validate status
             $validStatuses = ['pending', 'approved', 'processed', 'rejected'];
             if (!in_array($status, $validStatuses)) {
@@ -62,15 +66,85 @@ try {
             }
             
             $processedAt = ($status === 'processed') ? date('Y-m-d H:i:s') : null;
+            $proofPath = null;
+
+            // Handle File Upload
+            if (isset($_FILES['refundProof']) && $_FILES['refundProof']['error'] === UPLOAD_ERR_OK) {
+                $uploadDir = '../../uploads/refund_proofs/';
+                if (!file_exists($uploadDir)) {
+                    mkdir($uploadDir, 0755, true);
+                }
+
+                $fileExt = strtolower(pathinfo($_FILES['refundProof']['name'], PATHINFO_EXTENSION));
+                $allowed = ['jpg', 'jpeg', 'png', 'pdf'];
+                
+                if (!in_array($fileExt, $allowed)) {
+                    throw new Exception("Invalid file type. Only JPG, PNG, and PDF allowed.");
+                }
+
+                if ($_FILES['refundProof']['size'] > 5 * 1024 * 1024) { // 5MB
+                    throw new Exception("File too large. Max 5MB.");
+                }
+
+                $fileName = 'refund_' . $refundId . '_' . time() . '.' . $fileExt;
+                $targetPath = $uploadDir . $fileName;
+
+                if (move_uploaded_file($_FILES['refundProof']['tmp_name'], $targetPath)) {
+                    // Store relative path for DB
+                    $proofPath = '../uploads/refund_proofs/' . $fileName;
+                } else {
+                    throw new Exception("Failed to upload proof file.");
+                }
+            }
             
-            $stmt = $conn->prepare("
-                UPDATE refunds 
-                SET status = ?, notes = ?, processed_at = ?, processed_by = ?
-                WHERE refundID = ?
+            // Update Query
+            $sql = "UPDATE refunds SET status = ?, notes = ?, processed_at = ?, processed_by = ?";
+            $params = [$status, $notes, $processedAt, $_SESSION['userId']];
+            $types = "sssi";
+
+            if ($proofPath) {
+                $sql .= ", proof_image = ?";
+                $params[] = $proofPath;
+                $types .= "s";
+            }
+
+            $sql .= " WHERE refundID = ?";
+            $params[] = $refundId;
+            $types .= "i";
+
+            $stmt = $conn->prepare($sql);
+            $stmt->bind_param($types, ...$params);
+            
+            // Fetch booking details for notification
+            $detailsStmt = $conn->prepare("
+                SELECT b.userID, b.bookingID as bookingRef, r.amount 
+                FROM refunds r 
+                JOIN bookings b ON r.bookingID = b.bookingID 
+                WHERE r.refundID = ?
             ");
-            $stmt->bind_param("sssii", $status, $notes, $processedAt, $_SESSION['userId'], $refundId);
+            $detailsStmt->bind_param("i", $refundId);
+            $detailsStmt->execute();
+            $details = $detailsStmt->get_result()->fetch_assoc();
             
             if ($stmt->execute()) {
+                // Send Notification
+                if ($details) {
+                    require_once '../../includes/functions/booking_workflow.php';
+                    $notifTitle = "Refund " . ucfirst($status);
+                    $notifMessage = "Your refund request for booking #{$details['bookingRef']} has been {$status}.";
+                    if ($notes) {
+                        $notifMessage .= " Note: $notes";
+                    }
+                    createNotification($details['userID'], 'refund_update', $notifTitle, $notifMessage, 'billing.php');
+
+                    // Auto-update booking status to cancelled if refund is approved or processed
+                    if ($status === 'approved' || $status === 'processed') {
+                        $cancelStmt = $conn->prepare("UPDATE bookings SET booking_status = 'cancelled' WHERE bookingID = ?");
+                        $cancelStmt->bind_param("i", $details['bookingRef']); // Use bookingRef from details
+                        $cancelStmt->execute();
+                    }
+                }
+                
                 echo json_encode(['success' => true, 'message' => 'Refund status updated successfully']);
             } else {
                 throw new Exception("Failed to update refund status");

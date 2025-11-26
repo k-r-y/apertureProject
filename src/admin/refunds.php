@@ -17,49 +17,63 @@ if (!isset($_SESSION['userId']) || $_SESSION['role'] !== 'Admin') {
     <link rel="stylesheet" href="../../bootstrap-5.3.8-dist/css/bootstrap.min.css">
     <link rel="stylesheet" href="../../bootstrap-5.3.8-dist/font/bootstrap-icons.css">
     <link rel="stylesheet" href="../luxuryDesignSystem.css">
+    <link rel="stylesheet" href="../css/modal.css">
+    <link rel="stylesheet" href="../css/sidebar.css">
     <link rel="stylesheet" href="admin.css">
+    <link rel="stylesheet" href="../style.css">
     <link rel="icon" href="../assets/camera.png" type="image/x-icon">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Playfair+Display:wght@400;500;600;700&display=swap" rel="stylesheet">
 </head>
 <body class="admin-dashboard">
     <?php include_once 'components/sidebar.php'; ?>
     
     <div class="page-wrapper" id="page-wrapper">
-        <div class="page-content">
-            <!-- Header -->
-            <div class="mb-5">
-                <h1 class="text-gold font-serif">Refund Management</h1>
-                <p class="text-muted">View and process client refund requests</p>
-            </div>
+        <?php include_once 'components/header.php'; ?>
 
-            <!-- Filter Tabs -->
-            <div class="mb-4">
-                <div class="btn-group" role="group">
-                    <button type="button" class="btn btn-outline-gold active" data-status="all">All Refunds</button>
-                    <button type="button" class="btn btn-outline-gold" data-status="pending">Pending</button>
-                    <button type="button" class="btn btn-outline-gold" data-status="approved">Approved</button>
-                    <button type="button" class="btn btn-outline-gold" data-status="processed">Processed</button>
-                    <button type="button" class="btn btn-outline-gold" data-status="rejected">Rejected</button>
+        <main class="main-content">
+            <div class="container-fluid">
+                <!-- Header -->
+                <div class="mb-4">
+                    <h1 class="header-title m-0">Refund Management</h1>
+                    <p class="text-light mb-0" style="opacity: 0.7;">Process and track client refund requests</p>
                 </div>
-            </div>
 
-            <!-- RefundsTable -->
-            <div class="card bg-darker border-secondary">
-                <div class="card-body">
+                <div class="neo-card">
+                    <!-- Minimalist Tabs -->
+                    <ul class="nav nav-tabs border-bottom-0 mb-4" id="refundTabs">
+                        <li class="nav-item">
+                            <button class="nav-link active text-gold bg-transparent border-0 ps-0" data-status="all">All Refunds</button>
+                        </li>
+                        <li class="nav-item">
+                            <button class="nav-link text-muted bg-transparent border-0" data-status="pending">Pending</button>
+                        </li>
+                        <li class="nav-item">
+                            <button class="nav-link text-muted bg-transparent border-0" data-status="approved">Approved</button>
+                        </li>
+                        <li class="nav-item">
+                            <button class="nav-link text-muted bg-transparent border-0" data-status="processed">Processed</button>
+                        </li>
+                        <li class="nav-item">
+                            <button class="nav-link text-muted bg-transparent border-0" data-status="rejected">Rejected</button>
+                        </li>
+                    </ul>
+
+                    <!-- Table -->
                     <div class="table-responsive">
-                        <table class="table table-dark table-hover">
+                        <table class="table table-dark table-hover align-middle" style="background: transparent;">
                             <thead>
-                                <tr>
-                                    <th>ID</th>
-                                    <th>Booking Ref</th>
-                                    <th>Client</th>
-                                    <th>Event</th>
-                                    <th>Amount</th>
-                                    <th>Requested</th>
-                                    <th>Status</th>
-                                    <th class="text-end">Actions</th>
+                                <tr class="text-muted small text-uppercase" style="border-bottom: 1px solid rgba(255,255,255,0.1);">
+                                    <th class="fw-normal ps-0">ID</th>
+                                    <th class="fw-normal">Booking Ref</th>
+                                    <th class="fw-normal">Client</th>
+                                    <th class="fw-normal">Event</th>
+                                    <th class="fw-normal">Amount</th>
+                                    <th class="fw-normal">Requested</th>
+                                    <th class="fw-normal">Status</th>
+                                    <th class="fw-normal text-end pe-0">Actions</th>
                                 </tr>
                             </thead>
-                            <tbody id="refundsTableBody">
+                            <tbody id="refundsTableBody" class="border-0">
                                 <tr>
                                     <td colspan="8" class="text-center py-5 text-muted">Loading...</td>
                                 </tr>
@@ -68,71 +82,79 @@ if (!isset($_SESSION['userId']) || $_SESSION['role'] !== 'Admin') {
                     </div>
                 </div>
             </div>
-        </div>
+        </main>
     </div>
 
     <!-- Refund Details Modal -->
     <div class="modal fade" id="refundModal" tabindex="-1">
-        <div class="modal-dialog modal-lg">
-            <div class="modal-content bg-dark border-gold">
-                <div class="modal-header border-secondary">
-                    <h5 class="modal-title text-gold">Refund Details</h5>
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content bg-dark border border-secondary" style="background-color: #1a1a1a !important;">
+                <div class="modal-header border-bottom border-secondary">
+                    <h5 class="modal-title text-gold font-serif">Refund Details</h5>
                     <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
                 </div>
-                <div class="modal-body">
-                    <div class="row g-3">
-                        <div class="col-md-6">
-                            <label class="text-gold small">Booking Reference</label>
-                            <p class="text-light" id="modalBookingRef"></p>
+                <div class="modal-body p-4">
+                    <div class="d-flex justify-content-between align-items-start mb-4">
+                        <div>
+                            <h6 class="text-light mb-1" id="modalClientName"></h6>
+                            <small class="text-muted" id="modalBookingRef"></small>
                         </div>
-                        <div class="col-md-6">
-                            <label class="text-gold small">Client Name</label>
-                            <p class="text-light" id="modalClientName"></p>
+                        <div class="text-end">
+                            <h4 class="text-gold mb-0" id="modalAmount"></h4>
+                            <small class="text-muted">Refund Amount</small>
                         </div>
-                        <div class="col-md-6">
-                            <label class="text-gold small">Event Type</label>
-                            <p class="text-light" id="modalEventType"></p>
+                    </div>
+
+                    <div class="row g-3 mb-4">
+                        <div class="col-6">
+                            <label class="text-muted small text-uppercase">Event Type</label>
+                            <p class="text-light mb-0" id="modalEventType"></p>
                         </div>
-                        <div class="col-md-6">
-                            <label class="text-gold small">Event Date</label>
-                            <p class="text-light" id="modalEventDate"></p>
+                        <div class="col-6">
+                            <label class="text-muted small text-uppercase">Event Date</label>
+                            <p class="text-light mb-0" id="modalEventDate"></p>
                         </div>
-                        <div class="col-md-6">
-                            <label class="text-gold small">Refund Amount</label>
-                            <p class="text-light text-gold fw-bold" id="modalAmount"></p>
-                        </div>
-                        <div class="col-md-6">
-                            <label class="text-gold small">Requested On</label>
-                            <p class="text-light" id="modalRequested"></p>
-                        </div>
-                        <div class="col-12">
-                            <label class="text-gold small">Reason</label>
-                            <p class="text-light" id="modalReason"></p>
+                        <div class="col-6">
+                            <label class="text-muted small text-uppercase">Requested On</label>
+                            <p class="text-light mb-0" id="modalRequested"></p>
                         </div>
                         <div class="col-12">
-                            <label class="text-gold small">Update Status</label>
-                            <select class="form-select bg-dark text-light border-secondary" id="modalStatus">
+                            <label class="text-muted small text-uppercase">Reason</label>
+                            <p class="text-light mb-0 fst-italic" id="modalReason"></p>
+                        </div>
+                    </div>
+
+                    <div class="border-top border-secondary pt-4">
+                        <div class="mb-3">
+                            <label class="text-gold small mb-2">Update Status</label>
+                            <select class="form-select neo-input" id="modalStatus">
                                 <option value="pending">Pending</option>
                                 <option value="approved">Approved</option>
                                 <option value="processed">Processed</option>
                                 <option value="rejected">Rejected</option>
                             </select>
                         </div>
-                        <div class="col-12">
-                            <label class="text-gold small">Admin Notes</label>
-                            <textarea class="form-control bg-dark text-light border-secondary" id="modalNotes" rows="3"></textarea>
+                        <div class="mb-3">
+                            <label class="text-gold small mb-2">Admin Notes</label>
+                            <textarea class="form-control neo-input" id="modalNotes" rows="3" placeholder="Add internal notes..."></textarea>
+                        </div>
+                        <div class="mb-3" id="proofUploadContainer" style="display: none;">
+                            <label class="text-gold small mb-2">Refund Proof (Receipt)</label>
+                            <input type="file" class="form-control neo-input" id="refundProof" accept="image/*,application/pdf">
+                            <small class="text-muted">Required when marking as Processed</small>
                         </div>
                     </div>
                 </div>
-                <div class="modal-footer border-secondary">
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
-                    <button type="button" class="btn btn-gold" id="saveRefundBtn">Save Changes</button>
+                <div class="modal-footer border-top border-secondary">
+                    <button type="button" class="btn btn-outline-light btn-sm" data-bs-dismiss="modal">Cancel</button>
+                    <button type="button" class="btn btn-gold btn-sm" id="saveRefundBtn">Save Changes</button>
                 </div>
             </div>
         </div>
     </div>
 
     <script src="../../bootstrap-5.3.8-dist/js/bootstrap.bundle.min.js"></script>
+    <script src="../libs/sweetalert2/sweetalert2.all.min.js"></script>
     <script src="../js/feedback.js"></script>
     <script src="js/refunds.js?v=<?= time() ?>"></script>
 </body>

@@ -66,7 +66,7 @@ document.addEventListener("DOMContentLoaded", function () {
             today.setHours(0, 0, 0, 0);
 
             const minDate = new Date(today);
-            minDate.setDate(today.getDate() + 5);
+            minDate.setDate(today.getDate() + 3);
 
             const maxDate = new Date(today);
             maxDate.setFullYear(today.getFullYear() + 3);
@@ -74,7 +74,7 @@ document.addEventListener("DOMContentLoaded", function () {
             if (selectedDate < minDate) {
                 LuxuryModal.show({
                     title: 'Invalid Date',
-                    message: 'Bookings must be made at least 5 days in advance.',
+                    message: 'Bookings must be made at least 3 days in advance.',
                     icon: 'warning'
                 });
                 this.value = '';
@@ -462,9 +462,9 @@ document.addEventListener("DOMContentLoaded", function () {
                 return;
             }
 
-            // Check minimum 5 days advance booking
+            // Check minimum 3 days advance booking
             const minDate = new Date();
-            minDate.setDate(minDate.getDate() + 5);
+            minDate.setDate(minDate.getDate() + 3);
             minDate.setHours(0, 0, 0, 0);
 
             if (selected < minDate) {
@@ -472,7 +472,7 @@ document.addEventListener("DOMContentLoaded", function () {
                 this.classList.add('is-invalid');
                 feedbackDiv.classList.remove('valid-feedback');
                 feedbackDiv.classList.add('invalid-feedback');
-                feedbackDiv.textContent = 'Bookings must be made at least 5 days in advance';
+                feedbackDiv.textContent = 'Bookings must be made at least 3 days in advance';
                 feedbackDiv.style.display = 'block';
                 return;
             }

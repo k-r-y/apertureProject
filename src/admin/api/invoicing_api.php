@@ -21,18 +21,76 @@ try {
     switch ($action) {
         case 'get_all':
             $sql = "
-                SELECT i.*, b.event_type, u.FirstName, u.LastName, b.total_amount 
+                (SELECT 
+                    'Invoice' as type,
+                    i.invoiceID as id,
+                    CONCAT('INV-', LPAD(i.invoiceID, 5, '0')) as ref_number,
+                    CONCAT(u.FirstName, ' ', u.LastName) as client_name,
+                    b.total_amount as amount,
+                    b.downpayment_amount as downpayment,
+                    i.issue_date as date,
+                    i.status as status,
+                    NULL as proof
                 FROM invoices i
                 JOIN bookings b ON i.bookingID = b.bookingID
+                JOIN users u ON b.userID = u.userID)
+                
+                UNION ALL
+                
+                (SELECT 
+                    'Refund' as type,
+                    r.refundID as id,
+                    CONCAT('REF-', LPAD(r.refundID, 5, '0')) as ref_number,
+                    CONCAT(u.FirstName, ' ', u.LastName) as client_name,
+                    r.amount as amount,
+                    NULL as downpayment,
+                    r.requested_at as date,
+                    r.status as status,
+                    r.proof_image as proof
+                FROM refunds r
+                JOIN bookings b ON r.bookingID = b.bookingID
+                JOIN users u ON b.userID = u.userID)
+                
+                UNION ALL
+                
+                (SELECT 
+                    'Downpayment' as type,
+                    b.bookingID as id,
+                    CONCAT('BK-', LPAD(b.bookingID, 5, '0')) as ref_number,
+                    CONCAT(u.FirstName, ' ', u.LastName) as client_name,
+                    b.downpayment_amount as amount,
+                    NULL as downpayment,
+                    b.created_at as date,
+                    'Paid' as status,
+                    b.proof_payment as proof
+                FROM bookings b
                 JOIN users u ON b.userID = u.userID
-                ORDER BY i.issue_date DESC
+                WHERE b.downpayment_amount > 0 AND b.booking_status != 'cancelled')
+                
+                UNION ALL
+                
+                (SELECT 
+                    'Balance Payment' as type,
+                    b.bookingID as id,
+                    CONCAT('BK-', LPAD(b.bookingID, 5, '0')) as ref_number,
+                    CONCAT(u.FirstName, ' ', u.LastName) as client_name,
+                    (b.total_amount - b.downpayment_amount) as amount,
+                    NULL as downpayment,
+                    b.updated_at as date,
+                    'Paid' as status,
+                    b.balance_payment_proof as proof
+                FROM bookings b
+                JOIN users u ON b.userID = u.userID
+                WHERE b.is_fully_paid = 1)
+                
+                ORDER BY date DESC
             ";
             $result = $conn->query($sql);
-            $invoices = [];
+            $transactions = [];
             while ($row = $result->fetch_assoc()) {
-                $invoices[] = $row;
+                $transactions[] = $row;
             }
-            echo json_encode(['success' => true, 'invoices' => $invoices]);
+            echo json_encode(['success' => true, 'transactions' => $transactions]);
             break;
 
         case 'create_invoice':

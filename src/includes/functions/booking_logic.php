@@ -1,11 +1,11 @@
 <?php
 
 function validateBookingDate($date) {
-    $minDate = date('Y-m-d', strtotime('+5 days'));
+    $minDate = date('Y-m-d', strtotime('+3 days'));
     $maxDate = date('Y-m-d', strtotime('+3 years'));
     
     if (strtotime($date) < strtotime($minDate)) {
-        throw new Exception("Bookings must be made at least 5 days in advance.");
+        throw new Exception("Bookings must be made at least 3 days in advance.");
     }
     
     if (strtotime($date) > strtotime($maxDate)) {

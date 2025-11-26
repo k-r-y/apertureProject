@@ -32,12 +32,13 @@ if (isset($_GET['action']) and $_GET['action'] === 'logout') {
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Invoicing - Aperture Admin</title>
+    <title>Financial Overview - Aperture Admin</title>
 
     <link rel="stylesheet" href="../../bootstrap-5.3.8-dist/css/bootstrap.min.css">
     <link rel="stylesheet" href="../../bootstrap-5.3.8-dist/font/bootstrap-icons.css">
     <link rel="stylesheet" href="../luxuryDesignSystem.css">
     <link rel="stylesheet" href="../css/modal.css">
+    <link rel="stylesheet" href="../css/sidebar.css">
     <link rel="stylesheet" href="admin.css">
     <link rel="stylesheet" href="../style.css">
     <link rel="icon" href="../assets/camera.png" type="image/x-icon">
@@ -56,28 +57,29 @@ if (isset($_GET['action']) and $_GET['action'] === 'logout') {
             <div class="container-fluid p-0">
 
                 <div class="d-flex justify-content-between align-items-center mb-4">
-                    <h1 class="header-title m-0">Invoicing</h1>
+                    <h1 class="header-title m-0">Financial Overview</h1>
                     <button class="btn btn-gold" onclick="showCreateInvoiceModal()">+ Create New Invoice</button>
                 </div>
 
-                <!-- Invoices Table -->
+                <!-- Transactions Table -->
                 <div class="glass-panel p-4">
                     <div class="table-responsive">
                         <table class="table table-luxury align-middle mb-0">
                             <thead>
                                 <tr>
-                                    <th class="ps-3">Invoice #</th>
+                                    <th class="ps-3">Type</th>
+                                    <th>Ref #</th>
                                     <th>Client</th>
-                                    <th>Event Type</th>
-                                    <th>Issue Date</th>
-                                    <th>Due Date</th>
+                                    <th>Date</th>
                                     <th>Amount</th>
+                                    <th>Downpayment</th>
                                     <th>Status</th>
+                                    <th>Proof</th>
                                     <th class="text-end pe-3">Actions</th>
                                 </tr>
                             </thead>
-                            <tbody id="invoicesTableBody">
-                                <tr><td colspan="8" class="text-center text-muted">Loading...</td></tr>
+                            <tbody id="transactionsTableBody">
+                                <tr><td colspan="9" class="text-center text-muted">Loading...</td></tr>
                             </tbody>
                         </table>
                     </div>
@@ -119,41 +121,45 @@ if (isset($_GET['action']) and $_GET['action'] === 'logout') {
     <script src="../libs/sweetalert2/sweetalert2.all.min.js"></script>
     <script src="admin.js"></script>
     <script>
-        document.addEventListener('DOMContentLoaded', loadInvoices);
+        document.addEventListener('DOMContentLoaded', loadTransactions);
 
-        function loadInvoices() {
+        function loadTransactions() {
             fetch('api/invoicing_api.php?action=get_all')
                 .then(r => r.json())
                 .then(data => {
-                    const tbody = document.getElementById('invoicesTableBody');
-                    if (data.success && data.invoices.length > 0) {
-                        tbody.innerHTML = data.invoices.map(inv => `
+                    const tbody = document.getElementById('transactionsTableBody');
+                    if (data.success && data.transactions.length > 0) {
+                        tbody.innerHTML = data.transactions.map(t => `
                             <tr>
-                                <td class="ps-3 text-gold">INV-${String(inv.invoiceID).padStart(5, '0')}</td>
-                                <td>${inv.FirstName} ${inv.LastName}</td>
-                                <td>${inv.event_type}</td>
-                                <td>${new Date(inv.issue_date).toLocaleDateString()}</td>
-                                <td>${new Date(inv.due_date).toLocaleDateString()}</td>
-                                <td>₱${Number(inv.total_amount).toLocaleString()}</td>
+                                <td class="ps-3"><span class="badge bg-dark border border-secondary text-light">${t.type}</span></td>
+                                <td class="text-gold font-monospace">${t.ref_number}</td>
+                                <td>${t.client_name}</td>
+                                <td>${new Date(t.date).toLocaleDateString()}</td>
+                                <td>₱${Number(t.amount).toLocaleString()}</td>
+                                <td>${t.downpayment ? '₱' + Number(t.downpayment).toLocaleString() : '<span class="text-muted">-</span>'}</td>
                                 <td>
-                                    <span class="status-badge status-${inv.status.toLowerCase()}">${inv.status.toUpperCase()}</span>
+                                    <span class="status-badge status-${t.status.toLowerCase()}">${t.status.toUpperCase()}</span>
+                                </td>
+                                <td>
+                                    ${t.proof ? `<a href="${t.proof}" target="_blank" class="btn btn-sm btn-outline-light"><i class="bi bi-image"></i> View</a>` : '<span class="text-muted">-</span>'}
                                 </td>
                                 <td class="text-end pe-3">
+                                    ${t.type === 'Invoice' ? `
                                     <div class="dropdown">
                                         <button class="btn btn-sm btn-ghost" type="button" data-bs-toggle="dropdown">
                                             <i class="bi bi-three-dots-vertical"></i>
                                         </button>
                                         <ul class="dropdown-menu dropdown-menu-dark">
-                                            <li><a class="dropdown-item" href="#" onclick="updateStatus(${inv.invoiceID}, 'paid')">Mark as Paid</a></li>
-                                            <li><a class="dropdown-item" href="#" onclick="updateStatus(${inv.invoiceID}, 'pending')">Mark as Pending</a></li>
-                                            <li><a class="dropdown-item text-danger" href="#" onclick="updateStatus(${inv.invoiceID}, 'cancelled')">Cancel Invoice</a></li>
+                                            <li><a class="dropdown-item" href="#" onclick="updateStatus(${t.id}, 'paid')">Mark as Paid</a></li>
+                                            <li><a class="dropdown-item" href="#" onclick="updateStatus(${t.id}, 'pending')">Mark as Pending</a></li>
+                                            <li><a class="dropdown-item text-danger" href="#" onclick="updateStatus(${t.id}, 'cancelled')">Cancel Invoice</a></li>
                                         </ul>
-                                    </div>
+                                    </div>` : ''}
                                 </td>
                             </tr>
                         `).join('');
                     } else {
-                        tbody.innerHTML = '<tr><td colspan="8" class="text-center text-muted">No invoices found</td></tr>';
+                        tbody.innerHTML = '<tr><td colspan="9" class="text-center text-muted">No transactions found</td></tr>';
                     }
                 });
         }
@@ -195,7 +201,7 @@ if (isset($_GET['action']) and $_GET['action'] === 'logout') {
             .then(data => {
                 if (data.success) {
                     bootstrap.Modal.getInstance(document.getElementById('createInvoiceModal')).hide();
-                    loadInvoices();
+                    loadTransactions();
                     Swal.fire('Success', 'Invoice created successfully', 'success');
                 }
             });
@@ -210,7 +216,7 @@ if (isset($_GET['action']) and $_GET['action'] === 'logout') {
             .then(r => r.json())
             .then(data => {
                 if (data.success) {
-                    loadInvoices();
+                    loadTransactions();
                     const Toast = Swal.mixin({
                         toast: true,
                         position: 'top-end',
@@ -226,5 +232,4 @@ if (isset($_GET['action']) and $_GET['action'] === 'logout') {
         }
     </script>
 </body>
-
 </html>

@@ -1,44 +1,49 @@
 <?php
-// myPhotos.php - User page to view their uploaded photos
+// myPhotos.php - User's photo gallery
 
 require_once '../includes/functions/config.php';
 require_once '../includes/functions/session.php';
 require_once '../includes/functions/function.php';
 require_once '../includes/functions/auth.php';
-require_once '../includes/functions/gallery_helper.php';
 
-// Check if user is logged in
-if (!isset($_SESSION["userId"]) || !isset($_SESSION["role"]) || $_SESSION["role"] !== "User") {
+// Ensure user is logged in
+if (!isset($_SESSION['userId'])) {
     header("Location: ../logIn.php");
     exit;
 }
 
-// Fetch latest completed booking for gallery sharing
-$galleryInfo = null;
-$stmt = $conn->prepare("SELECT bookingID, gallery_token, gallery_pin, event_type, event_date FROM bookings WHERE userID = ? AND booking_status IN ('completed', 'post_production') ORDER BY event_date DESC LIMIT 1");
-$stmt->bind_param("i", $_SESSION['userId']);
-$stmt->execute();
-$booking = $stmt->get_result()->fetch_assoc();
+$userID = $_SESSION['userId'];
 
-if ($booking) {
-    if (empty($booking['gallery_token'])) {
-        // Generate credentials if missing
-        $creds = generateGalleryCredentials($booking['bookingID']);
-        $booking['gallery_token'] = $creds['token'];
-        $booking['gallery_pin'] = $creds['pin'];
-    }
-    
-    // Construct full URL (adjust base URL as needed)
-    $protocol = isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] === 'on' ? "https" : "http";
-    $host = $_SERVER['HTTP_HOST'];
-    $path = dirname(dirname($_SERVER['PHP_SELF'])); // Go up one level from /user/
-    $galleryUrl = "$protocol://$host$path/gallery.php?token=" . $booking['gallery_token'];
-    
-    $galleryInfo = [
-        'url' => $galleryUrl,
-        'pin' => $booking['gallery_pin'],
-        'title' => $booking['event_type'] . ' (' . date('M d, Y', strtotime($booking['event_date'])) . ')'
-    ];
+// Fetch user's bookings that are completed or post-production for the filter dropdown
+$bookingsStmt = $conn->prepare("
+    SELECT bookingID, event_type, event_date, gdrive_link 
+    FROM bookings 
+    WHERE userID = ? AND (booking_status = 'completed' OR is_fully_paid = 1)
+    ORDER BY event_date DESC
+");
+$bookingsStmt->bind_param("i", $userID);
+$bookingsStmt->execute();
+$bookingsResult = $bookingsStmt->get_result();
+$bookings = [];
+while ($row = $bookingsResult->fetch_assoc()) {
+    $bookings[] = $row;
+}
+
+// Fetch photos with booking info
+$sql = "
+    SELECT p.*, b.event_type, b.event_date, b.gdrive_link
+    FROM user_photos p
+    LEFT JOIN bookings b ON p.bookingID = b.bookingID
+    WHERE p.userID = ?
+    ORDER BY p.uploadDate DESC
+";
+$stmt = $conn->prepare($sql);
+$stmt->bind_param("i", $userID);
+$stmt->execute();
+$result = $stmt->get_result();
+$photos = [];
+while ($row = $result->fetch_assoc()) {
+    $photos[] = $row;
 }
 ?>
 <!DOCTYPE html>
@@ -49,293 +54,226 @@ if ($booking) {
     <title>My Photos - Aperture</title>
     <link rel="stylesheet" href="../../bootstrap-5.3.8-dist/css/bootstrap.min.css">
     <link rel="stylesheet" href="../../bootstrap-5.3.8-dist/font/bootstrap-icons.css">
-    <link rel="stylesheet" href="../luxuryDesignSystem.css">
-    <link rel="stylesheet" href="user.css">
+    <link rel="stylesheet" href="../css/sidebar.css">
     <link rel="stylesheet" href="../style.css">
+    <link rel="stylesheet" href="user.css">
+    <link rel="stylesheet" href="../libs/photoswipe/photoswipe.css">
     <link rel="icon" href="../assets/camera.png" type="image/x-icon">
-
-    <!-- PhotoSwipe CSS -->
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/photoswipe@5.4.3/dist/photoswipe.css" crossorigin="anonymous">
 
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Playfair+Display:wght@400;500;600;700&display=swap" rel="stylesheet">
-
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Old+Standard+TT:wght@400;700&family=Poppins:wght@400;500;600&display=swap" rel="stylesheet">
 
     <style>
-          /* Additional styles for photo hover effects */
-        .photo-card-luxury img:hover {
-            transform: scale(1.05);
+        .gallery-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+            gap: 1.5rem;
         }
-        .photo-overlay-luxury {
-            position: absolute;
-            top: 0;
-            left: 0;
+
+        .gallery-item {
+            position: relative;
+            border-radius: 8px;
+            overflow: hidden;
+            aspect-ratio: 1;
+            cursor: pointer;
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+            background: var(--card-bg);
+        }
+
+        .gallery-item:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 20px rgba(0,0,0,0.3);
+        }
+
+        .gallery-item img {
             width: 100%;
             height: 100%;
-            background: rgba(0, 0, 0, 0.4);
-            display: flex;
-            align-items: center;
-            justify-content: center;
+            object-fit: cover;
+            transition: transform 0.5s ease;
+        }
+
+        .gallery-item:hover img {
+            transform: scale(1.05);
+        }
+
+        .gallery-overlay {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background: linear-gradient(to top, rgba(0,0,0,0.8), transparent);
+            padding: 1rem;
             opacity: 0;
             transition: opacity 0.3s ease;
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-end;
         }
-        .photo-card-luxury a:hover .photo-overlay-luxury {
+
+        .gallery-item:hover .gallery-overlay {
             opacity: 1;
         }
-        
-        /* PhotoSwipe Customization */
-        .pswp-luxury .pswp__bg {
-            background: rgba(10, 10, 10, 0.95) !important;
-            backdrop-filter: blur(10px);
+
+        .photo-badge {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            background: rgba(0, 0, 0, 0.6);
+            color: var(--gold);
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 0.75rem;
+            border: 1px solid var(--gold);
         }
-        
-        /* Prevent image stretching in PhotoSwipe */
-        .pswp img {
-            object-fit: contain;
+
+        .filter-bar {
+            background: var(--card-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            padding: 1rem;
+            margin-bottom: 2rem;
         }
     </style>
-
 </head>
-
-<body class="admin-dashboard">
+<body class="user-dashboard">
     <?php include_once 'components/sidebar.php'; ?>
 
     <div class="page-wrapper" id="page-wrapper">
         <?php include_once 'components/header.php'; ?>
 
         <main class="main-content">
-            <div class="container-fluid px-3 px-lg-5 py-5">
-                
-                <!-- Header -->
-                <div class="d-flex justify-content-between align-items-center mb-5">
-                    <div>
-                        <h1 class="mb-2">My Gallery</h1>
-                        <p class="text-muted">Your captured moments</p>
-                    </div>
-                    <div class="neo-card px-4 py-2 d-flex align-items-center gap-3">
-                        <i class="bi bi-images text-gold fs-4"></i>
-                        <div>
-                            <div class="text-muted small">Total Photos</div>
-                            <div class="h5 m-0 text-light" id="photoCount">0</div>
-                        </div>
-                    </div>
+            <div class="container-fluid">
+                <div class="d-flex justify-content-between align-items-center mb-4">
+                    <h1 class="header-title m-0">My Photos</h1>
                 </div>
 
-                <!-- Gallery Sharing Section -->
-                <?php if ($galleryInfo): ?>
-                <div class="neo-card p-4 mb-5">
-                    <div class="row align-items-center">
-                        <div class="col-md-6 mb-3 mb-md-0">
-                            <h4 class="text-gold serif mb-2">Share Your Gallery</h4>
-                            <p class="text-muted mb-0">Share your memories from <strong><?= htmlspecialchars($galleryInfo['title']) ?></strong> with friends and family.</p>
+                <!-- Filters -->
+                <div class="filter-bar">
+                    <div class="row g-3 align-items-center">
+                        <div class="col-md-4">
+                            <label class="form-label text-muted small text-uppercase">Event</label>
+                            <select class="form-select bg-dark text-light border-secondary" id="eventFilter">
+                                <option value="all">All Events</option>
+                                <?php foreach ($bookings as $booking): ?>
+                                    <option value="<?= $booking['bookingID'] ?>" data-link="<?= htmlspecialchars($booking['gdrive_link'] ?? '') ?>">
+                                        <?= htmlspecialchars($booking['event_type']) ?> (<?= date('M d, Y', strtotime($booking['event_date'])) ?>)
+                                    </option>
+                                <?php endforeach; ?>
+                            </select>
                         </div>
-                        <div class="col-md-6">
-                            <div class="bg-dark rounded p-3 border border-secondary">
-                                <div class="mb-3">
-                                    <label class="text-muted small d-block mb-1">Public Gallery Link</label>
-                                    <div class="input-group">
-                                        <input type="text" class="form-control bg-black text-light border-secondary" value="<?= htmlspecialchars($galleryInfo['url']) ?>" readonly id="galleryUrlInput">
-                                        <button class="btn btn-gold" onclick="copyToClipboard('galleryUrlInput')">
-                                            <i class="bi bi-clipboard"></i> Copy
-                                        </button>
-                                    </div>
-                                </div>
-                                <div>
-                                    <label class="text-muted small d-block mb-1">Access PIN</label>
-                                    <div class="d-flex align-items-center gap-3">
-                                        <span class="h4 text-light font-monospace m-0 tracking-wider"><?= htmlspecialchars($galleryInfo['pin']) ?></span>
-                                        <span class="badge bg-warning text-dark">Required for access</span>
-                                    </div>
-                                </div>
+                        <div class="col-md-4">
+                            <label class="form-label text-muted small text-uppercase">Photo Type</label>
+                            <div class="btn-group w-100" role="group">
+                                <input type="radio" class="btn-check" name="typeFilter" id="filterAll" value="all" checked>
+                                <label class="btn btn-outline-secondary" for="filterAll">All</label>
+
+                                <input type="radio" class="btn-check" name="typeFilter" id="filterEdited" value="edited">
+                                <label class="btn btn-outline-gold" for="filterEdited">Edited</label>
+
+                                <input type="radio" class="btn-check" name="typeFilter" id="filterRaw" value="raw">
+                                <label class="btn btn-outline-gold" for="filterRaw">Raw</label>
                             </div>
                         </div>
+                        <div class="col-md-4 text-end">
+                            <a href="#" id="gdriveBtn" class="btn btn-gold d-none" target="_blank">
+                                <i class="bi bi-google me-2"></i>View Full Gallery in Drive
+                            </a>
+                        </div>
                     </div>
                 </div>
+
+                <?php if (empty($photos)): ?>
+                    <div class="text-center py-5">
+                        <div class="display-1 text-muted mb-3"><i class="bi bi-images"></i></div>
+                        <h3 class="text-light">No Photos Yet</h3>
+                        <p class="text-muted">Your photos will appear here once they are uploaded by the admin.</p>
+                    </div>
+                <?php else: ?>
+                    <div class="gallery-grid" id="galleryGrid">
+                        <?php foreach ($photos as $photo): ?>
+                            <div class="gallery-item" 
+                                 data-booking-id="<?= $photo['bookingID'] ?? '0' ?>"
+                                 data-photo-type="<?= $photo['photo_type'] ?? 'edited' ?>">
+                                <a href="../uploads/users/<?= $userID ?>/<?= $photo['fileName'] ?>" 
+                                   data-pswp-width="1600" 
+                                   data-pswp-height="1200" 
+                                   target="_blank">
+                                    <img src="../uploads/users/<?= $userID ?>/<?= $photo['fileName'] ?>" alt="<?= htmlspecialchars($photo['caption']) ?>" loading="lazy">
+                                </a>
+                                <div class="photo-badge">
+                                    <?= ucfirst($photo['photo_type'] ?? 'edited') ?>
+                                </div>
+                                <div class="gallery-overlay">
+                                    <div class="text-white small">
+                                        <?= htmlspecialchars($photo['caption']) ?>
+                                    </div>
+                                    <a href="../uploads/users/<?= $userID ?>/<?= $photo['fileName'] ?>" download class="btn btn-sm btn-light rounded-circle">
+                                        <i class="bi bi-download"></i>
+                                    </a>
+                                </div>
+                            </div>
+                        <?php endforeach; ?>
+                    </div>
                 <?php endif; ?>
 
-                <!-- Loading State -->
-                <div class="loading-state text-center py-5" id="loadingState">
-                    <div class="spinner-border text-gold" role="status" style="width: 3rem; height: 3rem;">
-                        <span class="visually-hidden">Loading...</span>
-                    </div>
-                    <p class="text-muted mt-3">Curating your gallery...</p>
-                </div>
-
-                <!-- Empty State -->
-                <div class="empty-state text-center py-5 d-none" id="emptyState">
-                    <div class="neo-card d-inline-block p-5">
-                        <i class="bi bi-camera fs-1 text-gold mb-4 d-block"></i>
-                        <h3 class="text-light mb-3">No Photos Yet</h3>
-                        <p class="text-muted mb-0">Your photos will appear here once they're uploaded by our team.</p>
-                    </div>
-                </div>
-
-                <!-- Photo Grid -->
-                <div class="row g-4 d-none" id="photoGrid"></div>
             </div>
         </main>
     </div>
 
     <script src="../../bootstrap-5.3.8-dist/js/bootstrap.bundle.min.js"></script>
-    <script src="user.js"></script>
+    <script type="module">
+        import PhotoSwipeLightbox from '../libs/photoswipe/photoswipe-lightbox.esm.js';
+        import PhotoSwipe from '../libs/photoswipe/photoswipe.esm.js';
 
-    <!-- PhotoSwipe JS -->
-    <script src="https://cdn.jsdelivr.net/npm/photoswipe@5.4.3/dist/umd/photoswipe.umd.min.js" crossorigin="anonymous"></script>
-    <script src="https://cdn.jsdelivr.net/npm/photoswipe@5.4.3/dist/umd/photoswipe-lightbox.umd.min.js" crossorigin="anonymous"></script>
+        const lightbox = new PhotoSwipeLightbox({
+            gallery: '#galleryGrid',
+            children: 'a',
+            pswpModule: PhotoSwipe
+        });
+        lightbox.init();
 
-    <script>
-        const photoGrid = document.getElementById('photoGrid');
-        const loadingState = document.getElementById('loadingState');
-        const emptyState = document.getElementById('emptyState');
-        const photoCount = document.getElementById('photoCount');
+        // Filtering Logic
+        const eventFilter = document.getElementById('eventFilter');
+        const typeFilters = document.querySelectorAll('input[name="typeFilter"]');
+        const galleryItems = document.querySelectorAll('.gallery-item');
+        const gdriveBtn = document.getElementById('gdriveBtn');
 
-        let photos = [];
+        function filterPhotos() {
+            const selectedEvent = eventFilter.value;
+            const selectedType = document.querySelector('input[name="typeFilter"]:checked').value;
 
-        // Fetch photos
-        async function loadPhotos() {
-            try {
-                const response = await fetch('getPhotos.php');
-                const data = await response.json();
+            galleryItems.forEach(item => {
+                const itemEvent = item.dataset.bookingId;
+                const itemType = item.dataset.photoType;
 
-                if (data.success) {
-                    photos = data.photos;
-                    displayPhotos();
+                const eventMatch = selectedEvent === 'all' || itemEvent === selectedEvent;
+                const typeMatch = selectedType === 'all' || itemType === selectedType;
+
+                if (eventMatch && typeMatch) {
+                    item.style.display = 'block';
                 } else {
-                    console.error('Failed to load photos:', data.message);
-                    showEmptyState();
+                    item.style.display = 'none';
                 }
-            } catch (error) {
-                console.error('Error loading photos:', error);
-                showEmptyState();
+            });
+
+            // Update GDrive Button
+            if (selectedEvent !== 'all') {
+                const selectedOption = eventFilter.options[eventFilter.selectedIndex];
+                const link = selectedOption.dataset.link;
+                if (link) {
+                    gdriveBtn.href = link;
+                    gdriveBtn.classList.remove('d-none');
+                } else {
+                    gdriveBtn.classList.add('d-none');
+                }
+            } else {
+                gdriveBtn.classList.add('d-none');
             }
         }
 
-        function displayPhotos() {
-            loadingState.classList.add('d-none');
-
-            if (photos.length === 0) {
-                showEmptyState();
-                return;
-            }
-
-            emptyState.classList.add('d-none');
-            photoGrid.classList.remove('d-none');
-            photoCount.textContent = photos.length;
-
-            photoGrid.innerHTML = photos.map((photo, index) => {
-                const uploadDate = new Date(photo.uploadDate).toLocaleDateString();
-                return `
-                    <div class="col-sm-6 col-md-4 col-lg-3">
-                        <div class="neo-card h-100 p-2 photo-card-luxury">
-                            <a href="${photo.url}" 
-                               class="photo-link d-block position-relative overflow-hidden rounded mb-2"
-                               data-pswp-caption="${photo.caption || photo.originalName}">
-                                <img src="${photo.url}" alt="${photo.caption || photo.originalName}" loading="lazy" class="img-fluid w-100" style="aspect-ratio: 1/1; object-fit: cover; transition: transform 0.5s ease;">
-                                <div class="photo-overlay-luxury">
-                                    <i class="bi bi-zoom-in fs-3 text-white"></i>
-                                </div>
-                            </a>
-                            <div class="px-2 pb-2">
-                                <div class="text-light fw-medium text-truncate mb-1">${photo.caption || 'Untitled'}</div>
-                                <div class="d-flex justify-content-between align-items-center">
-                                    <small class="text-muted"><i class="bi bi-calendar3 me-1"></i>${uploadDate}</small>
-                                    <a href="${photo.url}" download="${photo.originalName}" class="btn btn-sm btn-gold rounded-circle p-0 d-flex align-items-center justify-content-center" style="width: 32px; height: 32px;" title="Download">
-                                        <i class="bi bi-download"></i>
-                                    </a>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                `;
-            }).join('');
-
-            // Initialize PhotoSwipe
-            initPhotoSwipe();
-        }
-
-        function showEmptyState() {
-            loadingState.classList.add('d-none');
-            photoGrid.classList.add('d-none');
-            emptyState.classList.remove('d-none');
-            photoCount.textContent = '0';
-        }
-
-        function initPhotoSwipe() {
-            // Check if PhotoSwipe library is loaded
-            if (typeof PhotoSwipeLightbox === 'undefined' || typeof PhotoSwipe === 'undefined') {
-                console.error('PhotoSwipe library not loaded');
-                return;
-            }
-
-            const lightbox = new PhotoSwipeLightbox({
-                gallery: '#photoGrid',
-                children: 'a.photo-link',
-                pswpModule: PhotoSwipe,
-                bgOpacity: 0.95,
-                padding: { top: 20, bottom: 20, left: 20, right: 20 },
-                mainClass: 'pswp-luxury',
-                
-                // UI options
-                zoom: true,
-                close: true,
-                arrowKeys: true,
-                counter: true,
-                
-                // Animation
-                showHideAnimationType: 'zoom',
-            });
-
-            lightbox.on('uiRegister', function() {
-                lightbox.pswp.ui.registerElement({
-                    name: 'download-button',
-                    order: 8,
-                    isButton: true,
-                    tagName: 'a',
-                    html: '<i class="bi bi-download"></i>',
-                    onInit: (el, pswp) => {
-                        el.setAttribute('download', '');
-                        el.setAttribute('target', '_blank');
-                        el.setAttribute('rel', 'noopener');
-                        el.style.cssText = 'color: var(--gold-main); font-size: 1.5rem; padding: 10px; transition: color 0.3s ease;';
-                        
-                        el.addEventListener('mouseenter', () => {
-                            el.style.color = '#fff';
-                        });
-                        el.addEventListener('mouseleave', () => {
-                            el.style.color = 'var(--gold-main)';
-                        });
-
-                        pswp.on('change', () => {
-                            const currentSlide = pswp.currSlide;
-                            el.href = currentSlide.data.src;
-                        });
-                    }
-                });
-            });
-
-            lightbox.init();
-        }
-
-        // Load photos on page load
-        loadPhotos();
-
-        function copyToClipboard(elementId) {
-            const copyText = document.getElementById(elementId);
-            copyText.select();
-            copyText.setSelectionRange(0, 99999); 
-            navigator.clipboard.writeText(copyText.value).then(() => {
-                // Could add a toast here
-                const btn = copyText.nextElementSibling;
-                const originalHtml = btn.innerHTML;
-                btn.innerHTML = '<i class="bi bi-check"></i> Copied!';
-                setTimeout(() => btn.innerHTML = originalHtml, 2000);
-            });
-        }
+        eventFilter.addEventListener('change', filterPhotos);
+        typeFilters.forEach(radio => radio.addEventListener('change', filterPhotos));
     </script>
-
-    <style>
-      
-    </style>
 </body>
 </html>

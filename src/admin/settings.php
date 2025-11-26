@@ -38,6 +38,7 @@ if (isset($_GET['action']) and $_GET['action'] === 'logout') {
     <link rel="stylesheet" href="../../bootstrap-5.3.8-dist/font/bootstrap-icons.css">
     <link rel="stylesheet" href="../luxuryDesignSystem.css">
     <link rel="stylesheet" href="../css/modal.css">
+    <link rel="stylesheet" href="../css/sidebar.css">
     <link rel="stylesheet" href="admin.css">
     <link rel="stylesheet" href="../style.css">
     <link rel="icon" href="../assets/camera.png" type="image/x-icon">
@@ -65,24 +66,24 @@ if (isset($_GET['action']) and $_GET['action'] === 'logout') {
                 <div class="row g-4">
                     <!-- General Settings -->
                     <div class="col-lg-6">
-                        <div class="glass-card h-100">
-                            <div class="glass-card-header">
+                        <div class="neo-card h-100">
+                            <div class="neo-card-header">
                                 <i class="bi bi-gear me-2"></i>
                                 <span>General Settings</span>
                             </div>
-                            <div class="glass-card-body">
+                            <div class="neo-card-body">
                                 <form>
                                     <div class="mb-3">
                                         <label for="siteName" class="luxury-label">Site Name</label>
-                                        <input type="text" class="luxury-input" id="siteName" value="Aperture">
+                                        <input type="text" class="neo-input" id="siteName" value="Aperture">
                                     </div>
                                     <div class="mb-3">
                                         <label for="adminEmail" class="luxury-label">Admin Email</label>
-                                        <input type="email" class="luxury-input" id="adminEmail" value="admin@aperture.com">
+                                        <input type="email" class="neo-input" id="adminEmail" value="admin@aperture.com">
                                     </div>
                                     <div class="mb-3">
                                         <label for="contactPhone" class="luxury-label">Public Contact Phone</label>
-                                        <input type="text" class="luxury-input" id="contactPhone" value="+63 912 345 6789">
+                                        <input type="text" class="neo-input" id="contactPhone" value="+63 912 345 6789">
                                     </div>
                                     <div class="form-check form-switch mb-3">
                                         <input class="form-check-input" type="checkbox" role="switch" id="maintenanceMode">
@@ -96,18 +97,18 @@ if (isset($_GET['action']) and $_GET['action'] === 'logout') {
 
                     <!-- Theme & Appearance -->
                     <div class="col-lg-6">
-                        <div class="glass-card h-100">
-                            <div class="glass-card-header">
+                        <div class="neo-card h-100">
+                            <div class="neo-card-header">
                                 <i class="bi bi-palette me-2"></i>
                                 <span>Appearance</span>
                             </div>
-                            <div class="glass-card-body">
+                            <div class="neo-card-body">
                                 <form>
                                     <div class="mb-3">
                                         <label for="primaryColor" class="luxury-label">Primary Accent Color</label>
                                         <div class="d-flex align-items-center">
                                             <input type="color" class="form-control form-control-color" id="primaryColor" value="#D4AF37" title="Choose your color">
-                                            <input type="text" class="luxury-input ms-2" value="#D4AF37">
+                                            <input type="text" class="neo-input ms-2" value="#D4AF37">
                                         </div>
                                     </div>
                                     <div class="mb-3">
@@ -138,20 +139,20 @@ if (isset($_GET['action']) and $_GET['action'] === 'logout') {
 
                     <!-- Security Settings -->
                     <div class="col-lg-6">
-                        <div class="glass-card h-100">
-                            <div class="glass-card-header">
+                        <div class="neo-card h-100">
+                            <div class="neo-card-header">
                                 <i class="bi bi-shield-lock me-2"></i>
                                 <span>Security</span>
                             </div>
-                            <div class="glass-card-body">
+                            <div class="neo-card-body">
                                 <form>
                                     <div class="mb-3">
                                         <label for="adminPassword" class="luxury-label">New Password</label>
-                                        <input type="password" class="luxury-input" id="adminPassword" placeholder="Enter new password">
+                                        <input type="password" class="neo-input" id="adminPassword" placeholder="Enter new password">
                                     </div>
                                     <div class="mb-3">
                                         <label for="confirmAdminPassword" class="luxury-label">Confirm New Password</label>
-                                        <input type="password" class="luxury-input" id="confirmAdminPassword" placeholder="Confirm new password">
+                                        <input type="password" class="neo-input" id="confirmAdminPassword" placeholder="Confirm new password">
                                     </div>
                                     <div class="form-check form-switch mb-3">
                                         <input class="form-check-input" type="checkbox" role="switch" id="twoFactorAuth" checked>
@@ -165,24 +166,24 @@ if (isset($_GET['action']) and $_GET['action'] === 'logout') {
 
                     <!-- SMTP Settings -->
                     <div class="col-lg-6">
-                        <div class="glass-card h-100">
-                            <div class="glass-card-header">
+                        <div class="neo-card h-100">
+                            <div class="neo-card-header">
                                 <i class="bi bi-envelope me-2"></i>
                                 <span>Email (SMTP) Settings</span>
                             </div>
-                            <div class="glass-card-body">
+                            <div class="neo-card-body">
                                 <form>
                                     <div class="mb-3">
                                         <label for="smtpHost" class="luxury-label">SMTP Host</label>
-                                        <input type="text" class="luxury-input" id="smtpHost" value="smtp.example.com">
+                                        <input type="text" class="neo-input" id="smtpHost" value="smtp.example.com">
                                     </div>
                                     <div class="mb-3">
                                         <label for="smtpUser" class="luxury-label">SMTP Username</label>
-                                        <input type="text" class="luxury-input" id="smtpUser" value="user@example.com">
+                                        <input type="text" class="neo-input" id="smtpUser" value="user@example.com">
                                     </div>
                                     <div class="mb-3">
                                         <label for="smtpPass" class="luxury-label">SMTP Password</label>
-                                        <input type="password" class="luxury-input" id="smtpPass" value="••••••••">
+                                        <input type="password" class="neo-input" id="smtpPass" value="••••••••">
                                     </div>
                                     <button type="submit" class="btn btn-gold w-100 mt-2">Save Changes</button>
                                 </form>

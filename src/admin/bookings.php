@@ -22,6 +22,7 @@ $currentPage = 'bookings.php';
     <link rel="stylesheet" href="../../bootstrap-5.3.8-dist/font/bootstrap-icons.css">
     <link rel="stylesheet" href="../luxuryDesignSystem.css">
     <link rel="stylesheet" href="../css/modal.css">
+    <link rel="stylesheet" href="../css/sidebar.css">
     <link rel="stylesheet" href="admin.css">
     <link rel="stylesheet" href="../style.css">
     <link rel="icon" href="../assets/camera.png" type="image/x-icon">
@@ -118,16 +119,6 @@ $currentPage = 'bookings.php';
                                         <label class="text-muted small d-block mb-1">Current Status</label>
                                         <span id="modalStatusBadge" class="badge bg-warning text-dark">Pending</span>
                                     </div>
-                                    <div class="d-flex gap-2">
-                                        <select id="modalStatusSelect" class="neo-input" style="width: auto;">
-                                            <option class="bg-dark text-light" value="pending_consultation">Pending Consultation</option>
-                                            <option class="bg-dark text-light" value="confirmed">Confirmed</option>
-                                            <option class="bg-dark text-light" value="post_production">Post Production</option>
-                                            <option class="bg-dark text-light" value="completed">Completed</option>
-                                            <option class="bg-dark text-light" value="cancelled">Cancelled</option>
-                                        </select>
-                                        <button id="updateStatusBtn" class="btn btn-sm btn-gold">Update</button>
-                                    </div>
                                 </div>
                             </div>
                         </div>
@@ -148,6 +139,15 @@ $currentPage = 'bookings.php';
                             
                             <!-- Consultation Info Container -->
                             <div id="modalConsultation"></div>
+
+                            <!-- Meeting Link -->
+                            <div class="mt-3">
+                                <label class="text-muted small mb-1"><i class="bi bi-link-45deg me-1"></i>Meeting Link (Google Meet/Zoom)</label>
+                                <div class="input-group">
+                                    <input type="text" id="modalMeetingLink" class="form-control bg-dark text-light border-secondary" placeholder="https://meet.google.com/...">
+                                    <button id="saveLinkBtn" class="btn btn-outline-gold">Save</button>
+                                </div>
+                            </div>
                         </div>
 
                         <!-- Package & Payment -->
@@ -195,6 +195,7 @@ $currentPage = 'bookings.php';
 
     <script src="../../bootstrap-5.3.8-dist/js/bootstrap.bundle.min.js"></script>
     <script src="../js/feedback.js"></script>
+    <script src="js/booking-modal.js?v=<?= time() ?>"></script>
     <script src="js/bookings.js?v=<?= time() ?>"></script>
 </body>
 </html>

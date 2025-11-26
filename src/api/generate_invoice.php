@@ -1,6 +1,6 @@
 <?php
-require_once '../../includes/functions/config.php';
-require_once '../../includes/functions/session.php';
+require_once '../includes/functions/config.php';
+require_once '../includes/functions/session.php';
 
 // Check if user is logged in
 if (!isset($_SESSION['userId'])) {
@@ -25,6 +25,10 @@ $booking = $stmt->get_result()->fetch_assoc();
 if (!$booking) {
     exit('Booking not found');
 }
+
+// Generate Booking Reference
+$booking['bookingRef'] = str_pad($booking['bookingID'], 6, '0', STR_PAD_LEFT);
+$booking['contactNo'] = $booking['contactNo'] ?? 'N/A';
 ?>
 <!DOCTYPE html>
 <html>

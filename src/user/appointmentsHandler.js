@@ -92,19 +92,21 @@ function renderAppointments(appointments) {
             
             <div class="divider"></div>
             
-            <div class="d-flex justify-content-between align-items-center mt-3">
+            <div class="d-flex justify-content-between align-items-center mt-3 flex-wrap gap-2">
                 <div>
                     <small class="text-muted d-block">Total Amount</small>
                     <strong class="text-gold">${appointment.totalAmountFormatted}</strong>
                 </div>
-                <button class="btn btn-gold btn-sm">
-                    <i class="bi bi-eye me-1"></i>View Details
-                </button>
-                ${appointment.bookingStatus === 'completed' ? `
-                <button class="btn btn-outline-gold btn-sm ms-2" onclick="openReviewModal(${appointment.bookingID}, event)">
-                    <i class="bi bi-star me-1"></i>Review
-                </button>
-                ` : ''}
+                <div class="d-flex flex-wrap">
+                    <button class="btn btn-gold btn-sm">
+                        <i class="bi bi-eye me-1"></i>View Details
+                    </button>
+                    ${appointment.bookingStatus === 'completed' ? `
+                    <button class="btn btn-outline-gold btn-sm ms-2" onclick="openReviewModal(${appointment.bookingID}, event)">
+                        <i class="bi bi-star me-1"></i>Review
+                    </button>
+                    ` : ''}
+                </div>
             </div>
         </div>
     `).join('');
@@ -225,6 +227,23 @@ function openAppointmentModal(bookingID) {
             </span>
         </div>
         
+        ${!appointment.isFullyPaid && appointment.bookingStatus !== 'cancelled' ? `
+        <div class="mt-3">
+            ${appointment.balancePaymentProof ? `
+                <div class="alert alert-info border-0 d-flex align-items-center">
+                    <i class="bi bi-hourglass-split me-2"></i>
+                    <div>
+                        <strong>Payment Pending:</strong> Your balance payment proof is under review.
+                    </div>
+                </div>
+            ` : `
+                <button class="btn btn-gold w-100" onclick="openPayBalanceModal(${appointment.bookingID}, '${appointment.balanceFormatted}')">
+                    <i class="bi bi-credit-card me-2"></i>Pay Balance
+                </button>
+            `}
+        </div>
+        ` : ''}
+        
         ${appointment.clientMessage ? `
         <div class="divider"></div>
         <h5 class="text-gold mt-4 mb-3">Special Requests</h5>
@@ -241,6 +260,15 @@ function openAppointmentModal(bookingID) {
         
         <div class="divider"></div>
         
+        ${appointment.refund_status ? `
+        <div class="alert alert-${appointment.refund_status === 'approved' ? 'success' : (appointment.refund_status === 'rejected' ? 'danger' : 'warning')} border-0 d-flex align-items-center mb-3">
+            <i class="bi bi-${appointment.refund_status === 'approved' ? 'check-circle' : (appointment.refund_status === 'rejected' ? 'x-circle' : 'hourglass-split')} me-2"></i>
+            <div>
+                <strong>Refund Status:</strong> ${appointment.refund_status.charAt(0).toUpperCase() + appointment.refund_status.slice(1)}
+            </div>
+        </div>
+        ` : ''}
+
         <div class="mt-4 d-flex justify-content-between align-items-center">
             <div>
                 <small class="text-muted">Booked on ${appointment.createdAtFormatted}</small>
@@ -260,6 +288,62 @@ function openAppointmentModal(bookingID) {
     modal.classList.add('active');
     document.body.style.overflow = 'hidden';
 }
+
+// Pay Balance Modal Logic
+function openPayBalanceModal(bookingID, amount) {
+    document.getElementById('payBalanceBookingId').value = bookingID;
+    document.getElementById('payBalanceAmount').textContent = amount;
+    document.getElementById('payBalanceModal').classList.add('active');
+}
+
+function closePayBalanceModal() {
+    document.getElementById('payBalanceModal').classList.remove('active');
+}
+
+// Submit Balance Payment
+document.getElementById('payBalanceForm').addEventListener('submit', function (e) {
+    e.preventDefault();
+
+    const bookingId = document.getElementById('payBalanceBookingId').value;
+    const fileInput = document.getElementById('balanceProof');
+    const submitBtn = this.querySelector('button[type="submit"]');
+
+    if (fileInput.files.length === 0) {
+        alert('Please upload a proof of payment');
+        return;
+    }
+
+    submitBtn.disabled = true;
+    submitBtn.innerHTML = '<span class="spinner-border spinner-border-sm"></span> Uploading...';
+
+    const formData = new FormData();
+    formData.append('bookingId', bookingId);
+    formData.append('paymentProof', fileInput.files[0]);
+
+    fetch('api/payment_api.php', {
+        method: 'POST',
+        body: formData
+    })
+        .then(r => r.json())
+        .then(data => {
+            if (data.success) {
+                alert(data.message);
+                closePayBalanceModal();
+                closeModal(); // Close appointment modal too
+                fetchAppointments(currentFilter); // Refresh list
+            } else {
+                alert('Error: ' + data.message);
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            alert('An error occurred while uploading payment proof');
+        })
+        .finally(() => {
+            submitBtn.disabled = false;
+            submitBtn.textContent = 'Submit Payment Proof';
+        });
+});
 
 // Cancel Booking
 function cancelBooking(bookingID) {

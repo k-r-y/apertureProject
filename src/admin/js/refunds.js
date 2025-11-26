@@ -21,39 +21,63 @@ document.addEventListener('DOMContentLoaded', function () {
         });
     });
 
+    // Toggle proof upload visibility
+    const modalStatus = document.getElementById('modalStatus');
+    const proofContainer = document.getElementById('proofUploadContainer');
+
+    modalStatus.addEventListener('change', function () {
+        if (this.value === 'processed') {
+            proofContainer.style.display = 'block';
+        } else {
+            proofContainer.style.display = 'none';
+        }
+    });
+
     // Save refund changes
     saveRefundBtn.addEventListener('click', function () {
         if (!currentRefundId) return;
 
-        const status = document.getElementById('modalStatus').value;
+        const status = modalStatus.value;
         const notes = document.getElementById('modalNotes').value;
+        const fileInput = document.getElementById('refundProof');
+
+        if (status === 'processed' && fileInput.files.length === 0) {
+            LuxuryToast.show({ message: 'Please upload a proof of refund', type: 'error' });
+            return;
+        }
 
         saveRefundBtn.disabled = true;
         saveRefundBtn.innerHTML = '<span class="spinner-border spinner-border-sm"></span>';
 
+        const formData = new FormData();
+        formData.append('refundId', currentRefundId);
+        formData.append('status', status);
+        formData.append('notes', notes);
+        if (fileInput.files.length > 0) {
+            formData.append('refundProof', fileInput.files[0]);
+        }
+
         fetch('api/refunds.php?action=update_status', {
             method: 'POST',
             credentials: 'include',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-                refundId: currentRefundId,
-                status: status,
-                notes: notes
-            })
+            body: formData // No Content-Type header needed for FormData
         })
             .then(response => response.json())
             .then(data => {
                 if (data.success) {
-                    LuxuryToast.show('Success', 'Refund updated successfully', 'success');
+                    LuxuryToast.show({ message: 'Refund updated successfully', type: 'success' });
                     refundModal.hide();
                     fetchRefunds(currentFilter);
+                    // Reset file input
+                    fileInput.value = '';
+                    proofContainer.style.display = 'none';
                 } else {
-                    LuxuryToast.show('Error', data.message || 'Failed to update refund', 'error');
+                    LuxuryToast.show({ message: data.message || 'Failed to update refund', type: 'error' });
                 }
             })
             .catch(error => {
                 console.error('Error:', error);
-                LuxuryToast.show('Error', 'Failed to update refund', 'error');
+                LuxuryToast.show({ message: 'Failed to update refund', type: 'error' });
             })
             .finally(() => {
                 saveRefundBtn.disabled = false;
@@ -90,17 +114,17 @@ document.addEventListener('DOMContentLoaded', function () {
         }
 
         refundsTableBody.innerHTML = refunds.map(refund => `
-            <tr>
-                <td class="text-light">#${refund.refundID}</td>
-                <td class="text-light">${refund.bookingRef}</td>
-                <td class="text-light">${refund.FirstName} ${refund.LastName}</td>
-                <td class="text-light small">${refund.event_type}</td>
-                <td class="text-gold">₱${parseFloat(refund.amount).toLocaleString()}</td>
-                <td class="text-light small">${formatDate(refund.requested_at)}</td>
+            <tr style="border-bottom: 1px solid rgba(255,255,255,0.05);">
+                <td class="text-gold fw-bold">#${refund.refundID}</td>
+                <td class="text-light text-opacity-75">${refund.bookingRef}</td>
+                <td class="text-light fw-medium">${refund.FirstName} ${refund.LastName}</td>
+                <td class="text-muted small">${refund.event_type}</td>
+                <td class="text-gold font-monospace">₱${parseFloat(refund.amount).toLocaleString()}</td>
+                <td class="text-muted small">${formatDate(refund.requested_at)}</td>
                 <td>${getStatusBadge(refund.status)}</td>
                 <td class="text-end">
-                    <button class="btn btn-sm btn-outline-gold" onclick="viewRefund(${refund.refundID})">
-                        <i class="bi bi-eye"></i>
+                    <button class="btn btn-sm btn-outline-gold border-0" onclick="viewRefund(${refund.refundID})" title="View Details">
+                        <i class="bi bi-eye-fill"></i>
                     </button>
                 </td>
             </tr>
@@ -152,11 +176,11 @@ document.addEventListener('DOMContentLoaded', function () {
     // Helper: Get status badge
     function getStatusBadge(status) {
         const badges = {
-            'pending': '<span class="badge bg-warning text-dark">Pending</span>',
-            'approved': '<span class="badge bg-info text-dark">Approved</span>',
-            'processed': '<span class="badge bg-success">Processed</span>',
-            'rejected': '<span class="badge bg-danger">Rejected</span>'
+            'pending': '<span class="badge rounded-pill bg-warning bg-opacity-10 text-warning border border-warning border-opacity-25 fw-normal px-3">Pending</span>',
+            'approved': '<span class="badge rounded-pill bg-info bg-opacity-10 text-info border border-info border-opacity-25 fw-normal px-3">Approved</span>',
+            'processed': '<span class="badge rounded-pill bg-success bg-opacity-10 text-success border border-success border-opacity-25 fw-normal px-3">Processed</span>',
+            'rejected': '<span class="badge rounded-pill bg-danger bg-opacity-10 text-danger border border-danger border-opacity-25 fw-normal px-3">Rejected</span>'
         };
-        return badges[status] || '<span class="badge bg-secondary">Unknown</span>';
+        return badges[status] || '<span class="badge rounded-pill bg-secondary bg-opacity-10 text-secondary border border-secondary border-opacity-25 fw-normal px-3">Unknown</span>';
     }
 });

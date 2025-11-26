@@ -43,6 +43,7 @@ if (!isset($_SESSION['fullName'])) {
     <link rel="stylesheet" href="../../bootstrap-5.3.8-dist/font/bootstrap-icons.css">
     <link rel="stylesheet" href="../luxuryDesignSystem.css">
     <link rel="stylesheet" href="../css/modal.css">
+    <link rel="stylesheet" href="../css/sidebar.css">
     <link rel="stylesheet" href="admin.css">
     <link rel="stylesheet" href="../style.css">
     <link rel="icon" href="../assets/camera.png" type="image/x-icon">
@@ -99,7 +100,6 @@ if (!isset($_SESSION['fullName'])) {
                             <div class="stat-icon"><i class="bi bi-cash-coin"></i></div>
                             <div class="stat-title">Total Revenue</div>
                             <div class="stat-value" id="stat-revenue">₱0.00</div>
-                            <div class="stat-trend" id="revenue-growth">+0%</div>
                         </div>
                     </div>
                     <div class="col-xl-3 col-md-6">
@@ -111,109 +111,81 @@ if (!isset($_SESSION['fullName'])) {
                     </div>
                     <div class="col-xl-3 col-md-6">
                         <div class="neo-card h-100">
-                            <div class="stat-icon"><i class="bi bi-calendar-event"></i></div>
-                            <div class="stat-title">Upcoming Events</div>
-                            <div class="stat-value" id="stat-upcoming">0</div>
+                            <div class="stat-icon"><i class="bi bi-hourglass-split"></i></div>
+                            <div class="stat-title">Pending Requests</div>
+                            <div class="stat-value" id="stat-pending">0</div>
                         </div>
                     </div>
                     <div class="col-xl-3 col-md-6">
                         <div class="neo-card h-100">
-                            <div class="stat-icon"><i class="bi bi-people"></i></div>
-                            <div class="stat-title">New Clients (30d)</div>
-                            <div class="stat-value" id="stat-clients">0</div>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Additional Metrics Row -->
-                <div class="row g-4 mb-5">
-                    <div class="col-xl-3 col-md-6">
-                        <div class="neo-card h-100">
-                            <div class="stat-icon"><i class="bi bi-graph-up"></i></div>
-                            <div class="stat-title">Avg Booking Value</div>
+                            <div class="stat-icon"><i class="bi bi-graph-up-arrow"></i></div>
+                            <div class="stat-title">Avg. Booking Value</div>
                             <div class="stat-value" id="stat-avg-value">₱0.00</div>
                         </div>
                     </div>
-                    <div class="col-xl-3 col-md-6">
-                        <div class="neo-card h-100">
-                            <div class="stat-icon"><i class="bi bi-percent"></i></div>
-                            <div class="stat-title">Conversion Rate</div>
-                            <div class="stat-value" id="stat-conversion">0%</div>
-                        </div>
-                    </div>
-                    <div class="col-xl-3 col-md-6">
-                        <div class="neo-card h-100">
-                            <div class="stat-icon"><i class="bi bi-arrow-repeat"></i></div>
-                            <div class="stat-title">Client Retention</div>
-                            <div class="stat-value" id="stat-retention">0%</div>
-                        </div>
-                    </div>
-                    <div class="col-xl-3 col-md-6">
-                        <div class="neo-card h-100">
-                            <a href="api/export_csv.php?type=bookings" class="btn btn-gold w-100 mt-2">
-                                <i class="bi bi-download"></i> Export CSV
-                            </a>
-                        </div>
-                    </div>
                 </div>
 
-                <!-- Charts Row 1 -->
+                <!-- Main Visual Row -->
                 <div class="row g-4 mb-4">
                     <div class="col-lg-8">
-                        <div class="neo-card ">
-                            <h4 class="card-header-title mb-4"><i class="bi bi-graph-up me-2"></i>Revenue Trend (12 Months)</h4>
-                            <div id="revenueChart"></div>
+                        <div class="neo-card h-100">
+                            <h4 class="card-header-title mb-4">Revenue Trend</h4>
+                            <div id="revenueBookingChart"></div>
                         </div>
                     </div>
                     <div class="col-lg-4">
-                        <div class="neo-card h-100 " style="max-height: 500px; overflow-y: auto;">
-                            <h4 class="card-header-title mb-4"><i class="bi bi-clock-history me-2"></i>Recent Activity</h4>
-                            <div id="activityFeed" class="mt-3"></div>
+                        <div class="neo-card h-100" style="min-height: 400px;">
+                            <h4 class="card-header-title mb-4">Action Center</h4>
+                            
+                            <ul class="nav nav-tabs border-bottom-0 mb-3" id="actionTabs" role="tablist">
+                                <li class="nav-item" role="presentation">
+                                    <button class="nav-link active text-gold bg-transparent border-0 ps-0" id="pending-tab" data-bs-toggle="tab" data-bs-target="#pending-pane" type="button" role="tab">Pending</button>
+                                </li>
+                                <li class="nav-item" role="presentation">
+                                    <button class="nav-link text-muted bg-transparent border-0" id="upcoming-tab" data-bs-toggle="tab" data-bs-target="#upcoming-pane" type="button" role="tab">Upcoming</button>
+                                </li>
+                            </ul>
+                            
+                            <div class="tab-content" id="actionContent" style="height: 300px; overflow-y: auto;">
+                                <div class="tab-pane fade show active" id="pending-pane" role="tabpanel">
+                                    <div id="pendingFeed"></div>
+                                </div>
+                                <div class="tab-pane fade" id="upcoming-pane" role="tabpanel">
+                                    <div id="upcomingFeed"></div>
+                                </div>
+                            </div>
                         </div>
                     </div>
                 </div>
 
-                <!-- Charts Row 2 -->
-                <div class="row g-4 mb-4">
-                    <div class="col-lg-8">
-                        <div class="neo-card h-100 ">
-                            <h4 class="card-header-title mb-4"><i class="bi bi-bar-chart me-2"></i>Monthly Bookings</h4>
-                            <div id="bookingsChart"></div>
-                        </div>
-                    </div>
-                    <div class="col-lg-4">
-                        <div class="neo-card h-100">
-                            <h4 class="card-header-title mb-4"><i class="bi bi-pie-chart me-2"></i>Booking Status</h4>
-                            <div id="statusChart"></div>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Charts Row 3 -->
+                <!-- Insights Row -->
                 <div class="row g-4 mb-4">
                     <div class="col-lg-6">
                         <div class="neo-card h-100">
-                            <h4 class="card-header-title mb-4"><i class="bi bi-box me-2"></i>Package Performance</h4>
-                            <div id="packageChart"></div>
+                            <h4 class="card-header-title mb-4">Top Packages</h4>
+                            <div id="topPackagesChart"></div>
                         </div>
                     </div>
                     <div class="col-lg-6">
-                        <div class="neo-card h-100" style="max-height: 30rem; overflow-y: auto;">
-                            <h4 class="card-header-title mb-4"><i class="bi bi-calendar-event me-2"></i>Upcoming Events (Next 7 Days)</h4>
-                            <div id="upcomingEvents" class="mt-3"></div>
+                        <div class="neo-card h-100">
+                            <h4 class="card-header-title mb-4">Booking Status</h4>
+                            <div id="bookingStatusChart"></div>
                         </div>
                     </div>
                 </div>
 
-                <!-- Event Types Chart -->
-                <div class="row g-4">
-                    <div class="col-lg-12">
+                <!-- Event Type Distribution -->
+                <div class="row g-4 mb-4">
+                    <div class="col-12">
                         <div class="neo-card h-100">
-                            <h4 class="card-header-title mb-4"><i class="bi bi-tags me-2"></i>Event Type Distribution</h4>
-                            <div id="eventTypeChart"></div>
+                            <h4 class="card-header-title mb-4">Event Type Distribution</h4>
+                            <div id="eventTypeChart" style="min-height: 350px;"></div>
                         </div>
                     </div>
                 </div>
+            </div>
+        </main>
+    </div>
 
     <script src="../../bootstrap-5.3.8-dist/js/bootstrap.bundle.min.js"></script>
     <script src="../libs/sweetalert2/sweetalert2.all.min.js"></script>

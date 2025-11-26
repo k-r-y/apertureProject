@@ -1,115 +1,151 @@
 /**
- * User Profile Password Change Handler
+ * User Profile Handler
  */
 
 document.addEventListener('DOMContentLoaded', function () {
-    const passwordForm = document.querySelector('.glass-card form');
+    // ==========================================
+    // Personal Information Form Handler
+    // ==========================================
+    const infoForm = document.getElementById('personalInfoForm');
 
-    if (passwordForm) {
-        // Find the password change form specifically
-        const currentPasswordInput = document.getElementById('currentPassword');
-        const newPasswordInput = document.getElementById('newPassword');
-        const confirmPasswordInput = document.getElementById('confirmPassword');
+    if (infoForm) {
+        infoForm.addEventListener('submit', async function (e) {
+            e.preventDefault();
 
-        if (currentPasswordInput && newPasswordInput && confirmPasswordInput) {
-            passwordForm.addEventListener('submit', async function (e) {
-                e.preventDefault();
+            const firstName = document.getElementById('firstName').value.trim();
+            const lastName = document.getElementById('lastName').value.trim();
+            const phone = document.getElementById('contactPhone').value.trim();
 
-                const currentPassword = currentPasswordInput.value.trim();
-                const newPassword = newPasswordInput.value.trim();
-                const confirmPassword = confirmPasswordInput.value.trim();
-
-                // Client-side validation
-                const errors = {};
-
-                if (!currentPassword) {
-                    errors.currentPassword = 'Current password is required';
-                }
-
-                if (!newPassword) {
-                    errors.newPassword = 'New password is required';
-                } else if (newPassword.length < 8) {
-                    errors.newPassword = 'Password must be at least 8 characters';
-                } else if (!/[A-Z]/.test(newPassword)) {
-                    errors.newPassword = 'Password must contain at least one uppercase letter';
-                } else if (!/[a-z]/.test(newPassword)) {
-                    errors.newPassword = 'Password must contain at least one lowercase letter';
-                } else if (!/[0-9]/.test(newPassword)) {
-                    errors.newPassword = 'Password must contain at least one number';
-                } else if (!/[^A-Za-z0-9]/.test(newPassword)) {
-                    errors.newPassword = 'Password must contain at least one special character';
-                }
-
-                if (newPassword !== confirmPassword) {
-                    errors.confirmPassword = 'Passwords do not match';
-                }
-
-                if (Object.keys(errors).length > 0) {
-                    const errorMessage = Object.values(errors).join('\n');
-                    Swal.fire({
-                        icon: 'error',
-                        title: 'Validation Error',
-                        text: errorMessage,
-                        confirmButtonColor: '#d4af37'
-                    });
-                    return;
-                }
-
-                // Show loading
+            if (!firstName || !lastName) {
                 Swal.fire({
-                    title: 'Updating Password...',
-                    allowOutsideClick: false,
-                    didOpen: () => {
-                        Swal.showLoading();
-                    }
+                    icon: 'error',
+                    title: 'Validation Error',
+                    text: 'First Name and Last Name are required',
+                    confirmButtonColor: '#d4af37'
                 });
+                return;
+            }
 
-                try {
-                    const response = await fetch('../admin/api/change_password.php', {
-                        method: 'POST',
-                        headers: {
-                            'Content-Type': 'application/json'
-                        },
-                        body: JSON.stringify({
-                            currentPassword: currentPassword,
-                            newPassword: newPassword,
-                            confirmPassword: confirmPassword
-                        })
-                    });
-
-                    const data = await response.json();
-
-                    if (data.success) {
-                        Swal.fire({
-                            icon: 'success',
-                            title: 'Success!',
-                            text: 'Your password has been updated successfully',
-                            confirmButtonColor: '#d4af37'
-                        }).then(() => {
-                            // Clear the form
-                            passwordForm.reset();
-                        });
-                    } else {
-                        const errorMsg = data.errors ?
-                            Object.values(data.errors).join('\n') :
-                            data.error || 'Failed to update password';
-
-                        Swal.fire({
-                            icon: 'error',
-                            title: 'Error',
-                            text: errorMsg,
-                            confirmButtonColor: '#d4af37'
-                        });
-                    }
-                } catch (error) {
-                    Swal.fire({
-                        icon: 'error',
-                        title: 'Error',
-                        text: 'An error occurred while updating your password',
-                        confirmButtonColor: '#d4af37'
-                    });
+            // Show loading
+            Swal.fire({
+                title: 'Updating Profile...',
+                allowOutsideClick: false,
+                didOpen: () => {
+                    Swal.showLoading();
                 }
             });
-        }
+
+            try {
+                const response = await fetch('api/update_profile.php?action=update_info', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        firstName: firstName,
+                        lastName: lastName,
+                        phone: phone
+                    })
+                });
+
+                const data = await response.json();
+
+                if (data.success) {
+                    Swal.fire({
+                        icon: 'success',
+                        title: 'Success!',
+                        text: data.message,
+                        confirmButtonColor: '#d4af37'
+                    });
+                } else {
+                    throw new Error(data.message || 'Failed to update profile');
+                }
+            } catch (error) {
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Error',
+                    text: error.message,
+                    confirmButtonColor: '#d4af37'
+                });
+            }
+        });
+    }
+
+    // ==========================================
+    // Password Change Form Handler
+    // ==========================================
+    const passwordForm = document.getElementById('passwordForm');
+
+    if (passwordForm) {
+        passwordForm.addEventListener('submit', async function (e) {
+            e.preventDefault();
+
+            const currentPassword = document.getElementById('currentPassword').value.trim();
+            const newPassword = document.getElementById('newPassword').value.trim();
+            const confirmPassword = document.getElementById('confirmPassword').value.trim();
+
+            // Client-side validation
+            const errors = [];
+
+            if (!currentPassword) errors.push('Current password is required');
+            if (!newPassword) errors.push('New password is required');
+            if (newPassword.length < 8) errors.push('Password must be at least 8 characters');
+            if (newPassword !== confirmPassword) errors.push('Passwords do not match');
+
+            if (errors.length > 0) {
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Validation Error',
+                    html: errors.join('<br>'),
+                    confirmButtonColor: '#d4af37'
+                });
+                return;
+            }
+
+            // Show loading
+            Swal.fire({
+                title: 'Updating Password...',
+                allowOutsideClick: false,
+                didOpen: () => {
+                    Swal.showLoading();
+                }
+            });
+
+            try {
+                const response = await fetch('api/update_profile.php?action=change_password', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        currentPassword: currentPassword,
+                        newPassword: newPassword,
+                        confirmPassword: confirmPassword
+                    })
+                });
+
+                const data = await response.json();
+
+                if (data.success) {
+                    Swal.fire({
+                        icon: 'success',
+                        title: 'Success!',
+                        text: data.message,
+                        confirmButtonColor: '#d4af37'
+                    }).then(() => {
+                        passwordForm.reset();
+                    });
+                } else {
+                    throw new Error(data.message || 'Failed to update password');
+                }
+            } catch (error) {
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Error',
+                    text: error.message,
+                    confirmButtonColor: '#d4af37'
+                });
+            }
+        });
     }
 });

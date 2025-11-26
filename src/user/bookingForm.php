@@ -52,7 +52,7 @@ if (!empty($savedData)) {
     unset($_SESSION['booking_form_data']);
 }
 
-$minBookingDate = date('Y-m-d', strtotime('+5 days'));
+$minBookingDate = date('Y-m-d', strtotime('+3 days'));
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -62,6 +62,7 @@ $minBookingDate = date('Y-m-d', strtotime('+5 days'));
     <title>New Booking - Aperture</title>
     <link rel="stylesheet" href="../../bootstrap-5.3.8-dist/css/bootstrap.min.css">
     <link rel="stylesheet" href="../../bootstrap-5.3.8-dist/font/bootstrap-icons.css">
+    <link rel="stylesheet" href="../css/sidebar.css">
     <link rel="stylesheet" href="../luxuryDesignSystem.css">
     <link rel="stylesheet" href="../css/modal.css">
     <link rel="stylesheet" href="user.css">
@@ -133,7 +134,7 @@ $minBookingDate = date('Y-m-d', strtotime('+5 days'));
                                 <div class="row g-3">
                                     <div class="col-md-6">
                                         <?php
-                                        $minBookingDate = date('Y-m-d', strtotime('+5 days'));
+                                        $minBookingDate = date('Y-m-d', strtotime('+3 days'));
                                         $maxBookingDate = date('Y-m-d', strtotime('+3 years'));
                                         ?>
                                         <label class="text-muted small mb-2 text-uppercase letter-spacing-1">Event Date <span class="text-gold">*</span></label>
