@@ -25,7 +25,7 @@ if (isset($_GET['action']) and $_GET['action'] === 'logout') {
     require_once '../includes/functions/auth.php';
     logout();   
 }
-session_start();
+
 
 if (!isset($_SESSION['fullName'])) {
     header("Location: ../login.php");
