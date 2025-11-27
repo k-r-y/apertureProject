@@ -957,7 +957,7 @@ li {
 .main-content {
   flex: 1;
   padding: 2rem;
-  padding-top: 5rem !important;
+  padding-top: 2rem !important;
 }
 
 /* Mini-sidebar state */

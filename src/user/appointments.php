@@ -31,8 +31,8 @@ if (!isset($_SESSION["userId"])) {
         <?php include_once 'components/header.php'; ?>
         
         <main class="main-content">
-            <div class="container-fluid px-3 px-lg-5 py-5">
-                
+            <div class="container-fluid px-3 px-lg-5">
+                    
                 <!-- Page Header -->
                 <div class="mb-5">
                     <h1 class="mb-2">My Appointments</h1>
@@ -143,6 +143,7 @@ if (!isset($_SESSION["userId"])) {
             <div class="modal-body">
                 <form id="payBalanceForm">
                     <input type="hidden" id="payBalanceBookingId">
+                    <input type="hidden" id="paymentType" value="balance">
                     <div class="mb-4 text-center">
                         <p class="text-light mb-1">Remaining Balance</p>
                         <h2 class="text-gold" id="payBalanceAmount">₱0.00</h2>
@@ -156,11 +157,65 @@ if (!isset($_SESSION["userId"])) {
                 </form>
             </div>
         </div>
+        </div>
+    </div>
+
+    <!-- Edit Booking Modal -->
+    <div id="editBookingModal" class="modal-overlay">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 class="text-gold font-serif mb-0">Edit Booking</h3>
+                <button class="modal-close" onclick="closeEditModal()">
+                    <i class="bi bi-x-lg"></i>
+                </button>
+            </div>
+            <div class="modal-body">
+                <form id="editBookingForm">
+                    <input type="hidden" id="editBookingId">
+                    
+                    <div class="row g-3">
+                        <div class="col-12">
+                            <label class="form-label text-light">Event Date</label>
+                            <input type="date" id="editEventDate" name="eventDate" class="form-control bg-dark text-light border-secondary">
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label text-light">Start Time</label>
+                            <select id="editStartTime" name="startTime" class="form-select bg-dark text-light border-secondary">
+                                <!-- Options populated by JS -->
+                            </select>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label text-light">End Time</label>
+                            <select id="editEndTime" name="endTime" class="form-select bg-dark text-light border-secondary">
+                                <!-- Options populated by JS -->
+                            </select>
+                        </div>
+                        <div class="col-12">
+                            <label class="form-label text-light">Location</label>
+                            <input type="text" id="editLocation" name="location" class="form-control bg-dark text-light border-secondary" required>
+                        </div>
+                        <div class="col-12">
+                            <label class="form-label text-light">Theme (Optional)</label>
+                            <input type="text" id="editTheme" name="theme" class="form-control bg-dark text-light border-secondary">
+                        </div>
+                        <div class="col-12">
+                            <label class="form-label text-light">Special Requests</label>
+                            <textarea id="editMessage" name="message" class="form-control bg-dark text-light border-secondary" rows="3"></textarea>
+                        </div>
+                    </div>
+
+                    <div class="mt-4">
+                        <button type="submit" class="btn btn-gold w-100">Save Changes</button>
+                    </div>
+                </form>
+            </div>
+        </div>
     </div>
     
     <script src="../../bootstrap-5.3.8-dist/js/bootstrap.bundle.min.js"></script>
     <script src="user.js"></script>
-    <script src="js/notifications.js"></script>
+
     <script src="appointmentsHandler.js"></script>
+    <script src="js/user_notifications.js"></script>
 </body>
 </html>

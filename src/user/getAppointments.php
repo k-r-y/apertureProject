@@ -43,6 +43,7 @@ try {
                 b.balance_payment_proof,
                 {$proofPaymentField}
                 b.gdrive_link,
+                b.meeting_link,
                 b.created_at,
                 p.packageName as package_name,
                 p.description as package_description,
@@ -96,6 +97,7 @@ try {
             'balancePaymentProof' => $row['balance_payment_proof'],
             'proofPayment' => $hasProofPaymentColumn ? ($row['proof_payment'] ?? null) : null,
             'gdriveLink' => $row['gdrive_link'],
+            'meetingLink' => $row['meeting_link'],
             'packageName' => $row['package_name'],
             'packageDescription' => $row['package_description'],
             'createdAt' => $row['created_at'],

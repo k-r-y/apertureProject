@@ -173,15 +173,16 @@ if (isset($_GET['action']) and $_GET['action'] === 'logout') {
     </div>
 
     <script src="../../bootstrap-5.3.8-dist/js/bootstrap.bundle.min.js"></script>
-    <script src="../libs/sweetalert2/sweetalert2.all.min.js"></script>
+    <script src="js/notifications.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script src="js/booking-modal.js"></script>
+    <script src="js/booking-modal.js"></script>
     <script src="admin.js"></script>
-    <script src="js/booking-modal.js?v=<?= time() ?>"></script>
     <script>
         document.addEventListener('DOMContentLoaded', function() {
             var calendarEl = document.getElementById('calendar');
             var calendar = new FullCalendar.Calendar(calendarEl, {
                 themeSystem: 'bootstrap5',
-                initialView: 'dayGridMonth',
                 headerToolbar: {
                     left: 'prev,next today',
                     center: 'title',

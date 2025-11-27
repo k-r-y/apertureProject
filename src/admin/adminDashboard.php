@@ -191,6 +191,7 @@ if (!isset($_SESSION['fullName'])) {
     <script src="../libs/sweetalert2/sweetalert2.all.min.js"></script>
     <script src="admin.js"></script>
     <script src="js/dashboard-charts.js"></script>
+    <script src="js/notifications.js"></script>
 </body>
 
 </html>

@@ -42,6 +42,8 @@ try {
         throw new Exception("Booking is already fully paid");
     }
 
+    $type = $_POST['type'] ?? 'balance'; // 'downpayment' or 'balance'
+    
     // Handle File Upload
     if (!isset($_FILES['paymentProof']) || $_FILES['paymentProof']['error'] !== UPLOAD_ERR_OK) {
         throw new Exception("Please upload a valid proof of payment");
@@ -63,14 +65,16 @@ try {
         throw new Exception("File too large. Max 5MB.");
     }
 
-    $fileName = 'balance_' . $bookingId . '_' . time() . '.' . $fileExt;
+    $prefix = ($type === 'downpayment') ? 'downpayment_' : 'balance_';
+    $fileName = $prefix . $bookingId . '_' . time() . '.' . $fileExt;
     $targetPath = $uploadDir . $fileName;
 
     if (move_uploaded_file($_FILES['paymentProof']['tmp_name'], $targetPath)) {
         $proofPath = '../uploads/payment_proofs/' . $fileName;
         
         // Update Database
-        $updateStmt = $conn->prepare("UPDATE bookings SET balance_payment_proof = ? WHERE bookingID = ?");
+        $column = ($type === 'downpayment') ? 'proof_payment' : 'balance_payment_proof';
+        $updateStmt = $conn->prepare("UPDATE bookings SET $column = ? WHERE bookingID = ?");
         $updateStmt->bind_param("si", $proofPath, $bookingId);
         
         if ($updateStmt->execute()) {

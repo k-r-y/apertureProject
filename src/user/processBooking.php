@@ -139,7 +139,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         $isFullyPaid = ($balance <= 0) ? 1 : 0;
 
         // 3. Handle File Upload (Payment Proof) - ENHANCED SECURITY
-        $referenceFilePath = null;
+        $referenceFilePath = ''; // Initialize as empty string for DB constraint (NOT NULL)
         if ($paymentMethod !== 'Cash' && isset($_FILES['paymentProof']) && $_FILES['paymentProof']['error'] !== UPLOAD_ERR_NO_FILE) {
             require_once '../includes/functions/validation.php';
             
@@ -203,7 +203,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         $balanceAmount = $totalPrice - $downpayment;
 
         $stmt->bind_param(
-            "issssssssdddiisss", 
+            "issssssssdddisss", 
             $userId,
             $packageId,
             $eventType,
@@ -242,20 +242,55 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
             );
             
             // Send Confirmation Email
-            $userEmail = $_SESSION['email'] ?? ''; // Assuming email is in session, otherwise fetch from DB
+            // Send Notifications
+            require_once '../includes/functions/notifications.php';
+            $notificationSystem = new NotificationSystem();
+            
+            // 1. Send Confirmation to User
+            $userEmail = $_SESSION['email'] ?? ''; 
             if ($userEmail) {
-                $bookingDetails = [
-                    'name' => $_SESSION['firstName'] . ' ' . $_SESSION['lastName'],
-                    'date' => date('F j, Y', strtotime($eventDate)),
-                    'time' => date('g:i A', strtotime($startTime)) . ' - ' . date('g:i A', strtotime($endTime)),
-                    'location' => $location,
-                    'ref' => str_pad($bookingId, 6, '0', STR_PAD_LEFT),
-                    'items' => $items,
-                    'total' => '₱' . number_format($totalPrice, 2),
-                    'downpayment' => '₱' . number_format($downpayment, 2)
-                ];
-                sendBookingConfirmationEmail($userEmail, $bookingDetails);
+                $notificationSystem->sendBookingConfirmation(
+                    $userEmail,
+                    $_SESSION['firstName'] . ' ' . $_SESSION['lastName'],
+                    str_pad($bookingId, 6, '0', STR_PAD_LEFT),
+                    date('F j, Y', strtotime($eventDate)),
+                    date('g:i A', strtotime($startTime)) . ' - ' . date('g:i A', strtotime($endTime)),
+                    $location,
+                    '₱' . number_format($totalPrice, 2),
+                    '₱' . number_format($downpayment, 2)
+                );
             }
+
+            // 2. Send Notification to Admin
+            // Fetch admin email (assuming single admin or specific email from config/env)
+            $adminEmail = $_ENV['SMTP_USERNAME']; // Or a specific admin email
+            $notificationSystem->sendAdminNewBooking(
+                $adminEmail,
+                str_pad($bookingId, 6, '0', STR_PAD_LEFT),
+                $_SESSION['firstName'] . ' ' . $_SESSION['lastName'],
+                $eventType,
+                date('F j, Y', strtotime($eventDate)),
+                '₱' . number_format($totalPrice, 2)
+            );
+
+            // 3. Create In-App Notification for Admin
+            require_once '../includes/functions/booking_workflow.php';
+            
+            // Find Admin User ID
+            $adminStmt = $conn->prepare("SELECT userID FROM users WHERE role = 'Admin' LIMIT 1");
+            $adminStmt->execute();
+            $adminResult = $adminStmt->get_result();
+            if ($adminRow = $adminResult->fetch_assoc()) {
+                $adminId = $adminRow['userID'];
+                createNotification(
+                    $adminId,
+                    'booking',
+                    'New Booking Request',
+                    "New booking #{$bookingId} from " . $_SESSION['firstName'] . " " . $_SESSION['lastName'],
+                    'bookings.php?status=pending'
+                );
+            }
+            $adminStmt->close();
 
             // Clear saved form data on success
             unset($_SESSION['booking_form_data']);

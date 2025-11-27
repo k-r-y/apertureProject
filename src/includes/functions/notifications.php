@@ -60,4 +60,37 @@ class NotificationSystem {
             return false;
         }
     }
+
+    public function sendAdminNewBooking($adminEmail, $bookingRef, $clientName, $eventType, $date, $total) {
+        try {
+            // Clear previous recipients
+            $this->mail->clearAddresses();
+            
+            $this->mail->addAddress($adminEmail, 'Admin');
+            $this->mail->Subject = "New Booking Request - #{$bookingRef}";
+            $this->mail->Body = EmailTemplates::getAdminNewBookingNotification('Admin', $bookingRef, $clientName, $eventType, $date, $total);
+            $this->mail->AltBody = "New booking request #{$bookingRef} from {$clientName}.";
+            
+            $this->mail->send();
+            return true;
+        } catch (Exception $e) {
+            error_log("Admin Email Error: " . $this->mail->ErrorInfo);
+            return false;
+        }
+    }
+    public function sendMeetingLinkNotification($email, $name, $bookingRef, $meetingLink, $date) {
+        try {
+            $this->mail->clearAddresses();
+            $this->mail->addAddress($email, $name);
+            $this->mail->Subject = "Meeting Link Update - #{$bookingRef}";
+            $this->mail->Body = EmailTemplates::getMeetingLinkNotification($name, $bookingRef, $meetingLink, $date);
+            $this->mail->AltBody = "A meeting link has been updated for your booking #{$bookingRef}. Link: {$meetingLink}";
+            
+            $this->mail->send();
+            return true;
+        } catch (Exception $e) {
+            error_log("Email Error: " . $this->mail->ErrorInfo);
+            return false;
+        }
+    }
 }

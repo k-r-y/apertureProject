@@ -55,20 +55,22 @@ if (!isset($_SESSION["userId"])) {
                         </table>
                     </div>
                 </div>
-                
+                </div>
             </div>
         </main>
     </div>
-    
+
     <script src="../../bootstrap-5.3.8-dist/js/bootstrap.bundle.min.js"></script>
     <script src="user.js"></script>
     <script src="js/notifications.js"></script>
+    <script src="js/user_notifications.js"></script>
     <script>
         document.addEventListener('DOMContentLoaded', function() {
+            const tbody = document.getElementById('billingTableBody');
+            
             fetch('api/billing_api.php')
-                .then(r => r.json())
+                .then(response => response.json())
                 .then(data => {
-                    const tbody = document.getElementById('billingTableBody');
                     if (data.success && data.transactions.length > 0) {
                         tbody.innerHTML = data.transactions.map(t => `
                             <tr>
@@ -88,6 +90,10 @@ if (!isset($_SESSION["userId"])) {
                     } else {
                         tbody.innerHTML = '<tr><td colspan="7" class="text-center py-5 text-muted">No transactions found</td></tr>';
                     }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    tbody.innerHTML = '<tr><td colspan="7" class="text-center py-5 text-danger">Error loading history</td></tr>';
                 });
         });
 

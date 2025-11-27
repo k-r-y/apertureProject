@@ -195,11 +195,12 @@ if (!$client) {
     </div>
 
     <script src="../../bootstrap-5.3.8-dist/js/bootstrap.bundle.min.js"></script>
-    <script src="../js/feedback.js"></script>
+    <script src="../libs/sweetalert2/sweetalert2.all.min.js"></script>
+    <script src="js/notifications.js"></script>
+    <script src="js/luxury-toast.js"></script>
+    <script src="js/luxury-toast.js"></script>
+    <script src="admin.js"></script>
     <script>
-        const clientId = <?= $clientId ?>;
-        
-        // Load all data on page load
         document.addEventListener('DOMContentLoaded', function() {
             loadClientTags();
             loadClientNotes();

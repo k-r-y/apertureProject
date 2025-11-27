@@ -36,6 +36,10 @@ try {
         case 'month':
             $dateCondition = "AND MONTH(event_date) = MONTH(CURDATE()) AND YEAR(event_date) = YEAR(CURDATE())";
             break;
+        case 'quarter':
+            $currentQuarter = ceil(date('n') / 3);
+            $dateCondition = "AND QUARTER(event_date) = $currentQuarter AND YEAR(event_date) = YEAR(CURDATE())";
+            break;
         case 'year':
             $dateCondition = "AND YEAR(event_date) = YEAR(CURDATE())";
             break;
@@ -68,12 +72,13 @@ try {
         $response['pending_count'] = $pendingResult->fetch_assoc()['total'] ?? 0;
 
         // Average Booking Value
-        $avgSql = "SELECT AVG(total_amount) as avg_val FROM bookings WHERE booking_status IN ('confirmed', 'completed')";
+        $avgSql = "SELECT AVG(total_amount) as avg_val FROM bookings WHERE booking_status IN ('confirmed', 'completed') $dateCondition";
         $avgResult = $conn->query($avgSql);
         $response['avg_value'] = $avgResult->fetch_assoc()['avg_val'] ?? 0;
 
-        // New Clients (Last 30 days)
-        $clientSql = "SELECT COUNT(*) as total FROM users WHERE Role = 'User' AND created_at >= DATE_SUB(CURDATE(), INTERVAL 30 DAY)";
+        // New Clients - respects timeframe filter
+        $clientDateCondition = str_replace('event_date', 'created_at', $dateCondition);
+        $clientSql = "SELECT COUNT(*) as total FROM users WHERE Role = 'User' $clientDateCondition";
         $clientResult = $conn->query($clientSql);
         $response['new_clients'] = $clientResult->fetch_assoc()['total'] ?? 0;
     }
@@ -168,6 +173,7 @@ try {
             FROM bookings b
             JOIN packages p ON b.packageID = p.packageID
             WHERE b.booking_status IN ('confirmed', 'completed')
+            $dateCondition
             GROUP BY p.packageName
             ORDER BY count DESC
             LIMIT 5
@@ -188,6 +194,7 @@ try {
                 COUNT(*) as count 
             FROM bookings 
             WHERE booking_status IN ('confirmed', 'completed')
+            $dateCondition
             GROUP BY event_type
             ORDER BY count DESC
         ";

@@ -724,13 +724,14 @@ $minBookingDate = date('Y-m-d', strtotime('+3 days'));
             const hour = parseInt(hours);
             const ampm = hour >= 12 ? 'PM' : 'AM';
             const displayHour = hour % 12 || 12;
-            return displayHour + ':' + minutes + ' ' + ampm;
-        }
+        return displayHour + ':' + minutes + ' ' + ampm;
+    }
     });
     </script>
     
     <script src="booking.js"></script>
     <script src="user.js"></script>
+    <script src="js/user_notifications.js"></script>
     
     <!-- Booking Status Notifications -->
     <?php if ($bookingStatus): ?>

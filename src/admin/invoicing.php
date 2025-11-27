@@ -83,15 +83,18 @@ if (isset($_GET['action']) and $_GET['action'] === 'logout') {
                         </table>
                     </div>
                 </div>
+                </div>
             </div>
         </main>
     </div>
 
     <script src="../../bootstrap-5.3.8-dist/js/bootstrap.bundle.min.js"></script>
-    <script src="../libs/sweetalert2/sweetalert2.all.min.js"></script>
+    <script src="js/notifications.js"></script>
     <script src="admin.js"></script>
     <script>
-        document.addEventListener('DOMContentLoaded', loadTransactions);
+        document.addEventListener('DOMContentLoaded', function() {
+            loadTransactions();
+        });
 
         function loadTransactions() {
             fetch('api/invoicing_api.php?action=get_all')

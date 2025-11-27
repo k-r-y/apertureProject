@@ -79,13 +79,13 @@
         --bs-table-bg: #1a1a1a;
         --bs-table-border-color: #333;
       }
-      .workflow-step {
+      .workflow-step text-light {
         border-left: 2px solid #333;
         padding-left: 1.5rem;
         margin-bottom: 2rem;
         position: relative;
       }
-      .workflow-step::before {
+      .workflow-step text-light::before {
         content: "";
         position: absolute;
         left: -7px;
@@ -114,22 +114,29 @@
         <a href="#schema" class="nav-link">Schema & Tables</a>
 
         <div class="nav-group-title">Modules</div>
-        <a href="#public-module" class="nav-link">Public Pages</a>
-        <a href="#user-module" class="nav-link">User Portal</a>
-        <a href="#admin-module" class="nav-link">Admin Dashboard</a>
+        <a href="#public" class="nav-link">Public Pages</a>
+        <a href="#user" class="nav-link">User Portal</a>
+        <a href="#admin" class="nav-link">Admin Dashboard</a>
 
         <div class="nav-group-title">Core Logic</div>
         <a href="#security" class="nav-link">Security & Auth</a>
         <a href="#helpers" class="nav-link">Helper Functions</a>
         <a href="#api" class="nav-link">API Reference</a>
 
+        <div class="nav-group-title">Audit</div>
         <div class="nav-group-title">Workflows</div>
+        <a href="#refund-process" class="nav-link">Refund Process</a>
+        <a href="#user-journey" class="nav-link">User Journey</a>
         <a href="#flows" class="nav-link">Process Flows</a>
+        <a href="#detailed-specs" class="nav-link">Detailed Specs</a>
+        <a href="#improvements" class="nav-link">Improvements</a>
+        <a href="#recent-fixes" class="nav-link">Recent Fixes</a>
+        <a href="#future" class="nav-link">Future Features</a>
       </div>
     </nav>
 
     <!-- Main Content -->
-    <main class="main-content">
+<main class="main-content">
       <!-- Overview -->
       <section id="overview">
         <h1 class="display-4 text-gold font-serif mb-4">
@@ -209,6 +216,19 @@ src/
         </div>
       </section>
 
+      <!-- API Reference -->
+      <section id="api">
+        <h2 class="section-title">API Reference</h2>
+        <div class="card p-4">
+          <h5 class="text-gold">API Endpoints</h5>
+          <p class="text-muted small">
+            This section is a placeholder for the API reference. Key endpoints like 
+            <code>check_availability.php</code>, <code>admin/api/dashboard_stats.php</code>, and 
+            <code>settings_api.php</code> should be documented here with their expected parameters and responses.
+          </p>
+        </div>
+      </section>
+
       <!-- Database Schema -->
       <section id="schema">
         <h2 class="section-title">Database Schema</h2>
@@ -218,22 +238,95 @@ src/
 
         <!-- ER Diagram -->
         <div class="card p-4 mb-4 bg-dark border-secondary">
-          <h5 class="text-gold mb-3">Entity Relationship Diagram (ERD)</h5>
-          <div class="mermaid">
-            erDiagram USERS ||--o{ BOOKINGS : "makes" USERS ||--o{ ACTIVITY_LOG
-            : "generates" USERS ||--o{ NOTIFICATIONS : "receives" USERS ||--o{
-            USER_PHOTOS : "owns" BOOKINGS ||--o{ INVOICES : "generates" BOOKINGS
-            ||--o{ REFUNDS : "triggers" BOOKINGS ||--o{ REVIEWS : "has" BOOKINGS
-            ||--o{ USER_PHOTOS : "contains" PACKAGES ||--o{ BOOKINGS : "defines"
-            USERS { int userID PK string Email string Role string FullName }
-            BOOKINGS { int bookingID PK int userID FK string packageID FK date
-            event_date string status decimal total_price } INVOICES { int
-            invoiceID PK int bookingID FK decimal amount string status } REFUNDS
-            { int refundID PK int bookingID FK decimal amount string status }
-            PACKAGES { string packageID PK string packageName decimal Price }
-            INQUIRIES { int id PK string email string subject } SETTINGS {
-            string setting_key PK string setting_value }
-          </div>
+          <h5 class="text-warning mb-3">Entity Relationship Diagram (ERD)</h5>
+
+          <pre class="mermaid">
+              erDiagram
+                  %% Relationships
+                  USERS ||--o{ BOOKINGS : "makes"
+                  USERS ||--o{ ACTIVITY_LOG : "generates"
+                  USERS ||--o{ NOTIFICATIONS : "receives"
+                  USERS ||--o{ USER_PHOTOS : "owns"
+                  BOOKINGS ||--o{ INVOICES : "generates"
+                  BOOKINGS ||--o{ REFUNDS : "triggers"
+                  BOOKINGS ||--o{ REVIEWS : "has"
+                  BOOKINGS ||--o{ USER_PHOTOS : "contains"
+                  PACKAGES ||--o{ BOOKINGS : "defines"
+
+                  %% Main Entities
+                  USERS {
+                      int userID PK
+                      string Email
+                      string Role
+                      string FullName
+                  }
+
+                  BOOKINGS {
+                      int bookingID PK
+                      int userID FK
+                      string packageID FK
+                      date event_date
+                      string status
+                      decimal total_price
+                  }
+
+                  INVOICES {
+                      int invoiceID PK
+                      int bookingID FK
+                      decimal amount
+                      string status
+                  }
+
+                  REFUNDS {
+                      int refundID PK
+                      int bookingID FK
+                      decimal amount
+                      string status
+                  }
+
+                  PACKAGES {
+                      string packageID PK
+                      string packageName
+                      decimal Price
+                  }
+
+                  INQUIRIES {
+                      int id PK
+                      string email
+                      string subject
+                  }
+
+                  SETTINGS {
+                      string setting_key PK
+                      string setting_value
+                  }
+
+                  %% Missing Entities (Defined for completeness)
+                  ACTIVITY_LOG {
+                      int logID PK
+                      int userID FK
+                      string action
+                  }
+
+                  NOTIFICATIONS {
+                      int notifID PK
+                      int userID FK
+                      string message
+                  }
+
+                  USER_PHOTOS {
+                      int photoID PK
+                      int userID FK
+                      string file_path
+                  }
+
+                  REVIEWS {
+                      int reviewID PK
+                      int bookingID FK
+                      int rating
+                  }
+              </pre>
+    
         </div>
 
         <div class="table-responsive">
@@ -247,30 +340,232 @@ src/
             </thead>
             <tbody>
               <tr>
-                <td><code>users</code></td>
-                <td>Stores all registered accounts (Admins and Clients).</td>
+                <td><code>addons</code></td>
+                <td>Package add-ons and extras.</td>
                 <td>
-                  <code>id</code>, <code>email</code>,
-                  <code>password_hash</code>,
-                  <code>role</code> ('Admin'/'User'), <code>is_verified</code>
-                  <code>log_id</code>, <code>user_id</code>,
-                  <code>action_type</code>, <code>description</code>,
-                  <code>timestamp</code>
+                  <code>addID</code> (int, PK),
+                  <code>packageID</code> (varchar),
+                  <code>Description</code> (varchar),
+                  <code>Price</code> (decimal)
                 </td>
               </tr>
               <tr>
-                <td><code>settings</code></td>
-                <td>Dynamic system configuration.</td>
+                <td><code>api_rate_limit</code></td>
+                <td>API throttling tracker.</td>
                 <td>
-                  <code>setting_key</code> (PK), <code>setting_value</code>
+                  <code>id</code> (int, PK), <code>identifier</code> (varchar),
+                  <code>endpoint</code> (varchar),
+                  <code>request_count</code> (int),
+                  <code>window_start</code> (datetime)
+                </td>
+              </tr>
+              <tr>
+                <td><code>booking_logs</code></td>
+                <td>Audit trail for booking actions.</td>
+                <td>
+                  <code>logID</code> (int, PK), <code>bookingID</code> (int),
+                  <code>userID</code> (int), <code>action</code> (varchar),
+                  <code>details</code> (text),
+                  <code>created_at</code> (timestamp)
+                </td>
+              </tr>
+              <tr>
+                <td><code>bookings</code></td>
+                <td>Core booking records.</td>
+                <td>
+                  <code>bookingID</code> (int, PK), <code>userID</code> (int),
+                  <code>packageID</code> (varchar),
+                  <code>event_date</code> (date),
+                  <code>total_amount</code> (decimal),
+                  <code>booking_status</code> (enum),
+                  <code>payment_status</code> (varchar),
+                  <code>created_at</code> (timestamp) <br /><small
+                    class="text-muted"
+                    >...and 20+ other fields</small
+                  >
+                </td>
+              </tr>
+              <tr>
+                <td><code>client_notes</code></td>
+                <td>Admin notes on clients.</td>
+                <td>
+                  <code>noteID</code> (int, PK), <code>userID</code> (int),
+                  <code>adminID</code> (int), <code>note</code> (text)
+                </td>
+              </tr>
+              <tr>
+                <td><code>contactmessages</code></td>
+                <td>Public contact form submissions.</td>
+                <td>
+                  <code>id</code> (int, PK), <code>name</code> (varchar),
+                  <code>email</code> (varchar), <code>subject</code> (varchar),
+                  <code>message</code> (text), <code>is_read</code> (tinyint)
+                </td>
+              </tr>
+              <tr>
+                <td><code>inquiries</code></td>
+                <td>General inquiries.</td>
+                <td>
+                  <code>id</code> (int, PK), <code>name</code> (varchar),
+                  <code>email</code> (varchar), <code>subject</code> (varchar),
+                  <code>message</code> (text), <code>status</code> (enum)
+                </td>
+              </tr>
+              <tr>
+                <td><code>invoices</code></td>
+                <td>Payment records.</td>
+                <td>
+                  <code>invoiceID</code> (int, PK),
+                  <code>bookingID</code> (int), <code>issue_date</code> (date),
+                  <code>due_date</code> (date), <code>status</code> (enum)
                 </td>
               </tr>
               <tr>
                 <td><code>notifications</code></td>
-                <td>In-app alerts for users/admins.</td>
+                <td>System alerts.</td>
                 <td>
-                  <code>id</code>, <code>user_id</code>, <code>message</code>,
-                  <code>is_read</code>, <code>created_at</code>
+                  <code>notificationID</code> (int, PK),
+                  <code>userID</code> (int), <code>type</code> (varchar),
+                  <code>message</code> (text), <code>is_read</code> (tinyint)
+                </td>
+              </tr>
+              <tr>
+                <td><code>packages</code></td>
+                <td>Service packages.</td>
+                <td>
+                  <code>packageID</code> (varchar, PK),
+                  <code>packageName</code> (varchar),
+                  <code>Price</code> (decimal), <code>description</code> (text)
+                </td>
+              </tr>
+              <tr>
+                <td><code>refunds</code></td>
+                <td>Refund requests and processing.</td>
+                <td>
+                  <code>refundID</code> (int, PK), <code>bookingID</code> (int),
+                  <code>amount</code> (decimal), <code>status</code> (enum),
+                  <code>reason</code> (varchar)
+                </td>
+              </tr>
+              <tr>
+                <td><code>reviews</code></td>
+                <td>Client feedback.</td>
+                <td>
+                  <code>reviewID</code> (int, PK), <code>bookingID</code> (int),
+                  <code>rating</code> (int), <code>comment</code> (text),
+                  <code>status</code> (enum)
+                </td>
+              </tr>
+              <tr>
+                <td><code>settings</code></td>
+                <td>System configuration.</td>
+                <td>
+                  <code>setting_key</code> (varchar, PK),
+                  <code>setting_value</code> (text),
+                  <code>updated_at</code> (timestamp)
+                </td>
+              </tr>
+              <tr>
+                <td><code>user_activity_log</code></td>
+                <td>User action history.</td>
+                <td>
+                  <code>activity_id</code> (int, PK),
+                  <code>user_id</code> (int), <code>activity_type</code> (enum),
+                  <code>activity_description</code> (text)
+                </td>
+              </tr>
+              <tr>
+                <td><code>user_photos</code></td>
+                <td>Gallery photos.</td>
+                <td>
+                  <code>photoID</code> (int, PK), <code>userID</code> (int),
+                  <code>fileName</code> (varchar), <code>bookingID</code> (int),
+                  <code>photo_type</code> (enum)
+                </td>
+              </tr>
+              <tr>
+                <td><code>users</code></td>
+                <td>All registered users.</td>
+                <td>
+                  <code>userID</code> (int, PK), <code>Email</code> (varchar),
+                  <code>Role</code> (enum), <code>FullName</code> (varchar),
+                  <code>isVerified</code> (tinyint), <code>Status</code> (enum)
+                </td>
+              </tr>
+              <tr>
+                <td><code>booking_logs_archive</code></td>
+                <td>Archived booking logs.</td>
+                <td>
+                  <code>logID</code> (int, PK), <code>bookingID</code> (int),
+                  <code>Action</code> (varchar),
+                  <code>archivedAt</code> (datetime)
+                </td>
+              </tr>
+              <tr>
+                <td><code>bookings_archive</code></td>
+                <td>Archived bookings.</td>
+                <td>
+                  <code>bookingID</code> (int, PK), <code>userID</code> (int),
+                  <code>BookingStatus</code> (varchar),
+                  <code>archivedAt</code> (datetime)
+                </td>
+              </tr>
+              <tr>
+                <td><code>client_tags</code></td>
+                <td>Tags for client categorization.</td>
+                <td>
+                  <code>tagID</code> (int, PK), <code>tag_name</code> (varchar),
+                  <code>tag_color</code> (varchar)
+                </td>
+              </tr>
+              <tr>
+                <td><code>communication_log</code></td>
+                <td>History of communications.</td>
+                <td>
+                  <code>logID</code> (int, PK), <code>userID</code> (int),
+                  <code>type</code> (enum), <code>notes</code> (text)
+                </td>
+              </tr>
+              <tr>
+                <td><code>inclusion</code></td>
+                <td>Package inclusions.</td>
+                <td>
+                  <code>inclusionID</code> (int, PK),
+                  <code>packageID</code> (varchar),
+                  <code>Description</code> (varchar)
+                </td>
+              </tr>
+              <tr>
+                <td><code>password_history</code></td>
+                <td>Previous passwords for security.</td>
+                <td>
+                  <code>id</code> (int, PK), <code>userID</code> (int),
+                  <code>password_hash</code> (varchar)
+                </td>
+              </tr>
+              <tr>
+                <td><code>ratelimiting</code></td>
+                <td>Login attempt tracking.</td>
+                <td>
+                  <code>id</code> (int, PK), <code>userID</code> (int),
+                  <code>logInAttempt</code> (int),
+                  <code>loginLocked</code> (timestamp)
+                </td>
+              </tr>
+              <tr>
+                <td><code>tags</code></td>
+                <td>General system tags.</td>
+                <td>
+                  <code>tagID</code> (int, PK), <code>tag_name</code> (varchar),
+                  <code>tag_color</code> (varchar)
+                </td>
+              </tr>
+              <tr>
+                <td><code>user_tags</code></td>
+                <td>Tags assigned to users.</td>
+                <td>
+                  <code>userID</code> (int, PK), <code>tagID</code> (int, PK),
+                  <code>assigned_by</code> (int)
                 </td>
               </tr>
             </tbody>
@@ -279,7 +574,519 @@ src/
       </section>
 
       <!-- Public Module -->
-      <section id="public-module">
+      <section id="public" class="mb-5">
+        <h2 class="section-title text-gold serif">Public Pages</h2>
+        <p class="text-muted mb-4">Overview of public-facing pages accessible to all visitors.</p>
+        <div class="table-responsive">
+          <table class="table table-dark table-hover border-secondary">
+            <thead>
+              <tr>
+                <th class="text-gold">Page</th>
+                <th class="text-gold">Purpose</th>
+                <th class="text-gold">Key Features</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td><code>index.php</code></td>
+                <td>Landing Page</td>
+                <td>Hero section, featured content, introduction to services.</td>
+              </tr>
+              <tr>
+                <td><code>services.php</code></td>
+                <td>Services Listing</td>
+                <td>Displays available photography packages and services.</td>
+              </tr>
+              <tr>
+                <td><code>aboutCompany.php</code></td>
+                <td>Company Info</td>
+                <td>Mission, values, story. Includes "Contact Us" form (PHPMailer).</td>
+              </tr>
+              <tr>
+                <td><code>aboutUs.php</code></td>
+                <td>Team Profiles</td>
+                <td>Dynamic team member profiles via <code>?member=name</code>.</td>
+              </tr>
+              <tr>
+                <td><code>register.php</code></td>
+                <td>Registration</td>
+                <td>User account creation, email verification (OTP), CSRF protection.</td>
+              </tr>
+              <tr>
+                <td><code>logIn.php</code></td>
+                <td>Authentication</td>
+                <td>User login, account lockout logic, password reset flow.</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
+
+      <!-- User Portal -->
+      <section id="user" class="mb-5">
+        <h2 class="section-title text-gold serif">User Portal</h2>
+        <p class="text-muted mb-4">Private dashboard and management tools for registered clients.</p>
+        <div class="table-responsive">
+          <table class="table table-dark table-hover border-secondary">
+            <thead>
+              <tr>
+                <th class="text-gold">Page</th>
+                <th class="text-gold">Purpose</th>
+                <th class="text-gold">Key Features</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td><code>user.php</code></td>
+                <td>Dashboard</td>
+                <td>KPIs (Upcoming Events, Total Bookings, Total Spent), ApexCharts.</td>
+              </tr>
+              <tr>
+                <td><code>appointments.php</code></td>
+                <td>Booking Management</td>
+                <td>List bookings, filter by status, view details modal, pay balance.</td>
+              </tr>
+              <tr>
+                <td><code>myPhotos.php</code></td>
+                <td>Gallery</td>
+                <td>View uploaded event photos, filter by event, Google Drive link access.</td>
+              </tr>
+              <tr>
+                <td><code>profile.php</code></td>
+                <td>Profile Settings</td>
+                <td>Update personal info, change password, request account deletion.</td>
+              </tr>
+              <tr>
+                <td><code>billing.php</code></td>
+                <td>Financial History</td>
+                <td>View invoices, payment history, download PDF invoices.</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
+
+      <!-- Admin Portal -->
+      <section id="admin" class="mb-5">
+        <h2 class="section-title text-gold serif">Admin Dashboard</h2>
+        <p class="text-muted mb-4">Comprehensive management interface for administrators.</p>
+        <div class="table-responsive">
+          <table class="table table-dark table-hover border-secondary">
+            <thead>
+              <tr>
+                <th class="text-gold">Page</th>
+                <th class="text-gold">Purpose</th>
+                <th class="text-gold">Key Features</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td><code>adminDashboard.php</code></td>
+                <td>Analytics</td>
+                <td>Revenue charts, booking statistics, time filtering (Today/Week/Month/Quarter/Year/All Time), action center for pending items.</td>
+              </tr>
+              <tr>
+                <td><code>bookings.php</code></td>
+                <td>Booking Management</td>
+                <td>CRUD operations for bookings, status updates, meeting link management.</td>
+              </tr>
+              <tr>
+                <td><code>calendar.php</code></td>
+                <td>Schedule</td>
+                <td>FullCalendar view of all bookings, interactive event details.</td>
+              </tr>
+              <tr>
+                <td><code>client.php</code></td>
+                <td>User Management</td>
+                <td>Client directory, toggle user status, view client details.</td>
+              </tr>
+              <tr>
+                <td><code>inquiries.php</code></td>
+                <td>Communications</td>
+                <td>View/Reply to contact form messages, view user activity logs.</td>
+              </tr>
+              <tr>
+                <td><code>invoicing.php</code></td>
+                <td>Financials</td>
+                <td>Transaction history (payments, refunds), proof of payment verification.</td>
+              </tr>
+              <tr>
+                <td><code>photoUpload.php</code></td>
+                <td>Delivery</td>
+                <td>Upload photos to specific user galleries, set Google Drive links.</td>
+              </tr>
+              <tr>
+                <td><code>refunds.php</code></td>
+                <td>Refund Processing</td>
+                <td>Manage cancellation refund requests, approve/reject/process refunds.</td>
+              </tr>
+              <tr>
+                <td><code>reviews.php</code></td>
+                <td>Moderation</td>
+                <td>Approve or reject user-submitted reviews.</td>
+              </tr>
+              <tr>
+                <td><code>serviceAndPackages.php</code></td>
+                <td>Content Management</td>
+                <td>Edit package prices, descriptions, and inclusions.</td>
+              </tr>
+              <tr>
+                <td><code>settings.php</code></td>
+                <td>System Config</td>
+                <td>Update site name, contact info, admin password.</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
+
+      <!-- Detailed Process Specifications -->
+      <section id="detailed-specs" class="mb-5">
+        <h2 class="section-title text-gold serif">Detailed Process Specifications</h2>
+        <p class="text-muted mb-4">
+          Comprehensive breakdown of field validations, conditions, and correct inputs for all system forms.
+        </p>
+
+        <!-- Authentication Module -->
+        <h4 class="text-light mb-3">1. Authentication Module</h4>
+        <div class="table-responsive mb-4">
+            <table class="table table-dark table-hover border-secondary">
+                <thead>
+                    <tr>
+                        <th class="text-gold">Form</th>
+                        <th class="text-gold">Field</th>
+                        <th class="text-gold">Condition/Validation Rule</th>
+                        <th class="text-gold">Correct Input Example</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <!-- Registration -->
+                    <tr>
+                        <td rowspan="5" class="align-middle">Registration</td>
+                        <td>Email</td>
+                        <td>Required; Valid email format; Unique (not already registered).</td>
+                        <td><code>user@example.com</code></td>
+                    </tr>
+                    <tr>
+                        <td>Password</td>
+                        <td>Required; Min 8 characters.</td>
+                        <td><code>Password123!</code></td>
+                    </tr>
+                    <tr>
+                        <td>Confirm Password</td>
+                        <td>Required; Must match Password exactly.</td>
+                        <td><code>Password123!</code></td>
+                    </tr>
+                    <tr>
+                        <td>Terms Check</td>
+                        <td>Required; Must be checked.</td>
+                        <td><code>Checked</code></td>
+                    </tr>
+                    <tr>
+                        <td>Verification Code</td>
+                        <td>Required; Exactly 6 digits; Must match sent code.</td>
+                        <td><code>123456</code></td>
+                    </tr>
+                    <!-- Login -->
+                    <tr>
+                        <td rowspan="2" class="align-middle">Login</td>
+                        <td>Email</td>
+                        <td>Required; Valid email format.</td>
+                        <td><code>user@example.com</code></td>
+                    </tr>
+                    <tr>
+                        <td>Password</td>
+                        <td>Required.</td>
+                        <td><code>Password123!</code></td>
+                    </tr>
+                    <!-- Profile Completion -->
+                    <tr>
+                        <td rowspan="3" class="align-middle">Profile Completion</td>
+                        <td>First Name</td>
+                        <td>Required.</td>
+                        <td><code>Juan</code></td>
+                    </tr>
+                    <tr>
+                        <td>Last Name</td>
+                        <td>Required.</td>
+                        <td><code>Dela Cruz</code></td>
+                    </tr>
+                    <tr>
+                        <td>Contact No.</td>
+                        <td>Required; 11 digits; Must start with '09'; Numeric only.</td>
+                        <td><code>09171234567</code></td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <!-- Booking Process -->
+        <h4 class="text-light mb-3">2. Booking Process</h4>
+        <div class="table-responsive mb-4">
+            <table class="table table-dark table-hover border-secondary">
+                <thead>
+                    <tr>
+                        <th class="text-gold">Section</th>
+                        <th class="text-gold">Field</th>
+                        <th class="text-gold">Condition/Validation Rule</th>
+                        <th class="text-gold">Correct Input Example</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <!-- Event Details -->
+                    <tr>
+                        <td rowspan="5" class="align-middle">Event Details</td>
+                        <td>Event Date</td>
+                        <td>Required; Minimum 3 days in advance; Maximum 3 years in advance.</td>
+                        <td><code>2025-12-01</code></td>
+                    </tr>
+                    <tr>
+                        <td>Event Type</td>
+                        <td>Required; Selection from list. If "Other", text input required.</td>
+                        <td><code>Wedding</code></td>
+                    </tr>
+                    <tr>
+                        <td>Start Time</td>
+                        <td>Required; 07:00 AM - 10:00 PM range.</td>
+                        <td><code>09:00 AM</code></td>
+                    </tr>
+                    <tr>
+                        <td>End Time</td>
+                        <td>Required; Must be after Start Time.</td>
+                        <td><code>05:00 PM</code></td>
+                    </tr>
+                    <tr>
+                        <td>Location</td>
+                        <td>Required; Text address.</td>
+                        <td><code>123 Main St, City</code></td>
+                    </tr>
+                    <!-- Consultation -->
+                    <tr>
+                        <td rowspan="3" class="align-middle">Consultation</td>
+                        <td>Date</td>
+                        <td>Required; Must be a future date.</td>
+                        <td><code>2025-11-30</code></td>
+                    </tr>
+                    <tr>
+                        <td>Start Time</td>
+                        <td>Required; 09:00 AM - 06:00 PM range.</td>
+                        <td><code>10:00 AM</code></td>
+                    </tr>
+                    <tr>
+                        <td>End Time</td>
+                        <td>Required; Min 30 mins, Max 1.5 hours duration from Start Time.</td>
+                        <td><code>11:00 AM</code></td>
+                    </tr>
+                    <!-- Payment -->
+                    <tr>
+                        <td rowspan="3" class="align-middle">Payment</td>
+                        <td>Payment Method</td>
+                        <td>Required (GCash, PayMaya, Bank, Cash).</td>
+                        <td><code>GCash</code></td>
+                    </tr>
+                    <tr>
+                        <td>Proof of Payment</td>
+                        <td>Required (unless Cash); Max 5MB; JPG, PNG, PDF.</td>
+                        <td><code>receipt.jpg</code></td>
+                    </tr>
+                    <tr>
+                        <td>Downpayment</td>
+                        <td>Required; Minimum 25% of Total Price; Max Total Price.</td>
+                        <td><code>5000</code></td>
+                    </tr>
+                    <!-- Agreements -->
+                    <tr>
+                        <td class="align-middle">Agreements</td>
+                        <td>Terms Check</td>
+                        <td>Required; Must be checked.</td>
+                        <td><code>Checked</code></td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <!-- Refund & Cancellation Logic -->
+        <h4 class="text-light mb-3">3. Refund & Cancellation Logic</h4>
+        <div class="card bg-dark border-secondary mb-4">
+            <div class="card-body">
+                <div class="row g-4">
+                    <div class="col-md-6">
+                        <h6 class="text-gold">User Cancellation</h6>
+                        <ul class="text-muted small">
+                            <li><strong>Allowed Status:</strong> <code>pending_consultation</code>, <code>confirmed</code>.</li>
+                            <li><strong>Refund Amount:</strong> <span class="text-success">40%</span> of Downpayment returned to User.</li>
+                            <li><strong>Cancellation Fee:</strong> <span class="text-danger">60%</span> of Downpayment retained by Admin.</li>
+                        </ul>
+                    </div>
+                    <div class="col-md-6">
+                        <h6 class="text-gold">Admin Refund Process</h6>
+                        <ul class="text-muted small">
+                            <li><strong>Step 1:</strong> Admin reviews request in Dashboard.</li>
+                            <li><strong>Step 2:</strong> Sets status to <code>Approved</code> or <code>Rejected</code>.</li>
+                            <li><strong>Step 3:</strong> If Approved, Admin processes payment manually.</li>
+                            <li><strong>Step 4:</strong> Admin uploads proof of refund and sets status to <code>Processed</code>.</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+      </section>
+
+      <!-- Refund Process -->
+      <section id="refund-process" class="mb-5">
+        <h2 class="section-title text-gold serif">Refund Process</h2>
+        <p class="text-muted mb-4">
+          The system implements a strict refund policy for cancellations. This process is automated upon user cancellation.
+        </p>
+
+        <div class="card bg-dark border-secondary mb-4">
+          <div class="card-body">
+            <h5 class="text-gold mb-3">Cancellation & Refund Logic</h5>
+            <div class="row g-4">
+              <div class="col-md-6">
+                <h6 class="text-light">1. Eligibility</h6>
+                <ul class="text-muted small">
+                  <li>User can only cancel bookings with status: <code>pending_consultation</code> or <code>confirmed</code>.</li>
+                  <li>Completed or already cancelled bookings cannot be modified by the user.</li>
+                </ul>
+              </div>
+              <div class="col-md-6">
+                <h6 class="text-light">2. Calculation</h6>
+                <ul class="text-muted small">
+                  <li><strong>Total Downpayment:</strong> The amount paid upfront (25% of package).</li>
+                  <li><strong>Refund Amount:</strong> <span class="text-success">40%</span> of the downpayment.</li>
+                  <li><strong>Cancellation Fee:</strong> <span class="text-danger">60%</span> of the downpayment (Retained by Admin).</li>
+                </ul>
+              </div>
+            </div>
+            <hr class="border-secondary">
+            <h6 class="text-light">3. Process Flow</h6>
+            <ol class="text-muted small">
+              <li>User clicks <strong>"Cancel Booking"</strong> in <em>My Appointments</em>.</li>
+              <li>System checks eligibility and calculates amounts.</li>
+              <li>Booking status updates to <code>cancelled</code>.</li>
+              <li>A new record is inserted into the <code>refunds</code> table with status <code>pending</code>.</li>
+              <li>User receives a notification detailing the refund amount and fee.</li>
+            </ol>
+          </div>
+        </div>
+      </section>
+
+      <!-- User Journey: Account to Photos -->
+      <section id="user-journey" class="mb-5">
+        <h2 class="section-title text-gold serif">User Journey: From Sign-up to Photos</h2>
+        <p class="text-muted mb-4">
+          A complete walkthrough of the client lifecycle, from account creation to receiving their final edited photos.
+        </p>
+
+        <div class="timeline">
+          <!-- Step 1 -->
+          <div class="card bg-dark border-secondary mb-3">
+            <div class="card-body">
+              <div class="d-flex align-items-center mb-2">
+                <span class="badge bg-gold text-dark me-2">1</span>
+                <h5 class="card-title text-light m-0">Account Creation</h5>
+              </div>
+              <p class="card-text text-muted small">
+                User visits <code>register.php</code> and enters Email, Password, and confirms via a 6-digit email code.
+                <br><strong>Status:</strong> Account Created, Unverified -> Verified.
+              </p>
+            </div>
+          </div>
+
+          <!-- Step 2 -->
+          <div class="card bg-dark border-secondary mb-3">
+            <div class="card-body">
+              <div class="d-flex align-items-center mb-2">
+                <span class="badge bg-gold text-dark me-2">2</span>
+                <h5 class="card-title text-light m-0">Profile Completion</h5>
+              </div>
+              <p class="card-text text-muted small">
+                Upon first login, user is redirected to <code>completeProfile.php</code>.
+                <br><strong>Required:</strong> First Name, Last Name, Valid Contact No. (09xxxxxxxxx).
+                <br><strong>Gatekeeper:</strong> User cannot book or browse until this is done.
+              </p>
+            </div>
+          </div>
+
+          <!-- Step 3 -->
+          <div class="card bg-dark border-secondary mb-3">
+            <div class="card-body">
+              <div class="d-flex align-items-center mb-2">
+                <span class="badge bg-gold text-dark me-2">3</span>
+                <h5 class="card-title text-light m-0">Booking & Downpayment</h5>
+              </div>
+              <p class="card-text text-muted small">
+                User selects Package, Date, and Time in <code>bookingForm.php</code>.
+                <br><strong>Action:</strong> Uploads proof of payment for the required downpayment.
+                <br><strong>System:</strong> Creates Booking (Pending) and Transaction record.
+              </p>
+            </div>
+          </div>
+
+          <!-- Step 4 -->
+          <div class="card bg-dark border-secondary mb-3">
+            <div class="card-body">
+              <div class="d-flex align-items-center mb-2">
+                <span class="badge bg-gold text-dark me-2">4</span>
+                <h5 class="card-title text-light m-0">Admin Confirmation</h5>
+              </div>
+              <p class="card-text text-muted small">
+                Admin reviews payment in <code>admin/bookings.php</code>.
+                <br><strong>Action:</strong> Admin checks "Downpayment Confirmed".
+                <br><strong>Status:</strong> Booking becomes <code>Confirmed</code>. User notified.
+              </p>
+            </div>
+          </div>
+
+          <!-- Step 5 -->
+          <div class="card bg-dark border-secondary mb-3">
+            <div class="card-body">
+              <div class="d-flex align-items-center mb-2">
+                <span class="badge bg-gold text-dark me-2">5</span>
+                <h5 class="card-title text-light m-0">Event & Final Payment</h5>
+              </div>
+              <p class="card-text text-muted small">
+                After the event, user pays the remaining balance via <em>My Appointments</em>.
+                <br><strong>Action:</strong> User uploads final payment proof.
+                <br><strong>Admin:</strong> Confirms final payment. Status -> <code>Completed</code> (or Post-Production).
+              </p>
+            </div>
+          </div>
+
+          <!-- Step 6 -->
+          <div class="card bg-dark border-secondary mb-3">
+            <div class="card-body">
+              <div class="d-flex align-items-center mb-2">
+                <span class="badge bg-gold text-dark me-2">6</span>
+                <h5 class="card-title text-light m-0">Photo Delivery</h5>
+              </div>
+              <p class="card-text text-muted small">
+                Admin goes to <code>admin/photoUpload.php</code>.
+                <br><strong>Action:</strong> Selects the completed booking. Uploads photos (JPG/PNG) OR provides a Google Drive link.
+                <br><strong>System:</strong> Files stored in <code>uploads/user_photos/{userID}/</code>.
+              </p>
+            </div>
+          </div>
+
+          <!-- Step 7 -->
+          <div class="card bg-dark border-secondary mb-3">
+            <div class="card-body">
+              <div class="d-flex align-items-center mb-2">
+                <span class="badge bg-gold text-dark me-2">7</span>
+                <h5 class="card-title text-light m-0">Accessing Photos</h5>
+              </div>
+              <p class="card-text text-muted small">
+                User visits <code>myPhotos.php</code>.
+                <br><strong>Result:</strong> Views gallery of uploaded photos or clicks the provided Google Drive link to download assets.
+              </p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Public Module -->
+      <section id="public">
         <h2 class="section-title">Public Module</h2>
         <p class="text-muted">Accessible to unauthenticated visitors.</p>
 
@@ -329,13 +1136,11 @@ src/
                   </li>
                 </ul>
               </div>
-            </div>
-          </div>
         </div>
       </section>
 
       <!-- User Module -->
-      <section id="user-module">
+      <section id="user">
         <h2 class="section-title">User Portal</h2>
         <p class="text-muted">
           Protected area for clients. Requires <code>role='User'</code>.
@@ -383,16 +1188,14 @@ src/
             <li>
               <strong>Cancel:</strong> Soft-deletes booking
               (status='Cancelled'). Triggers refund entry if payments exist.
-            </li>
-          </ul>
         </div>
       </section>
 
       <!-- Admin Module -->
-      <section id="admin-module">
+      <section id="admin">
         <h2 class="section-title">Admin Dashboard</h2>
         <p class="text-muted">
-          Control center. Requires <code>role='Admin'</code>.
+          Protected area for staff. Requires <code>role='Admin'</code>.
         </p>
 
         <div class="accordion" id="adminAccordion">
@@ -624,7 +1427,7 @@ src/
             (Client) and the Admin.
           </p>
 
-          <div class="workflow-step">
+          <div class="workflow-step text-light">
             <strong class="text-gold">Step 1: User Submission</strong>
             <br />
             <span class="badge bg-secondary mb-2">User Action</span>
@@ -649,7 +1452,7 @@ src/
             </ul>
           </div>
 
-          <div class="workflow-step">
+          <div class="workflow-step text-light">
             <strong class="text-gold">Step 2: Admin Verification</strong>
             <br />
             <span class="badge bg-warning text-dark mb-2">Admin Action</span>
@@ -665,7 +1468,7 @@ src/
             </ul>
           </div>
 
-          <div class="workflow-step">
+          <div class="workflow-step text-light">
             <strong class="text-gold">Step 3: Confirmation</strong>
             <br />
             <span class="badge bg-warning text-dark mb-2">Admin Action</span>
@@ -690,7 +1493,7 @@ src/
             </ul>
           </div>
 
-          <div class="workflow-step">
+          <div class="workflow-step text-light">
             <strong class="text-gold">Step 4: Event & Final Payment</strong>
             <br />
             <span class="badge bg-secondary mb-2">User Action</span>
@@ -716,16 +1519,16 @@ src/
 
         <div class="card p-4">
           <h5 class="text-gold">2. Refund Process</h5>
-          <div class="workflow-step">
+          <div class="workflow-step text-light">
             <strong>Trigger:</strong> Booking is cancelled (by User or Admin).
             <br /><em>System:</em> Checks if payments exist. If yes, creates
             'Refund Request'.
           </div>
-          <div class="workflow-step">
+          <div class="workflow-step text-light">
             <strong>Processing:</strong> Admin views request in Refunds page.
             <br /><em>Action:</em> Admin processes bank transfer manually.
           </div>
-          <div class="workflow-step">
+          <div class="workflow-step text-light">
             <strong>Closure:</strong> Admin uploads transfer receipt. <br /><em
               >System:</em
             >
@@ -735,59 +1538,280 @@ src/
       </section>
 
       <!-- System Improvements -->
-      <section id="improvements">
-        <h2 class="section-title">System Improvements & Audit</h2>
-        <p class="text-muted">
-          Findings from the recent system audit (Nov 2025) and planned upgrades.
+      <section id="improvements" class="mb-5">
+        <h2 class="section-title text-gold serif">System Improvements & Audit</h2>
+        <p class="text-muted mb-4">
+          Findings from the comprehensive system audit (Nov 2025) and prioritized action plan.
         </p>
 
-        <div class="row g-4">
+        <div class="row g-4 mb-4">
+          <!-- Security -->
           <div class="col-md-6">
-            <div class="card p-4 h-100 border-danger">
-              <h5 class="text-danger">
-                <i class="bi bi-exclamation-triangle me-2"></i>Critical Fixes
-                Needed
+            <div class="card p-4 h-100 border-danger bg-dark">
+              <h5 class="text-danger font-serif">
+                <i class="bi bi-shield-exclamation me-2"></i>Security (Critical)
               </h5>
-              <ul class="text-muted small">
+              <ul class="text-muted small mt-3">
                 <li class="mb-2">
-                  <strong>Booking Add-ons:</strong> Currently, selected add-ons
-                  are calculated in price but <em>not saved</em> to the
-                  database. <br /><span class="text-danger"
-                    >Impact: Data Loss.</span
-                  >
+                  <strong class="text-light">Session Fixation:</strong>
+                  Session IDs are not regenerated upon login.
+                  <br /><span class="text-danger">Risk: Account Hijacking.</span>
                 </li>
                 <li class="mb-2">
-                  <strong>Security (XSS):</strong>
-                  <code>inquiries.php</code> renders user input unsafely.
-                  <br /><span class="text-danger">Impact: High Risk.</span>
+                  <strong class="text-light">XSS Vulnerability:</strong>
+                  <code>inquiries.php</code> renders user input unsafely via innerHTML.
+                  <br /><span class="text-danger">Risk: Malicious Script Injection.</span>
                 </li>
                 <li>
-                  <strong>CSRF Protection:</strong> Missing in Admin API
-                  endpoints.
+                  <strong class="text-light">CSRF Protection:</strong>
+                  Missing in Admin API endpoints (`inquiries_api.php`).
                 </li>
               </ul>
             </div>
           </div>
+
+          <!-- Code Quality -->
           <div class="col-md-6">
-            <div class="card p-4 h-100 border-warning">
-              <h5 class="text-warning">
-                <i class="bi bi-lightbulb me-2"></i>Planned Enhancements
+            <div class="card p-4 h-100 border-warning bg-dark">
+              <h5 class="text-warning font-serif">
+                <i class="bi bi-code-slash me-2"></i>Code Quality
               </h5>
-              <ul class="text-muted small">
+              <ul class="text-muted small mt-3">
                 <li class="mb-2">
-                  <strong>Physical Transactions Table:</strong> Move from
-                  virtual aggregation to a dedicated table for better financial
-                  tracking.
-                </li>
-                <li class="mb-2">
-                  <strong>UI Consistency:</strong> Replace native browser alerts
-                  with <strong>SweetAlert2</strong> across all Admin pages.
+                  <strong class="text-light">Refactoring Needed:</strong>
+                  <code>auth.php</code> is a "God File" (600+ lines) handling DB, Email, and Auth.
+                  <br /><span class="text-warning">Action: Split into `AuthService` and `User` classes.</span>
                 </li>
                 <li>
-                  <strong>Email Templates:</strong> Centralize CSS styles for
-                  easier maintenance.
+                  <strong class="text-light">Spaghetti Code:</strong>
+                  <code>processBooking.php</code> mixes validation, pricing, and email logic.
+                  <br /><span class="text-warning">Action: Extract `BookingService`.</span>
                 </li>
               </ul>
+            </div>
+          </div>
+        </div>
+
+        <div class="row g-4">
+          <!-- UI/UX -->
+          <div class="col-md-6">
+            <div class="card p-4 h-100 border-info bg-dark">
+              <h5 class="text-info font-serif">
+                <i class="bi bi-palette me-2"></i>UI/UX Standardization
+              </h5>
+              <ul class="text-muted small mt-3">
+                <li class="mb-2">
+                  <strong class="text-light">Feedback Systems:</strong>
+                  Replace native browser alerts with <strong>SweetAlert2</strong> across all Admin pages.
+                </li>
+                <li>
+                  <strong class="text-light">Loading States:</strong>
+                  Implement consistent <code>.luxury-loader</code> for all async operations (Login, Booking).
+                </li>
+              </ul>
+            </div>
+          </div>
+
+          <!-- Business Logic -->
+          <div class="col-md-6">
+            <div class="card p-4 h-100 border-success bg-dark">
+              <h5 class="text-success font-serif">
+                <i class="bi bi-graph-up-arrow me-2"></i>Business Logic
+              </h5>
+              <ul class="text-muted small mt-3">
+                <li class="mb-2">
+                  <strong class="text-light">Consultation Slots:</strong>
+                  Add availability check for consultation times to prevent double-booking.
+                </li>
+                <li>
+                  <strong class="text-light">Data Integrity:</strong>
+                  Ensure selected booking add-ons are saved to the database (currently calculated but not persisted).
+                </li>
+              </ul>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Recent Fixes & Enhancements (November 2025) -->
+      <section id="recent-fixes" class="mb-5">
+        <h2 class="section-title text-gold serif">Recent Fixes & Enhancements</h2>
+        <p class="text-muted mb-4">
+          Latest improvements, bug fixes, and feature enhancements implemented in November 2025.
+        </p>
+
+        <!-- Meeting Link Protocol Fix -->
+        <div class="card p-4 mb-4 border-success">
+          <h5 class="text-success">
+            <i class="bi bi-check-circle me-2"></i>Meeting Link Protocol Enforcement
+          </h5>
+          <p class="text-muted small mt-3 mb-2">
+            <strong>Issue:</strong> Meeting links sent in email notifications were not clickable when admins entered URLs without the protocol (e.g., <code>zoom.us/meeting-id</code> instead of <code>https://zoom.us/meeting-id</code>). Email clients interpreted these as relative URLs, making them inaccessible.
+          </p>
+          <p class="text-muted small mb-2">
+            <strong>Solution:</strong> Updated <code>src/admin/api/manage_booking.php</code> to automatically prepend <code>https://</code> to meeting links if they don't start with <code>http://</code> or <code>https://</code>.
+          </p>
+          <div class="bg-dark border-secondary rounded p-3 mt-2">
+            <code class="text-light">
+              // Auto-fix meeting link protocol<br>
+              if (!preg_match('/^https?:\/\//i', $meetingLink)) {<br>
+              &nbsp;&nbsp;$meetingLink = 'https://' . $meetingLink;<br>
+              }
+            </code>
+          </div>
+          <p class="text-muted small mt-3 mb-0">
+            <strong>Impact:</strong> All meeting links stored in the database and sent via email now use absolute URLs, ensuring universal accessibility across all email clients.
+          </p>
+        </div>
+
+        <!-- Dashboard Time Filtering -->
+        <div class="card p-4 mb-4 border-info">
+          <h5 class="text-info">
+            <i class="bi bi-calendar-range me-2"></i>Dashboard Time Filtering System
+          </h5>
+          <p class="text-muted small mt-3 mb-2">
+            <strong>Feature:</strong> Implemented comprehensive time-based filtering for all charts and KPIs in the admin dashboard, allowing admins to view metrics for specific timeframes.
+          </p>
+          
+          <p class="text-muted small mb-2"><strong>Files Modified:</strong></p>
+          <ul class="text-muted small mb-3">
+            <li><code>src/admin/api/get_analytics.php</code> - Added quarter timeframe option and applied date filters to all queries</li>
+            <li><code>src/admin/adminDashboard.php</code> - Added "This Quarter" option to the timeframe filter dropdown</li>
+          </ul>
+
+          <p class="text-muted small mb-2"><strong>Timeframe Options:</strong></p>
+          <ul class="text-muted small mb-3">
+            <li><strong>Today</strong> - Shows data for current day</li>
+            <li><strong>This Week</strong> - Shows data for current week (Sunday-Saturday)</li>
+            <li><strong>This Month</strong> - Shows data for current month</li>
+            <li><strong>This Quarter</strong> - Shows data for current quarter (Q1-Q4)</li>
+            <li><strong>This Year</strong> - Shows data for current year</li>
+            <li><strong>All Time</strong> - Shows complete historical data</li>
+          </ul>
+
+          <p class="text-muted small mb-2"><strong>Filtered Metrics:</strong></p>
+          <div class="row g-2 mb-3">
+            <div class="col-md-6">
+              <ul class="text-muted small mb-0">
+                <li>Total Revenue</li>
+                <li>Total Bookings</li>
+                <li>Average Booking Value</li>
+                <li>New Clients (dynamic calculation)</li>
+              </ul>
+            </div>
+            <div class="col-md-6">
+              <ul class="text-muted small mb-0">
+                <li>Revenue Trend Chart</li>
+                <li>Top Packages Chart</li>
+                <li>Booking Status Distribution</li>
+                <li>Event Type Distribution</li>
+              </ul>
+            </div>
+          </div>
+
+          <p class="text-muted small mb-0">
+            <strong>Note:</strong> Pending Requests and Upcoming Events remain unfiltered by design, as they show current actionable items regardless of timeframe.
+          </p>
+        </div>
+
+        <!-- Notification Badge Improvements -->
+        <div class="card p-4 mb-4 border-warning">
+          <h5 class="text-warning">
+            <i class="bi bi-bell me-2"></i>Notification Badge UI Improvements
+          </h5>
+          <p class="text-muted small mt-3 mb-2">
+            <strong>Enhancement:</strong> Improved the notification badge positioning and sizing for better visibility and aesthetics.
+          </p>
+          <p class="text-muted small mb-2">
+            <strong>Changes Made:</strong>
+          </p>
+          <ul class="text-muted small mb-3">
+            <li>Reduced badge font size to <code>0.65rem</code> for a more compact appearance</li>
+            <li>Added custom padding (<code>0.25rem 0.4rem</code>) for better spacing</li>
+            <li>Maintained proper positioning at top-right of bell icon using Bootstrap utilities</li>
+          </ul>
+          <p class="text-muted small mb-0">
+            <strong>File:</strong> <code>src/admin/components/header.php</code>
+          </p>
+        </div>
+
+        <!-- Meeting Link Visibility Documentation -->
+        <div class="card p-4 border-secondary">
+          <h5 class="text-light">
+            <i class="bi bi-info-circle me-2"></i>Meeting Link Feature Documentation
+          </h5>
+          <p class="text-muted small mt-3 mb-2">
+            <strong>Clarification:</strong> Meeting link visibility in the user's booking modal is fully functional and correctly implemented.
+          </p>
+          
+          <p class="text-muted small mb-2"><strong>How It Works:</strong></p>
+          <ol class="text-muted small mb-3">
+            <li>Admin adds a meeting link via the Bookings page booking details modal</li>
+            <li>System saves the link to the <code>bookings.meeting_link</code> column</li>
+            <li>User receives an email notification with the meeting link</li>
+            <li>Link automatically appears in user's appointment modal when viewing booking details</li>
+          </ol>
+
+          <p class="text-muted small mb-2"><strong>Implementation Details:</strong></p>
+          <ul class="text-muted small mb-0">
+            <li><strong>Backend:</strong> <code>src/user/getAppointments.php</code> includes <code>meeting_link</code> in API response</li>
+            <li><strong>Frontend:</strong> <code>src/user/appointmentsHandler.js</code> displays link if present (lines 195-205)</li>
+            <li><strong>Notifications:</strong> <code>src/admin/api/manage_booking.php</code> sends email when link is added/updated</li>
+          </ul>
+        </div>
+      </section>
+
+      <!-- Future Features -->
+      <section id="future" class="mb-5">
+        <h2 class="section-title text-gold serif">Future Features Roadmap</h2>
+        <p class="text-muted mb-4">
+          Proposed enhancements to elevate the Aperture Studios experience.
+        </p>
+
+        <div class="row g-4">
+          <div class="col-md-4">
+            <div class="neo-card h-100">
+              <div class="icon-box mb-3"><i class="bi bi-robot"></i></div>
+              <h5 class="text-light">AI Integration</h5>
+              <p class="text-muted small">
+                Smart photo tagging and facial recognition to allow clients to instantly find their photos in large event galleries.
+              </p>
+            </div>
+          </div>
+          <div class="col-md-4">
+            <div class="neo-card h-100">
+              <div class="icon-box mb-3"><i class="bi bi-phone"></i></div>
+              <h5 class="text-light">Mobile App</h5>
+              <p class="text-muted small">
+                Dedicated iOS/Android app for clients to manage bookings, view galleries offline, and receive push notifications.
+              </p>
+            </div>
+          </div>
+          <div class="col-md-4">
+            <div class="neo-card h-100">
+              <div class="icon-box mb-3"><i class="bi bi-credit-card"></i></div>
+              <h5 class="text-light">Automated Payments</h5>
+              <p class="text-muted small">
+                Full integration with Stripe or PayMongo to handle credit card holds, automated downpayments, and instant refunds.
+              </p>
+            </div>
+          </div>
+          <div class="col-md-4">
+            <div class="neo-card h-100">
+              <div class="icon-box mb-3"><i class="bi bi-envelope-heart"></i></div>
+              <h5 class="text-light">Marketing Automation</h5>
+              <p class="text-muted small">
+                Automated email sequences for client retention (e.g., "Anniversary Shoot" reminders 1 year after a wedding).
+              </p>
+            </div>
+          </div>
+          <div class="col-md-4">
+            <div class="neo-card h-100">
+              <div class="icon-box mb-3"><i class="bi bi-star"></i></div>
+              <h5 class="text-light">Loyalty Program</h5>
+              <p class="text-muted small">
+                Points system for frequent bookers (e.g., corporate clients) redeemable for discounts or free prints.
+              </p>
             </div>
           </div>
         </div>

@@ -81,15 +81,19 @@ if (isset($_GET['action']) and $_GET['action'] === 'logout') {
                         </table>
                     </div>
                 </div>
+                </div>
             </div>
         </main>
     </div>
 
     <script src="../../bootstrap-5.3.8-dist/js/bootstrap.bundle.min.js"></script>
-    <script src="../libs/sweetalert2/sweetalert2.all.min.js"></script>
+    <script src="js/notifications.js"></script>
     <script src="admin.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <script>
-        document.addEventListener('DOMContentLoaded', loadReviews);
+        document.addEventListener('DOMContentLoaded', function() {
+            loadReviews();
+        });
 
         function loadReviews() {
             fetch('../user/api/reviews_api.php?action=admin_get_all')

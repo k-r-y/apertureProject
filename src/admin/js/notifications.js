@@ -26,6 +26,22 @@ class AdminNotificationManager {
                 this.fetchNotifications();
             });
         }
+
+        // Add styles if not present
+        if (!document.getElementById('admin-notification-styles')) {
+            const style = document.createElement('style');
+            style.id = 'admin-notification-styles';
+            style.textContent = `
+                .notification-item {
+                    cursor: pointer;
+                    transition: background-color 0.2s;
+                }
+                .notification-item:hover {
+                    background-color: rgba(255, 255, 255, 0.05) !important;
+                }
+            `;
+            document.head.appendChild(style);
+        }
     }
 
     async fetchNotifications() {
@@ -59,32 +75,38 @@ class AdminNotificationManager {
 
         this.notificationsList.innerHTML = notifications.map(notif => `
             <li class="notification-item px-3 py-2 border-bottom border-secondary" 
-                onclick="window.location.href='${notif.link}'">
+                onclick="window.adminNotificationManager.handleNotificationClick(${notif.id}, '${notif.link}')">
                 <div class="d-flex align-items-start">
                     <i class="bi ${this.getIcon(notif.type)} text-gold me-2 mt-1"></i>
                     <div class="flex-grow-1">
                         <h6 class="mb-0 text-light" style="font-size: 0.85rem;">${notif.title}</h6>
                         <p class="mb-1 text-muted small">${notif.message}</p>
-                        <small class="text-muted" style="font-size: 0.7rem;">Just now</small>
+                        <small class="text-muted" style="font-size: 0.7rem;">${notif.time_ago || 'Just now'}</small>
                     </div>
                 </div>
             </li>
         `).join('');
+    }
 
-        // Add styles if not present
-        if (!document.getElementById('admin-notification-styles')) {
-            const style = document.createElement('style');
-            style.id = 'admin-notification-styles';
-            style.textContent = `
-                .notification-item {
-                    cursor: pointer;
-                    transition: background-color 0.2s;
-                }
-                .notification-item:hover {
-                    background-color: rgba(255, 255, 255, 0.05) !important;
-                }
-            `;
-            document.head.appendChild(style);
+    async handleNotificationClick(id, link) {
+        try {
+            await fetch('api/mark_notification_read.php', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ id: id })
+            });
+
+            // Redirect after marking as read
+            if (link) {
+                window.location.href = link;
+            } else {
+                this.fetchNotifications(); // Refresh if no link
+            }
+        } catch (error) {
+            console.error('Error marking notification as read:', error);
+            if (link) window.location.href = link; // Redirect anyway
         }
     }
 
@@ -100,5 +122,5 @@ class AdminNotificationManager {
 
 // Initialize
 document.addEventListener('DOMContentLoaded', () => {
-    new AdminNotificationManager();
+    window.adminNotificationManager = new AdminNotificationManager();
 });

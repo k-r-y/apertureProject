@@ -20,6 +20,13 @@ document.addEventListener('DOMContentLoaded', function () {
         const modalAdminNotes = document.getElementById('modalAdminNotes');
         const modalMeetingLink = document.getElementById('modalMeetingLink');
 
+        // Edit Details Elements
+        const editDetailsBtn = document.getElementById('editDetailsBtn');
+        const saveDetailsBtn = document.getElementById('saveDetailsBtn');
+        const cancelEditBtn = document.getElementById('cancelEditBtn');
+        const viewModeDetails = document.getElementById('viewModeDetails');
+        const editModeDetails = document.getElementById('editModeDetails');
+
         if (updateStatusBtn) {
             updateStatusBtn.addEventListener('click', function () {
                 if (currentBookingId) {
@@ -40,6 +47,31 @@ document.addEventListener('DOMContentLoaded', function () {
             saveLinkBtn.addEventListener('click', function () {
                 if (currentBookingId) {
                     updateMeetingLink(currentBookingId, modalMeetingLink.value);
+                }
+            });
+        }
+
+        // Edit Mode Toggles
+        if (editDetailsBtn) {
+            editDetailsBtn.addEventListener('click', function () {
+                viewModeDetails.style.display = 'none';
+                editModeDetails.style.display = 'block';
+                editDetailsBtn.style.display = 'none';
+            });
+        }
+
+        if (cancelEditBtn) {
+            cancelEditBtn.addEventListener('click', function () {
+                viewModeDetails.style.display = 'block';
+                editModeDetails.style.display = 'none';
+                editDetailsBtn.style.display = 'block';
+            });
+        }
+
+        if (saveDetailsBtn) {
+            saveDetailsBtn.addEventListener('click', function () {
+                if (currentBookingId) {
+                    updateBookingDetails(currentBookingId);
                 }
             });
         }
@@ -93,6 +125,28 @@ function populateModal(booking) {
     setText('modalEventTime', `${formatTime(booking.event_time_start)} - ${formatTime(booking.event_time_end)}`);
     setText('modalEventLocation', booking.event_location);
     setText('modalEventType', booking.event_type);
+
+    // Populate Edit Fields
+    const editDate = document.getElementById('editEventDate');
+    const editStart = document.getElementById('editEventStartTime');
+    const editEnd = document.getElementById('editEventEndTime');
+    const editLoc = document.getElementById('editEventLocation');
+    const editType = document.getElementById('editEventType');
+
+    if (editDate) editDate.value = booking.event_date;
+    if (editStart) editStart.value = booking.event_time_start;
+    if (editEnd) editEnd.value = booking.event_time_end;
+    if (editLoc) editLoc.value = booking.event_location;
+    if (editType) editType.value = booking.event_type;
+
+    // Reset View Mode
+    const viewModeDetails = document.getElementById('viewModeDetails');
+    const editModeDetails = document.getElementById('editModeDetails');
+    const editDetailsBtn = document.getElementById('editDetailsBtn');
+
+    if (viewModeDetails) viewModeDetails.style.display = 'block';
+    if (editModeDetails) editModeDetails.style.display = 'none';
+    if (editDetailsBtn) editDetailsBtn.style.display = 'block';
 
     setText('modalPackageName', booking.packageName);
     setText('modalTotalAmount', `₱${parseFloat(booking.total_amount).toLocaleString()}`);
@@ -380,6 +434,53 @@ function updateMeetingLink(bookingId, link) {
             if (btn) {
                 btn.disabled = false;
                 btn.textContent = 'Save';
+            }
+        });
+}
+
+// Update Booking Details
+function updateBookingDetails(bookingId) {
+    const btn = document.getElementById('saveDetailsBtn');
+    if (btn) {
+        btn.disabled = true;
+        btn.innerHTML = '<span class="spinner-border spinner-border-sm"></span>';
+    }
+
+    const data = {
+        bookingId: bookingId,
+        event_date: document.getElementById('editEventDate').value,
+        event_time_start: document.getElementById('editEventStartTime').value,
+        event_time_end: document.getElementById('editEventEndTime').value,
+        event_location: document.getElementById('editEventLocation').value,
+        event_type: document.getElementById('editEventType').value
+    };
+
+    fetch('api/manage_booking.php?action=update_details', {
+        method: 'POST',
+        credentials: 'include',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(data)
+    })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                LuxuryToast.show({ message: 'Booking details updated successfully', type: 'success' });
+                viewBooking(bookingId); // Refresh modal
+                if (typeof fetchBookings === 'function') {
+                    fetchBookings(); // Refresh list
+                }
+            } else {
+                LuxuryToast.show({ message: data.message || 'Failed to update details', type: 'error' });
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            LuxuryToast.show({ message: 'Failed to update details', type: 'error' });
+        })
+        .finally(() => {
+            if (btn) {
+                btn.disabled = false;
+                btn.textContent = 'Save Changes';
             }
         });
 }

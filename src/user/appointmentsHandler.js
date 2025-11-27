@@ -1,15 +1,6 @@
-// Appointments Handler - Manages fetching, filtering, and displaying appointments
-
 let allAppointments = [];
 let currentFilter = 'all';
 
-// Initialize on page load
-document.addEventListener('DOMContentLoaded', function () {
-    fetchAppointments();
-    setupFilterButtons();
-});
-
-// Fetch appointments from API
 async function fetchAppointments(status = 'all') {
     const loadingState = document.getElementById('loadingState');
     const appointmentsGrid = document.getElementById('appointmentsGrid');
@@ -30,6 +21,12 @@ async function fetchAppointments(status = 'all') {
         if (data.success) {
             allAppointments = data.appointments;
             renderAppointments(data.appointments);
+
+            // Handle deep linking
+            if (window.pendingBookingId) {
+                openAppointmentModal(window.pendingBookingId);
+                window.pendingBookingId = null; // Clear it
+            }
         } else {
             throw new Error(data.message || 'Failed to fetch appointments');
         }
@@ -68,7 +65,7 @@ function renderAppointments(appointments) {
                 <small class="text-muted">Ref: #${appointment.bookingRef}</small>
             </div>
             
-            <h5 class="text-gold mb-3">${escapeHtml(appointment.eventType)}</h5>
+            <h5 class="text-gold mb-3">${appointment.eventType}</h5>
             
             <div class="mb-2">
                 <i class="bi bi-calendar3 text-gold me-2"></i>
@@ -82,12 +79,12 @@ function renderAppointments(appointments) {
             
             <div class="mb-2">
                 <i class="bi bi-geo-alt text-gold me-2"></i>
-                <span class="text-light">${escapeHtml(appointment.eventLocation)}</span>
+                <span class="text-light">${appointment.eventLocation}</span>
             </div>
             
             <div class="mb-3">
                 <i class="bi bi-box text-gold me-2"></i>
-                <span class="text-light">${escapeHtml(appointment.packageName)}</span>
+                <span class="text-light">${appointment.packageName}</span>
             </div>
             
             <div class="divider"></div>
@@ -193,6 +190,17 @@ function openAppointmentModal(bookingID) {
             <span class="detail-value">${escapeHtml(appointment.eventTheme)}</span>
         </div>
         ` : ''}
+
+        ${appointment.meetingLink ? `
+        <div class="detail-row mt-3">
+            <span class="detail-label">Meeting Link</span>
+            <span class="detail-value">
+                <a href="${escapeHtml(appointment.meetingLink)}" target="_blank" class="text-gold text-decoration-none">
+                    <i class="bi bi-camera-video me-1"></i> Join Meeting
+                </a>
+            </span>
+        </div>
+        ` : ''}
         
         <div class="divider"></div>
         
@@ -229,6 +237,12 @@ function openAppointmentModal(bookingID) {
         
         ${!appointment.isFullyPaid && appointment.bookingStatus !== 'cancelled' ? `
         <div class="mt-3">
+            ${(!appointment.proofPayment || appointment.proofPayment === '') ? `
+                <button class="btn btn-gold w-100 mb-2" onclick="openPayBalanceModal(${appointment.bookingID}, '${appointment.downpaymentFormatted}', 'downpayment')">
+                    <i class="bi bi-upload me-2"></i>Upload Downpayment Proof
+                </button>
+            ` : ''}
+            
             ${appointment.balancePaymentProof ? `
                 <div class="alert alert-info border-0 d-flex align-items-center">
                     <i class="bi bi-hourglass-split me-2"></i>
@@ -237,7 +251,7 @@ function openAppointmentModal(bookingID) {
                     </div>
                 </div>
             ` : `
-                <button class="btn btn-gold w-100" onclick="openPayBalanceModal(${appointment.bookingID}, '${appointment.balanceFormatted}')">
+                <button class="btn btn-gold w-100" onclick="openPayBalanceModal(${appointment.bookingID}, '${appointment.balanceFormatted}', 'balance')">
                     <i class="bi bi-credit-card me-2"></i>Pay Balance
                 </button>
             `}
@@ -247,7 +261,7 @@ function openAppointmentModal(bookingID) {
         ${appointment.clientMessage ? `
         <div class="divider"></div>
         <h5 class="text-gold mt-4 mb-3">Special Requests</h5>
-        <p class="text-light">${escapeHtml(appointment.clientMessage)}</p>
+        <p class="text-light">${appointment.clientMessage}</p>
         ` : ''}
         
         ${appointment.gdriveLink ? `
@@ -276,11 +290,19 @@ function openAppointmentModal(bookingID) {
                     <i class="bi bi-file-pdf me-2"></i>Download Invoice
                 </button>
             </div>
-            ${(appointment.bookingStatus === 'pending_consultation' || appointment.bookingStatus === 'confirmed') ? `
-            <button class="btn btn-outline-danger btn-sm" onclick="cancelBooking(${appointment.bookingID})">
-                <i class="bi bi-x-circle me-2"></i>Cancel Booking
-            </button>
-            ` : ''}
+            <div class="d-flex gap-2">
+                ${(appointment.bookingStatus === 'pending' || appointment.bookingStatus === 'confirmed') ? `
+                <button class="btn btn-outline-gold btn-sm" onclick="openEditModal(${appointment.bookingID})">
+                    <i class="bi bi-pencil me-2"></i>Edit
+                </button>
+                ` : ''}
+                
+                ${(appointment.bookingStatus === 'pending_consultation' || appointment.bookingStatus === 'confirmed' || appointment.bookingStatus === 'pending') ? `
+                <button class="btn btn-outline-danger btn-sm" onclick="cancelBooking(${appointment.bookingID})">
+                    <i class="bi bi-x-circle me-2"></i>Cancel
+                </button>
+                ` : ''}
+            </div>
         </div>
     `;
 
@@ -289,10 +311,27 @@ function openAppointmentModal(bookingID) {
     document.body.style.overflow = 'hidden';
 }
 
-// Pay Balance Modal Logic
-function openPayBalanceModal(bookingID, amount) {
+// Pay Balance / Upload Proof Modal Logic
+function openPayBalanceModal(bookingID, amount, type = 'balance') {
     document.getElementById('payBalanceBookingId').value = bookingID;
     document.getElementById('payBalanceAmount').textContent = amount;
+    document.getElementById('paymentType').value = type;
+
+    // Update modal title and labels based on type
+    const modalTitle = document.querySelector('#payBalanceModal .modal-header h3');
+    const amountLabel = document.querySelector('#payBalanceModal .text-center p');
+    const submitBtn = document.querySelector('#payBalanceForm button[type="submit"]');
+
+    if (type === 'downpayment') {
+        modalTitle.textContent = 'Upload Downpayment Proof';
+        amountLabel.textContent = 'Downpayment Amount';
+        submitBtn.textContent = 'Submit Downpayment Proof';
+    } else {
+        modalTitle.textContent = 'Pay Balance';
+        amountLabel.textContent = 'Remaining Balance';
+        submitBtn.textContent = 'Submit Payment Proof';
+    }
+
     document.getElementById('payBalanceModal').classList.add('active');
 }
 
@@ -305,6 +344,7 @@ document.getElementById('payBalanceForm').addEventListener('submit', function (e
     e.preventDefault();
 
     const bookingId = document.getElementById('payBalanceBookingId').value;
+    const paymentType = document.getElementById('paymentType').value;
     const fileInput = document.getElementById('balanceProof');
     const submitBtn = this.querySelector('button[type="submit"]');
 
@@ -318,6 +358,7 @@ document.getElementById('payBalanceForm').addEventListener('submit', function (e
 
     const formData = new FormData();
     formData.append('bookingId', bookingId);
+    formData.append('type', paymentType);
     formData.append('paymentProof', fileInput.files[0]);
 
     fetch('api/payment_api.php', {
@@ -462,6 +503,104 @@ document.getElementById('reviewForm').addEventListener('submit', function (e) {
         });
 });
 
+// Edit Booking Modal Logic
+function openEditModal(bookingID) {
+    const appointment = allAppointments.find(app => app.bookingID === bookingID);
+    if (!appointment) return;
+
+    document.getElementById('editBookingId').value = bookingID;
+
+    // Populate fields
+    const dateInput = document.getElementById('editEventDate');
+    const startTimeSelect = document.getElementById('editStartTime');
+    const endTimeSelect = document.getElementById('editEndTime');
+    const locationInput = document.getElementById('editLocation');
+    const themeInput = document.getElementById('editTheme');
+    const messageInput = document.getElementById('editMessage');
+
+    dateInput.value = appointment.eventDate;
+    locationInput.value = appointment.eventLocation;
+    themeInput.value = appointment.eventTheme || '';
+    messageInput.value = appointment.clientMessage || '';
+
+    // Populate Time Selects
+    populateTimeSelect(startTimeSelect, appointment.eventTimeStart);
+    populateTimeSelect(endTimeSelect, appointment.eventTimeEnd);
+
+    // Status-based restrictions
+    const isConfirmed = appointment.bookingStatus === 'confirmed';
+    dateInput.disabled = isConfirmed;
+    startTimeSelect.disabled = isConfirmed;
+    endTimeSelect.disabled = isConfirmed;
+
+    if (isConfirmed) {
+        dateInput.title = "Cannot change date for confirmed booking";
+        startTimeSelect.title = "Cannot change time for confirmed booking";
+    }
+
+    document.getElementById('editBookingModal').classList.add('active');
+    closeModal(); // Close details modal
+}
+
+function closeEditModal() {
+    document.getElementById('editBookingModal').classList.remove('active');
+}
+
+function populateTimeSelect(selectElement, selectedValue) {
+    selectElement.innerHTML = '';
+    const start = 7 * 60; // 7:00 AM
+    const end = 22 * 60; // 10:00 PM
+
+    for (let i = start; i <= end; i += 30) {
+        const hours = Math.floor(i / 60);
+        const minutes = i % 60;
+        const timeStr = `${String(hours).padStart(2, '0')}:${String(minutes).padStart(2, '0')}:00`;
+        const displayTime = new Date(`2000-01-01T${timeStr}`).toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' });
+
+        const option = document.createElement('option');
+        option.value = timeStr;
+        option.textContent = displayTime;
+        if (selectedValue && timeStr.startsWith(selectedValue.substring(0, 5))) {
+            option.selected = true;
+        }
+        selectElement.appendChild(option);
+    }
+}
+
+// Submit Edit Booking
+document.getElementById('editBookingForm').addEventListener('submit', function (e) {
+    e.preventDefault();
+
+    const formData = new FormData(this);
+    const submitBtn = this.querySelector('button[type="submit"]');
+
+    submitBtn.disabled = true;
+    submitBtn.innerHTML = '<span class="spinner-border spinner-border-sm"></span> Saving...';
+
+    fetch('api/update_booking.php', {
+        method: 'POST',
+        body: formData
+    })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                alert('Booking updated successfully');
+                closeEditModal();
+                fetchAppointments(currentFilter);
+            } else {
+                alert('Error: ' + data.message);
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            alert('An error occurred while updating the booking');
+        })
+        .finally(() => {
+            submitBtn.disabled = false;
+            submitBtn.textContent = 'Save Changes';
+        });
+});
+
 // Helper function to escape HTML
 function escapeHtml(text) {
     if (!text) return '';
@@ -469,3 +608,21 @@ function escapeHtml(text) {
     div.textContent = text;
     return div.innerHTML;
 }
+
+// Initialize
+document.addEventListener('DOMContentLoaded', () => {
+    setupFilterButtons();
+    fetchAppointments();
+
+    // Check for pending booking ID from URL (deep linking)
+    const urlParams = new URLSearchParams(window.location.search);
+    const pendingBookingId = urlParams.get('booking_id');
+    if (pendingBookingId) {
+        // Store it to open after fetch completes
+        window.pendingBookingId = parseInt(pendingBookingId);
+
+        // Clean URL
+        const newUrl = window.location.pathname;
+        window.history.replaceState({}, '', newUrl);
+    }
+});

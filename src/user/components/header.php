@@ -1,11 +1,6 @@
-<header class="header position-fixed w-100">
-    <div class="d-flex align-items-center justify-content-between w-100 px-3">
-        <div class="d-flex align-items-center">
-            <i class="bi bi-list header-toggle" id="sidebar-toggle"></i>
-            <div class="header-search ms-3 d-none d-lg-block" style="width: 300px;">
-                <input type="text" class="form-control form-control-sm" placeholder="Search your bookings...">
-            </div>
-        </div>
+<header class="header admin-header position-fixed">
+    <div class="d-flex align-items-center justify-content-end w-100 px-3">
+        
         
         <div class="d-flex align-items-center gap-3">
             <!-- Notifications Bell (Always Visible) -->

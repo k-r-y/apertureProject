@@ -92,5 +92,61 @@ class EmailTemplates {
 
         return self::getHeader() . $body . self::getFooter();
     }
+
+    public static function getAdminNewBookingNotification($adminName, $bookingRef, $clientName, $eventType, $date, $total) {
+        $body = "
+            <h2 style='color: #0a0a0a; margin-top: 0;'>New Booking Request</h2>
+            <p>Dear {$adminName},</p>
+            <p>You have received a new booking request from <strong>{$clientName}</strong>.</p>
+            
+            <div style='background: #f8f9fa; padding: 20px; border-radius: 8px; margin: 30px 0;'>
+                <h3 style='margin-top: 0; font-size: 16px; color: #666;'>Booking Summary</h3>
+                <table style='width: 100%; border-collapse: collapse;'>
+                    <tr>
+                        <td style='padding: 8px 0; color: #666;'>Reference No:</td>
+                        <td style='padding: 8px 0; text-align: right; font-weight: 600; color: #d4af37;'>#{$bookingRef}</td>
+                    </tr>
+                    <tr>
+                        <td style='padding: 8px 0; color: #666;'>Event Type:</td>
+                        <td style='padding: 8px 0; text-align: right; font-weight: 600;'>{$eventType}</td>
+                    </tr>
+                    <tr>
+                        <td style='padding: 8px 0; color: #666;'>Event Date:</td>
+                        <td style='padding: 8px 0; text-align: right; font-weight: 600;'>{$date}</td>
+                    </tr>
+                    <tr>
+                        <td style='padding: 8px 0; color: #666;'>Total Amount:</td>
+                        <td style='padding: 8px 0; text-align: right; font-weight: 600;'>{$total}</td>
+                    </tr>
+                </table>
+            </div>
+
+            <div style='text-align: center; margin-top: 30px;'>
+                <a href='http://localhost/aperture/src/admin/bookings.php' style='background: #0a0a0a; color: #d4af37; text-decoration: none; padding: 12px 25px; border-radius: 4px; font-weight: bold;'>Manage Booking</a>
+            </div>";
+
+        return self::getHeader() . $body . self::getFooter();
+    }
+    public static function getMeetingLinkNotification($name, $bookingRef, $meetingLink, $date) {
+        $body = "
+            <h2 style='color: #0a0a0a; margin-top: 0;'>Meeting Link Updated</h2>
+            <p>Dear {$name},</p>
+            <p>A meeting link has been added or updated for your booking <strong>#{$bookingRef}</strong> scheduled on {$date}.</p>
+            
+            <div style='background: #f8f9fa; padding: 20px; border-radius: 8px; margin: 30px 0; text-align: center;'>
+                <p style='margin-bottom: 20px; color: #666;'>Click the button below to join the meeting at the scheduled time:</p>
+                <a href='{$meetingLink}' style='background: #d4af37; color: #fff; text-decoration: none; padding: 12px 25px; border-radius: 4px; font-weight: bold; display: inline-block;'>
+                    Join Meeting
+                </a>
+                <p style='margin-top: 20px; font-size: 12px; color: #999;'>
+                    Or copy this link: <br>
+                    <a href='{$meetingLink}' style='color: #d4af37;'>{$meetingLink}</a>
+                </p>
+            </div>
+
+            <p>If you have any questions, please contact us.</p>";
+
+        return self::getHeader() . $body . self::getFooter();
+    }
 }
 ?>

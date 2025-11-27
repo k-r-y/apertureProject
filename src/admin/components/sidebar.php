@@ -1,11 +1,12 @@
+
 <?php
 $currentPage = basename($_SERVER['PHP_SELF']);
 ?>
-<aside class="sidebar" id="sidebar">
+<aside class="sidebar pt-0 pe-0" id="sidebar">
     <!-- Sidebar Header: Logo + Toggle -->
     <div class="sidebar-header">
-        <a class="sidebar-brand" href="adminDashboard.php">
-            <img src="../assets/logo-for-dark.png" alt="Aperture Logo" class="brand-icon">
+        <a class="sidebar-brand p-0" href="adminDashboard.php">
+            <img src="../assets/logo-for-dark.png" alt="Aperture Logo" class="brand-icon p-0 pt-3" style="width: 150px; height: 150px;">
         </a>
         <button class="sidebar-toggle-btn" id="sidebar-collapse-btn" aria-label="Toggle Sidebar">
             <i class="bi bi-chevron-left"></i>
@@ -87,28 +88,5 @@ $currentPage = basename($_SERVER['PHP_SELF']);
         </li>
     </ul>
 
-    <!-- Sidebar Footer: User Profile + Logout -->
-    <div class="sidebar-footer">
-        <div class="user-profile">
-            <a href="settings.php" class="name-card px-2">
-                <div class="user-avatar">
-                    <?php 
-                        $name = $_SESSION['fullName'] ?? 'Admin';
-                        $initials = substr($name, 0, 1);
-                        echo strtoupper($initials);
-                    ?>
-                </div>
-                <div class="user-info">
-                    <span class="user-name"><?php echo htmlspecialchars($_SESSION['fullName'] ?? 'Admin'); ?></span>
-                    <small class="user-role"><?php echo htmlspecialchars($_SESSION['role'] ?? 'Admin'); ?></small>
-                </div>
-            </a>
-        </div>
-        <div class="sidebar-nav-item">
-            <a href="../logout.php" class="sidebar-nav-link">
-                <i class="bi bi-box-arrow-left nav-icon"></i>
-                <span class="nav-text">Logout</span>
-            </a>
-        </div>
-    </div>
+
 </aside>

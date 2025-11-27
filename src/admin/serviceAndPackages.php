@@ -181,19 +181,18 @@ if ($result) {
                         <button type="button" class="btn btn-ghost" data-bs-dismiss="modal">Cancel</button>
                         <button type="submit" class="btn btn-gold">Save Changes</button>
                     </div>
+                    </div>
                 </form>
             </div>
         </div>
     </div>
 
     <script src="../../bootstrap-5.3.8-dist/js/bootstrap.bundle.min.js"></script>
-    <script src="admin.js"></script>
+    <script src="js/notifications.js"></script>
     <script>
-        // Handle Modal Data
-        const editModal = document.getElementById('editPackageModal');
+        var editModal = document.getElementById('editPackageModal');
         editModal.addEventListener('show.bs.modal', function (event) {
-            const button = event.relatedTarget;
-            
+            var button = event.relatedTarget;
             const id = button.getAttribute('data-id');
             const name = button.getAttribute('data-name');
             const price = button.getAttribute('data-price');

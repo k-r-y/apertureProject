@@ -169,17 +169,97 @@ try {
             echo json_encode($result);
 
         } elseif ($action === 'update_meeting_link') {
-            $link = $input['link'] ?? '';
-            $stmt = $conn->prepare("UPDATE bookings SET meeting_link = ? WHERE bookingID = ?");
-            $stmt->bind_param("si", $link, $bookingId);
+            $meetingLink = $input['meeting_link'] ?? '';
             
-            if ($stmt->execute()) {
-                logBookingAction($bookingId, $userId, 'link_updated', 'Updated meeting link');
+            // Enforce protocol
+            if (!empty($meetingLink) && !preg_match("~^(?:f|ht)tps?://~i", $meetingLink)) {
+                $meetingLink = "https://" . $meetingLink;
+            }
+            
+            // Fetch booking and user details first
+            $detailsStmt = $conn->prepare("
+                SELECT b.bookingID, b.event_date, u.email, u.firstname, u.lastname, u.userID 
+                FROM bookings b 
+                JOIN users u ON b.userID = u.userID 
+                WHERE b.bookingID = ?
+            ");
+            $detailsStmt->bind_param("i", $bookingId);
+            $detailsStmt->execute();
+            $detailsResult = $detailsStmt->get_result();
+            $bookingDetails = $detailsResult->fetch_assoc();
+            $detailsStmt->close();
+
+            if (!$bookingDetails) {
                 ob_clean();
-                echo json_encode(['success' => true, 'message' => 'Link updated']);
+                echo json_encode(['success' => false, 'message' => 'Booking not found']);
+                exit;
+            }
+
+            $stmt = $conn->prepare("UPDATE bookings SET meeting_link = ? WHERE bookingID = ?");
+            $stmt->bind_param("si", $meetingLink, $bookingId);
+
+            if ($stmt->execute()) {
+                logBookingAction($bookingId, $userId, 'meeting_link_updated', "Updated meeting link: $meetingLink");
+                
+                // Send Email Notification
+                require_once '../../includes/functions/notifications.php';
+                $notifier = new NotificationSystem();
+                $bookingRef = str_pad($bookingId, 6, '0', STR_PAD_LEFT);
+                $fullName = $bookingDetails['firstname'] . ' ' . $bookingDetails['lastname'];
+                $eventDate = date('F j, Y', strtotime($bookingDetails['event_date']));
+                
+                $notifier->sendMeetingLinkNotification(
+                    $bookingDetails['email'],
+                    $fullName,
+                    $bookingRef,
+                    $meetingLink,
+                    $eventDate
+                );
+
+                // Create In-App Notification
+                $notifTitle = "Meeting Link Updated";
+                $notifMessage = "A meeting link has been added for your booking #{$bookingRef}.";
+                $notifType = "info";
+                $targetUserId = $bookingDetails['userID'];
+                $link = "appointments.php?booking_id=" . $bookingId;
+                
+                $notifStmt = $conn->prepare("INSERT INTO notifications (userID, title, message, type, link, created_at) VALUES (?, ?, ?, ?, ?, NOW())");
+                $notifStmt->bind_param("issss", $targetUserId, $notifTitle, $notifMessage, $notifType, $link);
+                $notifStmt->execute();
+                $notifStmt->close();
+
+                ob_clean();
+                echo json_encode(['success' => true, 'message' => 'Meeting link updated and user notified']);
             } else {
                 ob_clean();
-                echo json_encode(['success' => false, 'message' => 'Failed to update link']);
+                echo json_encode(['success' => false, 'message' => 'Failed to update meeting link']);
+            }
+            $stmt->close();
+
+        } elseif ($action === 'update_details') {
+            $eventDate = $input['event_date'] ?? '';
+            $startTime = $input['event_time_start'] ?? '';
+            $endTime = $input['event_time_end'] ?? '';
+            $location = $input['event_location'] ?? '';
+            $eventType = $input['event_type'] ?? '';
+
+            // Basic Validation
+            if (empty($eventDate) || empty($startTime) || empty($endTime) || empty($location)) {
+                ob_clean();
+                echo json_encode(['success' => false, 'message' => 'All fields are required']);
+                exit;
+            }
+
+            $stmt = $conn->prepare("UPDATE bookings SET event_date = ?, event_time_start = ?, event_time_end = ?, event_location = ?, event_type = ? WHERE bookingID = ?");
+            $stmt->bind_param("sssssi", $eventDate, $startTime, $endTime, $location, $eventType, $bookingId);
+
+            if ($stmt->execute()) {
+                logBookingAction($bookingId, $userId, 'details_updated', 'Updated event details (Date/Time/Location)');
+                ob_clean();
+                echo json_encode(['success' => true, 'message' => 'Details updated']);
+            } else {
+                ob_clean();
+                echo json_encode(['success' => false, 'message' => 'Failed to update details']);
             }
             $stmt->close();
 

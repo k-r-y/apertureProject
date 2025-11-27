@@ -1,11 +1,11 @@
 <?php
 $currentPage = basename($_SERVER['PHP_SELF']);
 ?>
-<aside class="sidebar" id="sidebar">
+<aside class="sidebar pt-0 pe-0" id="sidebar">
     <!-- Sidebar Header: Logo + Toggle -->
     <div class="sidebar-header">
-        <a class="sidebar-brand" href="user.php">
-            <img src="../assets/logo-for-dark.png" alt="Aperture Logo" class="brand-icon">
+        <a class="sidebar-brand p-0" href="user.php">
+            <img src="../assets/logo-for-dark.png" alt="Aperture Logo" class="brand-icon p-0 pt-3" style="width: 150px; height: 150px;">
         </a>
         <button class="sidebar-toggle-btn" id="sidebar-collapse-btn" aria-label="Toggle Sidebar">
             <i class="bi bi-chevron-left"></i>

@@ -76,7 +76,7 @@ foreach ($bookingsByType as $booking) {
 
                 <!-- KPI Cards -->
                 <div class="row g-4 mb-5">
-                    <div class="col-lg-4 col-md-6">
+                    <div class="col-md-4 col-12">
                         <div class="neo-card h-100 d-flex align-items-center p-4">
                             <div class="rounded-circle bg-gold bg-opacity-10 p-3 me-4">
                                 <i class="bi bi-calendar-event fs-2 text-gold"></i>
@@ -87,7 +87,7 @@ foreach ($bookingsByType as $booking) {
                             </div>
                         </div>
                     </div>
-                    <div class="col-lg-4 col-md-6">
+                    <div class=" col-md-4 col-12">
                         <div class="neo-card h-100 d-flex align-items-center p-4">
                             <div class="rounded-circle bg-gold bg-opacity-10 p-3 me-4">
                                 <i class="bi bi-journal-check fs-2 text-gold"></i>
@@ -98,7 +98,7 @@ foreach ($bookingsByType as $booking) {
                             </div>
                         </div>
                     </div>
-                    <div class="col-lg-4 col-md-12">
+                    <div class=" col-md-4 col-12">
                         <div class="neo-card h-100 d-flex align-items-center p-4">
                             <div class="rounded-circle bg-gold bg-opacity-10 p-3 me-4">
                                 <i class="bi bi-wallet2 fs-2 text-gold"></i>
@@ -133,14 +133,14 @@ foreach ($bookingsByType as $booking) {
                         </div>
                     </div>
                 </div>
-
             </div>
         </main>
     </div>
 
     <script src="../../bootstrap-5.3.8-dist/js/bootstrap.bundle.min.js"></script>
     <script src="user.js"></script>
-    <script src="js/notifications.js"></script>
+
+    <script src="js/user_notifications.js"></script>
     <script>
         document.addEventListener("DOMContentLoaded", function() {
             <?php if (!empty($bookingsByType)): ?>

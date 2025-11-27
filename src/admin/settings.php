@@ -128,6 +128,7 @@ if (isset($_GET['action']) and $_GET['action'] === 'logout') {
     <script src="../libs/sweetalert2/sweetalert2.all.min.js"></script>
     <script src="admin.js"></script>
     <script src="js/settings.js"></script>
+    <script src="js/notifications.js"></script>
 </body>
 
 </html>

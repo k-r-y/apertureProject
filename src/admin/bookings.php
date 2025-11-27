@@ -131,11 +131,56 @@ $currentPage = 'bookings.php';
                             <p class="mb-1"><i class="bi bi-phone me-2 text-muted"></i> <span id="modalClientPhone" class="text-light"></span></p>
                         </div>
                         <div class="col-md-6">
-                            <h6 class="text-gold mb-3">Event Details</h6>
-                            <p class="mb-1"><i class="bi bi-calendar-event me-2 text-muted"></i> <span id="modalEventDate" class="text-light"></span></p>
-                            <p class="mb-1"><i class="bi bi-clock me-2 text-muted"></i> <span id="modalEventTime" class="text-light"></span></p>
-                            <p class="mb-1"><i class="bi bi-geo-alt me-2 text-muted"></i> <span id="modalEventLocation" class="text-light"></span></p>
-                            <p class="mb-1"><i class="bi bi-camera me-2 text-muted"></i> <span id="modalEventType" class="text-light"></span></p>
+                            <div class="d-flex justify-content-between align-items-center mb-3">
+                                <h6 class="text-gold m-0">Event Details</h6>
+                                <button id="editDetailsBtn" class="btn btn-sm btn-link text-gold p-0" style="text-decoration: none;">
+                                    <i class="bi bi-pencil me-1"></i>Edit
+                                </button>
+                            </div>
+                            
+                            <!-- View Mode -->
+                            <div id="viewModeDetails">
+                                <p class="mb-1"><i class="bi bi-calendar-event me-2 text-muted"></i> <span id="modalEventDate" class="text-light"></span></p>
+                                <p class="mb-1"><i class="bi bi-clock me-2 text-muted"></i> <span id="modalEventTime" class="text-light"></span></p>
+                                <p class="mb-1"><i class="bi bi-geo-alt me-2 text-muted"></i> <span id="modalEventLocation" class="text-light"></span></p>
+                                <p class="mb-1"><i class="bi bi-camera me-2 text-muted"></i> <span id="modalEventType" class="text-light"></span></p>
+                            </div>
+
+                            <!-- Edit Mode (Hidden by default) -->
+                            <div id="editModeDetails" style="display: none;">
+                                <div class="mb-2">
+                                    <label class="text-muted small">Date</label>
+                                    <input type="date" id="editEventDate" class="form-control form-control-sm bg-dark text-light border-secondary">
+                                </div>
+                                <div class="row g-2 mb-2">
+                                    <div class="col-6">
+                                        <label class="text-muted small">Start Time</label>
+                                        <input type="time" id="editEventStartTime" class="form-control form-control-sm bg-dark text-light border-secondary">
+                                    </div>
+                                    <div class="col-6">
+                                        <label class="text-muted small">End Time</label>
+                                        <input type="time" id="editEventEndTime" class="form-control form-control-sm bg-dark text-light border-secondary">
+                                    </div>
+                                </div>
+                                <div class="mb-2">
+                                    <label class="text-muted small">Location</label>
+                                    <input type="text" id="editEventLocation" class="form-control form-control-sm bg-dark text-light border-secondary">
+                                </div>
+                                <div class="mb-3">
+                                    <label class="text-muted small">Event Type</label>
+                                    <select id="editEventType" class="form-select form-select-sm bg-dark text-light border-secondary">
+                                        <option value="Wedding">Wedding</option>
+                                        <option value="Debut">Debut</option>
+                                        <option value="Christening">Christening</option>
+                                        <option value="Corporate">Corporate</option>
+                                        <option value="Other">Other</option>
+                                    </select>
+                                </div>
+                                <div class="d-flex gap-2">
+                                    <button id="saveDetailsBtn" class="btn btn-sm btn-gold flex-grow-1">Save Changes</button>
+                                    <button id="cancelEditBtn" class="btn btn-sm btn-outline-light">Cancel</button>
+                                </div>
+                            </div>
                             
                             <!-- Consultation Info Container -->
                             <div id="modalConsultation"></div>
@@ -207,5 +252,7 @@ $currentPage = 'bookings.php';
     <script src="../js/feedback.js"></script>
     <script src="js/booking-modal.js?v=<?= time() ?>"></script>
     <script src="js/bookings.js?v=<?= time() ?>"></script>
+    <script src="js/notifications.js"></script>
+    <script src="admin.js"></script>
 </body>
 </html>

@@ -1,16 +1,11 @@
-<header class="admin-header position-fixed w-100 ">
-    <div class="d-flex align-items-center">
-        <i class="bi bi-list header-toggle" id="sidebar-toggle"></i>
-        <div class="header-search ms-3 d-none d-lg-block" style="width: 300px;">
-            <input type="text" class="form-control form-control-sm" placeholder="Search...">
-        </div>
-    </div>
+<header class="admin-header position-fixed d-flex align-items-center justify-content-end">
+   
     
     <!-- Notifications Bell -->
     <div class="dropdown me-4">
         <button class="btn btn-link text-light position-relative" type="button" id="notificationDropdown" data-bs-toggle="dropdown" aria-expanded="false">
             <i class="bi bi-bell fs-5"></i>
-            <span id="notificationBadge" class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger" style="display: none;">
+            <span id="notificationBadge" class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger" style="display: none; font-size: 0.65rem; padding: 0.25rem 0.4rem;">
                 0
             </span>
         </button>
@@ -25,5 +20,49 @@
             </div>
         </ul>
     </div>
+
+    <!-- User Profile Dropdown -->
+    <div class="dropdown">
+        <a href="#" class="d-flex align-items-center text-decoration-none dropdown-toggle" id="userDropdown" data-bs-toggle="dropdown" aria-expanded="false">
+            <div class="user-avatar me-2">
+                <?php 
+                    $name = $_SESSION['fullName'] ?? 'Admin';
+                    $initials = substr($name, 0, 1);
+                    echo strtoupper($initials);
+                ?>
+            </div>
+            <div class="d-none d-md-block">
+                <span class="text-light fw-bold" style="font-size: 0.875rem;"><?php echo htmlspecialchars($_SESSION['fullName'] ?? 'Admin'); ?></span>
+            </div>
+        </a>
+        <ul class="dropdown-menu dropdown-menu-end bg-dark border-secondary">
+            <li><a class="dropdown-item text-light" href="settings.php"><i class="bi bi-gear me-2"></i>Settings</a></li>
+            <li><hr class="dropdown-divider border-secondary"></li>
+            <li><a class="dropdown-item text-danger" href="../logout.php"><i class="bi bi-box-arrow-left me-2"></i>Logout</a></li>
+        </ul>
+    </div>
+
+    <style>
+    .user-avatar {
+        width: 32px;
+        height: 32px;
+        border-radius: 50%;
+        background: linear-gradient(135deg, #d4af37 0%, #f0d068 100%);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 0.875rem;
+        font-weight: 600;
+        color: #000;
+    }
+    
+    .dropdown-menu {
+        margin-top: 0.5rem;
+    }
+    
+    .dropdown-item:hover {
+        background: rgba(212, 175, 55, 0.1);
+    }
+    </style>
     
 </header>

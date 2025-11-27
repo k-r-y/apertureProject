@@ -57,7 +57,7 @@ while ($row = $result->fetch_assoc()) {
     <link rel="stylesheet" href="../css/sidebar.css">
     <link rel="stylesheet" href="../style.css">
     <link rel="stylesheet" href="user.css">
-    <link rel="stylesheet" href="../libs/photoswipe/photoswipe.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/photoswipe@5.3.8/dist/photoswipe.css">
     <link rel="icon" href="../assets/camera.png" type="image/x-icon">
 
     <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -65,75 +65,7 @@ while ($row = $result->fetch_assoc()) {
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Old+Standard+TT:wght@400;700&family=Poppins:wght@400;500;600&display=swap" rel="stylesheet">
 
     <style>
-        .gallery-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
-            gap: 1.5rem;
-        }
-
-        .gallery-item {
-            position: relative;
-            border-radius: 8px;
-            overflow: hidden;
-            aspect-ratio: 1;
-            cursor: pointer;
-            transition: transform 0.3s ease, box-shadow 0.3s ease;
-            background: var(--card-bg);
-        }
-
-        .gallery-item:hover {
-            transform: translateY(-5px);
-            box-shadow: 0 10px 20px rgba(0,0,0,0.3);
-        }
-
-        .gallery-item img {
-            width: 100%;
-            height: 100%;
-            object-fit: cover;
-            transition: transform 0.5s ease;
-        }
-
-        .gallery-item:hover img {
-            transform: scale(1.05);
-        }
-
-        .gallery-overlay {
-            position: absolute;
-            bottom: 0;
-            left: 0;
-            right: 0;
-            background: linear-gradient(to top, rgba(0,0,0,0.8), transparent);
-            padding: 1rem;
-            opacity: 0;
-            transition: opacity 0.3s ease;
-            display: flex;
-            justify-content: space-between;
-            align-items: flex-end;
-        }
-
-        .gallery-item:hover .gallery-overlay {
-            opacity: 1;
-        }
-
-        .photo-badge {
-            position: absolute;
-            top: 10px;
-            right: 10px;
-            background: rgba(0, 0, 0, 0.6);
-            color: var(--gold);
-            padding: 4px 8px;
-            border-radius: 4px;
-            font-size: 0.75rem;
-            border: 1px solid var(--gold);
-        }
-
-        .filter-bar {
-            background: var(--card-bg);
-            border: 1px solid var(--border-color);
-            border-radius: 12px;
-            padding: 1rem;
-            margin-bottom: 2rem;
-        }
+        
     </style>
 </head>
 <body class="admin-dashboard">
@@ -216,15 +148,15 @@ while ($row = $result->fetch_assoc()) {
                         <?php endforeach; ?>
                     </div>
                 <?php endif; ?>
-
             </div>
-        </main>
-    </div>
-
     <script src="../../bootstrap-5.3.8-dist/js/bootstrap.bundle.min.js"></script>
+    <script src="user.js"></script>
+    <script src="js/notifications.js"></script>
+    <script src="js/user_notifications.js"></script>
+    
     <script type="module">
-        import PhotoSwipeLightbox from '../libs/photoswipe/photoswipe-lightbox.esm.js';
-        import PhotoSwipe from '../libs/photoswipe/photoswipe.esm.js';
+        import PhotoSwipeLightbox from 'https://cdn.jsdelivr.net/npm/photoswipe@5.3.8/dist/photoswipe-lightbox.esm.js';
+        import PhotoSwipe from 'https://cdn.jsdelivr.net/npm/photoswipe@5.3.8/dist/photoswipe.esm.js';
 
         const lightbox = new PhotoSwipeLightbox({
             gallery: '#galleryGrid',
@@ -272,7 +204,9 @@ while ($row = $result->fetch_assoc()) {
             }
         }
 
-        eventFilter.addEventListener('change', filterPhotos);
+        if (eventFilter) {
+            eventFilter.addEventListener('change', filterPhotos);
+        }
         typeFilters.forEach(radio => radio.addEventListener('change', filterPhotos));
     </script>
 </body>
