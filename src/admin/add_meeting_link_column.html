@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Add Meeting Link Column</title>
+    <style>
+      body {
+        font-family: Arial;
+        padding: 20px;
+        background: #1a1a1a;
+        color: #fff;
+      }
+      .container {
+        max-width: 600px;
+        margin: 0 auto;
+      }
+      button {
+        padding: 15px 30px;
+        font-size: 16px;
+        cursor: pointer;
+        background: #d4af37;
+        border: none;
+        border-radius: 4px;
+      }
+      .result {
+        margin-top: 20px;
+        padding: 15px;
+        background: #2a2a2a;
+        border-radius: 4px;
+      }
+      .success {
+        color: #4caf50;
+      }
+      .error {
+        color: #f44336;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <h1>🔧 Add Meeting Link Column to Database</h1>
+      <p>
+        This will add the <code>meeting_link</code> column to the bookings
+        table.
+      </p>
+
+      <button onclick="addColumn()">Add Meeting Link Column</button>
+
+      <div id="result" class="result" style="display: none"></div>
+    </div>
+
+    <script>
+      function addColumn() {
+        const resultDiv = document.getElementById("result");
+        resultDiv.style.display = "block";
+        resultDiv.innerHTML = "Adding column...";
+
+        fetch("add_meeting_link_db.php")
+          .then((response) => response.json())
+          .then((data) => {
+            if (data.success) {
+              resultDiv.className = "result success";
+              resultDiv.innerHTML = "✅ " + data.message;
+            } else {
+              resultDiv.className = "result error";
+              resultDiv.innerHTML = "❌ Error: " + data.message;
+            }
+          })
+          .catch((error) => {
+            resultDiv.className = "result error";
+            resultDiv.innerHTML = "❌ Error: " + error;
+          });
+      }
+    </script>
+  </body>
+</html>

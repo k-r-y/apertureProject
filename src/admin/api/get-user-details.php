@@ -42,7 +42,7 @@ try {
                 u.created_at,
                 (SELECT COUNT(*) FROM bookings WHERE userID = u.userID) as total_bookings,
                 (SELECT COUNT(*) FROM bookings WHERE userID = u.userID AND booking_status = 'confirmed') as confirmed_bookings,
-                (SELECT COALESCE(SUM(CASE WHEN is_fully_paid = 1 THEN total_price ELSE downpayment_amount END), 0) FROM bookings WHERE userID = u.userID AND booking_status != 'cancelled') as total_spent
+                (SELECT COALESCE(SUM(CASE WHEN is_fully_paid = 1 THEN total_amount ELSE downpayment_amount END), 0) FROM bookings WHERE userID = u.userID AND booking_status != 'cancelled') as total_spent
               FROM users u
               WHERE u.userID = ?";
     

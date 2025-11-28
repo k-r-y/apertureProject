@@ -89,23 +89,16 @@ if (isset($_GET['action']) and $_GET['action'] === 'logout') {
                 </div>
                 <div class="modal-body">
                     <div class="row g-4">
-                        <!-- Status & Actions -->
+                        <!-- Status (Read-Only) -->
                         <div class="col-12">
                             <div class="neo-card p-3 bg-opacity-10 bg-white">
                                 <div class="d-flex justify-content-between align-items-center flex-wrap gap-3">
                                     <div>
                                         <label class="text-muted small d-block mb-1">Current Status</label>
                                         <span id="modalStatusBadge" class="badge bg-warning text-dark">Pending</span>
-                                    </div>
-                                    <div class="d-flex gap-2">
-                                        <select id="modalStatusSelect" class="neo-input" style="width: auto;">
-                                            <option class="bg-dark text-light" value="pending_consultation">Pending Consultation</option>
-                                            <option class="bg-dark text-light" value="confirmed">Confirmed</option>
-                                            <option class="bg-dark text-light" value="post_production">Post Production</option>
-                                            <option class="bg-dark text-light" value="completed">Completed</option>
-                                            <option class="bg-dark text-light" value="cancelled">Cancelled</option>
-                                        </select>
-                                        <button id="updateStatusBtn" class="btn btn-sm btn-gold">Update</button>
+                                        <small class="text-muted d-block mt-1">
+                                            <i class="bi bi-info-circle"></i> Status updates automatically based on payments
+                                        </small>
                                     </div>
                                 </div>
                             </div>
@@ -127,6 +120,27 @@ if (isset($_GET['action']) and $_GET['action'] === 'logout') {
                             
                             <!-- Consultation Info Container -->
                             <div id="modalConsultation"></div>
+                        </div>
+
+                        <!-- Meeting Link Section - Standalone & Prominent -->
+                        <div class="col-12">
+                            <div class="neo-card p-3 bg-opacity-10 bg-gold">
+                                <h6 class="text-gold mb-2">
+                                    <i class="bi bi-link-45deg me-2"></i>Meeting Link (Google Meet / Zoom)
+                                </h6>
+                                <div class="input-group">
+                                    <input type="text" id="modalMeetingLink" 
+                                           class="form-control bg-dark text-light border-secondary" 
+                                           placeholder="Enter meeting link here (e.g., https://meet.google.com/...)">
+                                    <button id="saveLinkBtn" class="btn btn-gold">
+                                        <i class="bi bi-save me-1"></i>Save Link
+                                    </button>
+                                </div>
+                                <small class="text-muted d-block mt-2">
+                                    <i class="bi bi-info-circle me-1"></i>
+                                    User will receive email and in-app notification when link is saved
+                                </small>
+                            </div>
                         </div>
 
                         <!-- Package & Payment -->
@@ -175,7 +189,6 @@ if (isset($_GET['action']) and $_GET['action'] === 'logout') {
     <script src="../../bootstrap-5.3.8-dist/js/bootstrap.bundle.min.js"></script>
     <script src="js/notifications.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
-    <script src="js/booking-modal.js"></script>
     <script src="js/booking-modal.js"></script>
     <script src="admin.js"></script>
     <script>

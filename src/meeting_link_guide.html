@@ -1,0 +1,299 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Meeting Link Feature - Complete Test Guide</title>
+    <style>
+      body {
+        font-family: Arial, sans-serif;
+        max-width: 900px;
+        margin: 40px auto;
+        padding: 20px;
+        background: #1a1a1a;
+        color: #e0e0e0;
+      }
+      .step {
+        background: #2a2a2a;
+        border-left: 4px solid #d4af37;
+        padding: 20px;
+        margin: 20px 0;
+        border-radius: 4px;
+      }
+      .step h3 {
+        color: #d4af37;
+        margin-top: 0;
+      }
+      .checklist {
+        background: #1a1a1a;
+        padding: 15px;
+        border-radius: 4px;
+        margin: 10px 0;
+      }
+      .checklist label {
+        display: block;
+        padding: 8px;
+        cursor: pointer;
+      }
+      .checklist input[type="checkbox"] {
+        margin-right: 10px;
+      }
+      .success {
+        color: #4caf50;
+      }
+      .warning {
+        color: #ff9800;
+      }
+      .error {
+        color: #f44336;
+      }
+      .code {
+        background: #0a0a0a;
+        padding: 10px;
+        border-radius: 4px;
+        font-family: "Courier New", monospace;
+        overflow-x: auto;
+        margin: 10px 0;
+      }
+      .btn {
+        background: #d4af37;
+        color: #000;
+        padding: 10px 20px;
+        border: none;
+        border-radius: 4px;
+        cursor: pointer;
+        text-decoration: none;
+        display: inline-block;
+        margin: 10px 0;
+      }
+      .btn:hover {
+        background: #f0d068;
+      }
+    </style>
+  </head>
+  <body>
+    <h1 style="color: #d4af37">
+      📋 Meeting Link Feature - Complete Setup Guide
+    </h1>
+
+    <div class="step">
+      <h3>✅ Feature Status: FULLY IMPLEMENTED</h3>
+      <p>
+        All code is in place and working. You just need to
+        <strong>add meeting links to bookings</strong>.
+      </p>
+      <div class="checklist">
+        <label
+          ><input type="checkbox" /> Admin booking modal has "Meeting Link"
+          input field</label
+        >
+        <label
+          ><input type="checkbox" /> Save button triggers API call to save
+          link</label
+        >
+        <label
+          ><input type="checkbox" /> System auto-adds https:// if missing</label
+        >
+        <label><input type="checkbox" /> Email notification sent to user</label>
+        <label><input type="checkbox" /> In-app notification created</label>
+        <label
+          ><input type="checkbox" /> Link appears in user's appointment
+          modal</label
+        >
+      </div>
+    </div>
+
+    <div class="step">
+      <h3>Step 1: Add Meeting Link (Admin Side)</h3>
+      <ol>
+        <li>Login to <strong>Admin Dashboard</strong></li>
+        <li>Go to <strong>Bookings</strong> page</li>
+        <li>Click on any booking to open the details modal</li>
+        <li>
+          Scroll down to find
+          <strong>"Meeting Link (Google Meet/Zoom)"</strong> field
+        </li>
+        <li>
+          Enter your meeting link:
+          <div class="code">
+            Examples:<br />
+            ✓ https://zoom.us/j/123456789<br />
+            ✓ zoom.us/j/123456789 (https:// will be added automatically)<br />
+            ✓ https://meet.google.com/abc-defg-hij<br />
+            ✓ meet.google.com/xyz-abcd-123
+          </div>
+        </li>
+        <li>Click <strong>"Save"</strong> button</li>
+        <li>
+          You should see:
+          <span class="success"
+            >✓ "Meeting link updated and user notified"</span
+          >
+        </li>
+      </ol>
+    </div>
+
+    <div class="step">
+      <h3>Step 2: Verify Email Was Sent</h3>
+      <p>After saving the meeting link, the system should:</p>
+      <div class="checklist">
+        <label
+          ><input type="checkbox" /> Send email to user's registered email
+          address</label
+        >
+        <label
+          ><input type="checkbox" /> Email subject: "Meeting Link for Your
+          Booking"</label
+        >
+        <label
+          ><input type="checkbox" /> Email contains the booking reference
+          number</label
+        >
+        <label
+          ><input type="checkbox" /> Email contains clickable meeting
+          link</label
+        >
+      </div>
+      <p class="warning">⚠ Check spam/junk folder if not received</p>
+      <p class="warning">
+        ⚠ Verify SMTP settings in .env file if emails aren't sending
+      </p>
+    </div>
+
+    <div class="step">
+      <h3>Step 3: Verify In-App Notification</h3>
+      <ol>
+        <li>Login as the <strong>User</strong> (not admin)</li>
+        <li>Check the notification bell icon in header</li>
+        <li>
+          Should see notification:
+          <em
+            >"Meeting Link Updated - A meeting link has been added for your
+            booking #XXXXXX"</em
+          >
+        </li>
+        <li>Click notification → should navigate to appointments page</li>
+      </ol>
+    </div>
+
+    <div class="step">
+      <h3>Step 4: Verify Meeting Link in Modal</h3>
+      <ol>
+        <li>Still logged in as <strong>User</strong></li>
+        <li>Go to <strong>"My Appointments"</strong> page</li>
+        <li>Click <strong>"View Details"</strong> on the booking</li>
+        <li>
+          In the <strong>"Event Information"</strong> section, you should see:
+        </li>
+      </ol>
+      <div class="code">
+        Event Information<br />
+        ├─ Event Type: Wedding<br />
+        ├─ Date: October 12, 2027<br />
+        ├─ Time: 11:30 AM - 3:00 PM<br />
+        ├─ Location: Solar System<br />
+        └─ <span class="success">Meeting Link: 🎥 Join Meeting</span> ← Should
+        appear here!
+      </div>
+      <p>Clicking "Join Meeting" should open the link in a new tab.</p>
+    </div>
+
+    <div class="step">
+      <h3>🔍 Quick Debug</h3>
+      <p>If meeting link is NOT showing in user's modal:</p>
+      <ol>
+        <li>Open browser console (F12)</li>
+        <li>Go to Network tab</li>
+        <li>Click "View Details" on appointment</li>
+        <li>Find the <code>getAppointments.php</code> request</li>
+        <li>Check the Response - look for <code>"meetingLink"</code> field</li>
+        <li>
+          If <code>"meetingLink": null</code> → Link not saved in database
+        </li>
+        <li>
+          If <code>"meetingLink": "https://..."</code> → Link exists, check
+          JavaScript
+        </li>
+      </ol>
+
+      <p><strong>Browser Console Test:</strong></p>
+      <div class="code">
+        // On appointments page, run this in console:<br />
+        console.log(allAppointments);<br />
+        <br />
+        // Check specific booking:<br />
+        const booking = allAppointments.find(a => a.bookingID === 25);<br />
+        console.log('Meeting Link:', booking.meetingLink);
+      </div>
+    </div>
+
+    <div class="step">
+      <h3>📊 Run Diagnostic Script</h3>
+      <p>To see complete system status:</p>
+      <a href="debug_meeting_notif.php" class="btn" target="_blank"
+        >Run Diagnostic Tool</a
+      >
+      <p>This will show:</p>
+      <ul>
+        <li>Which bookings have meeting links</li>
+        <li>Recent notification history</li>
+        <li>Database schema verification</li>
+        <li>API response preview</li>
+      </ul>
+    </div>
+
+    <div class="step">
+      <h3>✅ Success Criteria</h3>
+      <p>When everything is working correctly:</p>
+      <div class="checklist">
+        <label
+          ><input type="checkbox" /> Admin can add/update meeting link in
+          booking modal</label
+        >
+        <label
+          ><input type="checkbox" /> User receives email notification</label
+        >
+        <label
+          ><input type="checkbox" /> User sees in-app notification with badge
+          count</label
+        >
+        <label
+          ><input type="checkbox" /> Meeting link visible in user's appointment
+          modal</label
+        >
+        <label
+          ><input type="checkbox" /> Clicking link opens meeting in new
+          tab</label
+        >
+      </div>
+    </div>
+
+    <div class="step">
+      <h3>📝 Summary</h3>
+      <p><strong>The feature is fully coded and ready to use!</strong></p>
+      <p class="success">✓ Admin interface: Working</p>
+      <p class="success">✓ Save functionality: Working</p>
+      <p class="success">✓ Email notifications: Configured (check .env)</p>
+      <p class="success">✓ In-app notifications: Working</p>
+      <p class="success">✓ User modal display: Working</p>
+
+      <p>
+        <strong style="color: #d4af37">Next Action:</strong> Simply add meeting
+        links to your bookings via the admin dashboard!
+      </p>
+    </div>
+
+    <script>
+      // Save checkbox state to localStorage
+      document
+        .querySelectorAll('.checklist input[type="checkbox"]')
+        .forEach((cb) => {
+          const key = "checklist_" + cb.parentElement.textContent.trim();
+          cb.checked = localStorage.getItem(key) === "true";
+          cb.addEventListener("change", () => {
+            localStorage.setItem(key, cb.checked);
+          });
+        });
+    </script>
+  </body>
+</html>

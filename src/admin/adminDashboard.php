@@ -1,3 +1,4 @@
+
 <?php
 require_once '../includes/functions/config.php';
 require_once '../includes/functions/auth.php';

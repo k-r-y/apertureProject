@@ -7,6 +7,7 @@
 require_once '../../includes/functions/config.php';
 require_once '../../includes/functions/session.php';
 require_once '../../includes/functions/activity_logger.php';
+require_once '../../includes/functions/booking_status_automation.php';
 
 header('Content-Type: application/json');
 
@@ -75,8 +76,14 @@ try {
             $stmt->execute();
             $stmt->close();
             
+            // Update invoice status to partially paid
+            $conn->query("UPDATE invoices SET status = 'partially_paid' WHERE bookingID = $bookingId");
+            
+            // Auto-update status to confirmed
+            checkAndUpdateToConfirmed($bookingId);
+            
             $newStatus = 'confirmed';
-            $message = 'Downpayment confirmed. Booking status updated to Confirmed.';
+            $message = 'Downpayment confirmed. Booking status automatically updated to Confirmed.';
             
             // Log activity
             logUserActivity(
@@ -109,8 +116,14 @@ try {
             $stmt->execute();
             $stmt->close();
             
+            // Update invoice status to paid and mark as completed
+            $conn->query("UPDATE invoices SET status = 'paid', due_date = CURRENT_DATE WHERE bookingID = $bookingId");
+            
+            // Auto-check if can transition to completed (if photos already uploaded)
+            checkAndUpdateToCompleted($bookingId);
+            
             $message = $newStatus === 'post_production' 
-                ? 'Final payment confirmed. Booking moved to Post Production.' 
+                ? 'Final payment confirmed. Checking if ready for completion.' 
                 : 'Final payment confirmed. Booking is now fully paid.';
             
             // Log activity
@@ -145,6 +158,9 @@ try {
             $stmt->bind_param("sssi", $currentDate, $currentDate, $newStatus, $bookingId);
             $stmt->execute();
             $stmt->close();
+            
+            // Auto-check if can transition to completed
+            checkAndUpdateToCompleted($bookingId);
             
             $message = 'Full payment confirmed. Both downpayment and final payment marked as paid.';
             

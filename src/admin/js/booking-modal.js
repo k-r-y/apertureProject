@@ -405,7 +405,7 @@ function updateBookingNote(bookingId, note) {
 }
 
 // Update Meeting Link
-function updateMeetingLink(bookingId, link) {
+function updateMeetingLink(bookingId, meeting_link) {
     const btn = document.getElementById('saveLinkBtn');
     if (btn) {
         btn.disabled = true;
@@ -416,19 +416,21 @@ function updateMeetingLink(bookingId, link) {
         method: 'POST',
         credentials: 'include',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ bookingId, link })
+        body: JSON.stringify({ bookingId, meeting_link })
     })
         .then(response => response.json())
         .then(data => {
             if (data.success) {
-                LuxuryToast.show({ message: 'Meeting link saved successfully', type: 'success' });
+                alert('✅ Meeting link saved successfully! User will receive email notification.');
+                // Refresh modal to show updated link
+                viewBooking(currentBookingId);
             } else {
-                LuxuryToast.show({ message: data.message || 'Failed to save link', type: 'error' });
+                alert('❌ Error: ' + (data.message || 'Failed to save link'));
             }
         })
         .catch(error => {
             console.error('Error:', error);
-            LuxuryToast.show({ message: 'Failed to save link', type: 'error' });
+            alert('❌ Failed to save meeting link: ' + error.message);
         })
         .finally(() => {
             if (btn) {

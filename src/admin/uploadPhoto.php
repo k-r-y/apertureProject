@@ -122,11 +122,9 @@ foreach ($_FILES['photos']['tmp_name'] as $index => $tmpName) {
         $stmt->bind_param("iisssis", $userID, $bookingID, $fileName, $originalName, $uploadedBy, $caption, $photoType);
 
         if ($stmt->execute()) {
-            // Auto-update booking status to completed
-            $updateStatusStmt = $conn->prepare("UPDATE bookings SET booking_status = 'completed' WHERE bookingID = ?");
-            $updateStatusStmt->bind_param("i", $bookingID);
-            $updateStatusStmt->execute();
-            $updateStatusStmt->close();
+            // Auto-check if booking can be marked as completed
+            require_once '../includes/functions/booking_status_automation.php';
+            checkAndUpdateToCompleted($bookingID);
 
             $photoID = $conn->insert_id;
             $uploadedCount++;

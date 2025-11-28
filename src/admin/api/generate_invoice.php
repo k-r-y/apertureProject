@@ -67,7 +67,13 @@ foreach ($addons as $addon) {
 }
 $total = $booking['total_amount']; // Should match subtotal
 $downpayment = $booking['downpayment_amount'];
-$balance = $total - $downpayment;
+
+// Calculate balance based on payment status
+if ($booking['final_payment_paid'] == 1 || $booking['is_fully_paid'] == 1) {
+    $balance = 0; // Final payment confirmed, balance is 0
+} else {
+    $balance = $total - $downpayment; // Only downpayment paid, show remaining balance
+}
 
 ?>
 <!DOCTYPE html>
@@ -303,11 +309,17 @@ $balance = $total - $downpayment;
                 <span>₱<?= number_format($subtotal, 2) ?></span>
             </div>
             <div class="totals-row">
-                <span>Downpayment (Paid)</span>
+                <span>Downpayment <?= $booking['downpayment_paid'] == 1 ? '(Paid)' : '(Pending)' ?></span>
                 <span>- ₱<?= number_format($downpayment, 2) ?></span>
             </div>
+            <?php if ($booking['final_payment_paid'] == 1 || $booking['is_fully_paid'] == 1): ?>
+            <div class="totals-row">
+                <span>Final Payment (Paid)</span>
+                <span>- ₱<?= number_format($total - $downpayment, 2) ?></span>
+            </div>
+            <?php endif; ?>
             <div class="totals-row final">
-                <span>Balance Due</span>
+                <span><?= $balance == 0 ? 'Total Paid' : 'Balance Due' ?></span>
                 <span>₱<?= number_format($balance, 2) ?></span>
             </div>
         </div>

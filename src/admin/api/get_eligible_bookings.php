@@ -26,7 +26,7 @@ try {
             b.gdrive_link
         FROM bookings b
         JOIN users u ON b.userID = u.userID
-        WHERE b.is_fully_paid = 1 AND b.booking_status = 'completed'
+        WHERE b.is_fully_paid = 1 AND (b.booking_status = 'completed' OR b.booking_status = 'post_production')
         ORDER BY b.event_date DESC
     ";
     

@@ -1,0 +1,167 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Meeting Link Debug</title>
+    <link
+      rel="stylesheet"
+      href="../../bootstrap-5.3.8-dist/css/bootstrap.min.css"
+    />
+    <style>
+      body {
+        padding: 40px;
+        background: #1a1a1a;
+        color: #fff;
+      }
+      .test-box {
+        background: #2a2a2a;
+        padding: 20px;
+        margin: 20px 0;
+        border-radius: 8px;
+      }
+      .pass {
+        color: #4caf50;
+      }
+      .fail {
+        color: #f44336;
+      }
+      pre {
+        background: #0a0a0a;
+        padding: 15px;
+        border-radius: 4px;
+        overflow-x: auto;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <h1>🔍 Meeting Link Visibility Debug</h1>
+
+      <div class="test-box">
+        <h3>Test 1: Check if meeting link input exists</h3>
+        <button class="btn btn-primary" onclick="test1()">Run Test</button>
+        <div id="test1Result"></div>
+      </div>
+
+      <div class="test-box">
+        <h3>Test 2: Fetch booking details and check meeting_link field</h3>
+        <input
+          type="number"
+          id="bookingId"
+          placeholder="Enter Booking ID"
+          class="form-control mb-2"
+          style="max-width: 200px"
+        />
+        <button class="btn btn-primary" onclick="test2()">Fetch Booking</button>
+        <div id="test2Result"></div>
+      </div>
+
+      <div class="test-box">
+        <h3>Test 3: Check if booking-modal.js is loaded</h3>
+        <button class="btn btn-primary" onclick="test3()">Run Test</button>
+        <div id="test3Result"></div>
+      </div>
+
+      <div class="test-box">
+        <h3>Quick Fix: Force Refresh Booking Page</h3>
+        <button class="btn btn-warning" onclick="clearCacheAndRefresh()">
+          Clear Cache & Refresh
+        </button>
+      </div>
+    </div>
+
+    <script>
+      function test1() {
+        const input = document.getElementById("modalMeetingLink");
+        const result = document.getElementById("test1Result");
+
+        if (input) {
+          result.innerHTML =
+            '<p class="pass">✅ PASS: Meeting link input exists!</p>';
+          result.innerHTML += "<p>Element ID: " + input.id + "</p>";
+          result.innerHTML += "<p>Placeholder: " + input.placeholder + "</p>";
+        } else {
+          result.innerHTML =
+            '<p class="fail">❌ FAIL: Meeting link input NOT FOUND!</p>';
+          result.innerHTML +=
+            "<p>This means browser cache is showing old HTML.</p>";
+          result.innerHTML +=
+            "<p><strong>Solution: Press Ctrl+Shift+R to hard refresh!</strong></p>";
+        }
+      }
+
+      function test2() {
+        const bookingId = document.getElementById("bookingId").value;
+        const result = document.getElementById("test2Result");
+
+        if (!bookingId) {
+          result.innerHTML = '<p class="fail">Please enter a booking ID</p>';
+          return;
+        }
+
+        result.innerHTML = "<p>Fetching booking #" + bookingId + "...</p>";
+
+        fetch(`api/manage_booking.php?action=details&id=${bookingId}`)
+          .then((r) => r.json())
+          .then((data) => {
+            if (data.success) {
+              const booking = data.booking;
+              let html = '<p class="pass">✅ Booking fetched successfully!</p>';
+              html += "<pre>" + JSON.stringify(booking, null, 2) + "</pre>";
+
+              if ("meeting_link" in booking) {
+                html +=
+                  '<p class="pass">✅ meeting_link field EXISTS in response</p>';
+                html +=
+                  "<p>Value: " + (booking.meeting_link || "(empty)") + "</p>";
+              } else {
+                html +=
+                  '<p class="fail">❌ meeting_link field NOT in response</p>';
+                html +=
+                  "<p>API needs to include meeting_link in SELECT query</p>";
+              }
+              result.innerHTML = html;
+            } else {
+              result.innerHTML =
+                '<p class="fail">❌ Error: ' + data.message + "</p>";
+            }
+          })
+          .catch((err) => {
+            result.innerHTML =
+              '<p class="fail">❌ Fetch error: ' + err + "</p>";
+          });
+      }
+
+      function test3() {
+        const result = document.getElementById("test3Result");
+
+        if (typeof window.viewBooking === "function") {
+          result.innerHTML =
+            '<p class="pass">✅ booking-modal.js is loaded</p>';
+          result.innerHTML += "<p>Function viewBooking exists</p>";
+        } else {
+          result.innerHTML =
+            '<p class="fail">❌ booking-modal.js NOT loaded</p>';
+          result.innerHTML +=
+            "<p>Check if script tag exists in bookings.php</p>";
+        }
+      }
+
+      function clearCacheAndRefresh() {
+        alert(
+          "After clicking OK, the page will hard refresh (Ctrl+Shift+R).\nThis will clear the cached HTML and load the new meeting link section."
+        );
+        location.reload(true);
+      }
+
+      // Add the meeting link input to this page for testing
+      const testInput = document.createElement("input");
+      testInput.type = "text";
+      testInput.id = "modalMeetingLink";
+      testInput.placeholder = "Test meeting link";
+      testInput.style.display = "none";
+      document.body.appendChild(testInput);
+    </script>
+
+    <script src="js/booking-modal.js"></script>
+  </body>
+</html>

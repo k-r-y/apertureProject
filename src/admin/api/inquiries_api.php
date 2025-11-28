@@ -35,6 +35,26 @@ try {
             echo json_encode(['success' => true, 'activities' => $activities]);
             break;
 
+        case 'get_all_activities':
+            require_once '../../includes/functions/activity_logger.php';
+            // Fetch all activities (no user filter)
+            $activities = getUserActivities($conn); 
+            echo json_encode(['success' => true, 'activities' => $activities]);
+            break;
+        case 'get_user_activities':
+            require_once '../../includes/functions/activity_logger.php';
+            // Fetch activities for a specific user
+            $userId = $_GET['user_id'] ?? null;
+            if (!$userId) {
+                throw new Exception("User ID is required");
+            }
+            $activities = getUserActivities($conn, $userId);
+            echo json_encode(['success' => true, 'activities' => $activities]);
+            break;
+
+     
+
+     
         case 'update_status':
             $data = json_decode(file_get_contents('php://input'), true);
             $id = intval($data['id']);

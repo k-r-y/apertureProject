@@ -97,7 +97,7 @@ function getTotalSpent($userId) {
         SELECT 
             (
                 COALESCE(SUM(CASE WHEN downpayment_paid = 1 THEN downpayment_amount ELSE 0 END), 0) +
-                COALESCE(SUM(CASE WHEN final_payment_paid = 1 THEN balance_amount ELSE 0 END), 0) -
+                COALESCE(SUM(CASE WHEN final_payment_paid = 1 THEN (total_amount - downpayment_amount) ELSE 0 END), 0) -
                 COALESCE(SUM(refund_amount), 0)
             ) as total_spent
         FROM bookings 

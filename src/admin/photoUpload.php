@@ -58,7 +58,7 @@ if (!isset($_SESSION["userId"]) || !isset($_SESSION["role"]) || $_SESSION["role"
                                 <select id="bookingSelect" class="form-select" required>
                                     <option value="" selected disabled>Loading eligible bookings...</option>
                                 </select>
-                                <div class="form-text text-muted">Only fully paid AND completed bookings are shown.</div>
+                                <div class="form-text text-muted">Only fully paid completed OR post-production bookings are shown.</div>
                             </div>
 
                             <!-- Google Drive Link -->
