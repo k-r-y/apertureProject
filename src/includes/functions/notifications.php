@@ -93,4 +93,20 @@ class NotificationSystem {
             return false;
         }
     }
+
+    public function sendPhotoUploadNotification($email, $name, $bookingRef, $count, $link = null) {
+        try {
+            $this->mail->clearAddresses();
+            $this->mail->addAddress($email, $name);
+            $this->mail->Subject = "Your Photos Are Ready! - #{$bookingRef}";
+            $this->mail->Body = EmailTemplates::getPhotoUploadNotification($name, $bookingRef, $count, $link);
+            $this->mail->AltBody = "Your photos for booking #{$bookingRef} are ready! {$count} new photos have been uploaded.";
+            
+            $this->mail->send();
+            return true;
+        } catch (Exception $e) {
+            error_log("Email Error: " . $this->mail->ErrorInfo);
+            return false;
+        }
+    }
 }

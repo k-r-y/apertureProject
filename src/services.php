@@ -69,7 +69,7 @@ if ($result) {
           <p class="mb-5 mx-auto text-light" style="max-width: 650px; font-size: 1.05rem; line-height: 1.8; opacity: 0.8; font-weight: 300;">Bespoke photography and videography services for discerning clients who demand excellence. From intimate celebrations to grand corporate events, we transform fleeting moments into timeless art.</p>
           <div class="d-flex flex-column flex-md-row gap-3 justify-content-center">
             <a href="#packages" class="btn px-5 py-3" style="background-color: var(--gold); color: #000; font-weight: 500; letter-spacing: 0.5px; border-radius: 6px; font-size: 0.9rem; transition: all 0.4s ease;">View Packages</a>
-            <a href="logIn.php" class="btn px-5 py-3" style="background: transparent; color: var(--gold); border: 1px solid var(--gold); font-weight: 500; letter-spacing: 0.5px; border-radius: 6px; font-size: 0.9rem; transition: all 0.4s ease;">Book now</a>
+            <a href="user/bookingForm.php" class="btn px-5 py-3" style="background: transparent; color: var(--gold); border: 1px solid var(--gold); font-weight: 500; letter-spacing: 0.5px; border-radius: 6px; font-size: 0.9rem; transition: all 0.4s ease;">Book now</a>
           </div>
         </div>
       </div>
@@ -141,7 +141,7 @@ if ($result) {
               </ul>
             </div>
              <div class="mt-auto" style="padding-top: 1.25rem;">
-              <a href="logIn.php" class="btn w-100 py-2 btn-book-package <?= ($index === 1) ? 'gold-btn' : 'normal-btn'; ?>" data-id="<?= htmlspecialchars($package['packageID']); ?>" data-package="<?= htmlspecialchars($package['packageName']); ?>" data-price="<?= htmlspecialchars($package['Price']); ?>" style="">Book now</a>
+              <a href="user/bookingForm.php" class="btn w-100 py-2 btn-book-package <?= ($index === 1) ? 'gold-btn' : 'normal-btn'; ?>" data-id="<?= htmlspecialchars($package['packageID']); ?>" data-package="<?= htmlspecialchars($package['packageName']); ?>" data-price="<?= htmlspecialchars($package['Price']); ?>" style="">Book now</a>
               <p class="text-center mt-2 mb-0 <?= ($index === 1) ? 'text-light' : 'text-dark'; ?>" style="font-size: 0.65rem; opacity: 0.5; ">25% downpayment required</p>
             </div>
           </div>
@@ -366,17 +366,7 @@ if ($result) {
           </div>
         </div>
 
-        <div class="col-md-6 col-lg-3">
-          <div class="text-center" style="padding: 2rem 1.5rem;">
-            <div class="mb-3">
-              <span style="width: 50px; height: 50px; display: inline-flex; align-items: center; justify-content: center; border: 1px solid rgba(212, 175, 55, 0.3); color: var(--gold);">
-                <i class="bi bi-arrow-repeat" style="font-size: 1.5rem;"></i>
-              </span>
-            </div>
-            <h5 class="mb-2" style="font-size: 0.95rem; font-weight: 500; letter-spacing: 0.5px; color: #1a1a1a;">Flexible Rescheduling</h5>
-            <p style="font-size: 0.8rem; line-height: 1.6; opacity: 0.6; font-weight: 300; color: #4a4a4a;">Free reschedule with 5+ days notice. Full refund 7+ days prior.</p>
-          </div>
-        </div>
+        
 
         <div class="col-md-6 col-lg-3">
           <div class="text-center" style="padding: 2rem 1.5rem;">
@@ -508,7 +498,7 @@ if ($result) {
           <p class="text-light mb-5 mx-auto" style="max-width: 650px; font-size: 0.95rem; line-height: 1.8; opacity: 0.7; font-weight: 300;">From intimate celebrations to grand occasions, we're here to document your moments with artistry, professionalism, and uncompromising attention to detail.</p>
 
           <div class="d-flex flex-column flex-md-row gap-3 justify-content-center mb-4">
-            <a href="logIn.php" class="btn px-5 py-3" style="background-color: var(--gold); color: #000; font-weight: 500; letter-spacing: 1px; border-radius: 6px; font-size: 0.85rem; transition: all 0.4s ease;">Book now</a>
+            <a href="user/bookingForm.php" class="btn px-5 py-3" style="background-color: var(--gold); color: #000; font-weight: 500; letter-spacing: 1px; border-radius: 6px; font-size: 0.85rem; transition: all 0.4s ease;">Book now</a>
             <a href="aboutCompany.php" class="btn px-5 py-3" style="background: transparent; color: var(--gold); border: 1px solid var(--gold); font-weight: 500; letter-spacing: 1px; border-radius: 6px; font-size: 0.85rem; transition: all 0.4s ease;">About us</a>
           </div>
 

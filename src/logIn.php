@@ -22,6 +22,9 @@ $errors = [];
 $showVerificationForm = false;
 $lastSentTime = null;
 $loginEmail = '';
+$showArchivedRecovery = false;
+$archivedEmail = '';
+$archivedPassword = '';
 $_SESSION['counter'] = 0;
 
 if (isset($_SESSION['csrfError'])) {
@@ -106,8 +109,15 @@ if ($_SERVER["REQUEST_METHOD"] === 'POST') {
                 }
                 // --- LOGIN FAILURE ---
             } else {
-
-                $errors['logIn'] = $result['error'];
+                if (isset($result['archived']) && $result['archived']) {
+                    $showArchivedRecovery = true;
+                    $archivedEmail = $email;
+                    // We need to pass the password to the recovery API. 
+                    // Ideally we would use a temporary session or re-prompt, but for seamless UX we'll pass it to JS.
+                    $archivedPassword = $password; 
+                } else {
+                    $errors['logIn'] = $result['error'];
+                }
             }
         }
     } else if (isset($_POST['formType']) && $_POST['formType'] === 'verification') {
@@ -504,6 +514,64 @@ if (isset($_GET['cancel']) and $_GET['cancel'] === 'true') {
                         confirmButtonColor: '#212529'
                     });
                 }
+            });
+        </script>
+    <?php endif; ?>
+
+    <!-- SweetAlert for Archived Account Recovery -->
+    <?php if ($showArchivedRecovery): ?>
+        <script>
+            document.addEventListener('DOMContentLoaded', function() {
+                Swal.fire({
+                    title: 'Account Archived',
+                    text: "Your account is currently archived. Do you want to recover it and continue logging in?",
+                    icon: 'warning',
+                    showCancelButton: true,
+                    confirmButtonColor: '#212529',
+                    cancelButtonColor: '#d33',
+                    confirmButtonText: 'Yes, recover it!',
+                    cancelButtonText: 'No, cancel'
+                }).then((result) => {
+                    if (result.isConfirmed) {
+                        // Perform AJAX request to recover account
+                        const formData = new FormData();
+                        formData.append('email', '<?= addslashes($archivedEmail) ?>');
+                        formData.append('password', '<?= addslashes($archivedPassword) ?>');
+                        formData.append('csrfToken', '<?= $_SESSION['csrfToken'] ?? '' ?>');
+
+                        fetch('./includes/api/recover_archived_account.php', {
+                            method: 'POST',
+                            body: formData
+                        })
+                        .then(response => response.json())
+                        .then(data => {
+                            if (data.success) {
+                                Swal.fire({
+                                    title: 'Recovered!',
+                                    text: 'Your account has been recovered.',
+                                    icon: 'success',
+                                    confirmButtonColor: '#212529'
+                                }).then(() => {
+                                    window.location.href = data.redirectUrl || 'user/user.php';
+                                });
+                            } else {
+                                Swal.fire(
+                                    'Error!',
+                                    data.error || 'Something went wrong.',
+                                    'error'
+                                );
+                            }
+                        })
+                        .catch(error => {
+                            console.error('Error:', error);
+                            Swal.fire(
+                                'Error!',
+                                'An unexpected error occurred.',
+                                'error'
+                            );
+                        });
+                    }
+                });
             });
         </script>
     <?php endif; ?>

@@ -92,7 +92,7 @@ function updatePersonalInfo($conn, $userId) {
     }
     
     // Update database
-    $stmt = $conn->prepare("UPDATE users SET fname = ?, lname = ?, contact = ? WHERE userID = ?");
+    $stmt = $conn->prepare("UPDATE users SET fname = ?, lname = ?, contactNo = ? WHERE userID = ?");
     $stmt->bind_param("ssss", $firstName, $lastName, $phone, $userId);
     
     if (!$stmt->execute()) {

@@ -40,7 +40,7 @@ require_once 'includes/functions/session.php';
         </div>
       <h1 class="display-1 w-75 fw-semibold serif m-0 text-light">Capture Every Moment, Book Every Memory</h1>
       <div class="d-flex flex-column flex-md-row gap-3">
-        <a href="login.php" class="btn border-light px-4 text-light rounded">Book Now</a>
+        <a href="user/bookingForm.php" class="btn border-light px-4 text-light rounded">Book Now</a>
         <a href="aboutCompany.php" class="btn bg-light text-dark px-4 rounded">Learn More</a>
       </div>
     </div>

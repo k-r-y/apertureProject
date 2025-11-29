@@ -1,7 +1,7 @@
 <!-- Terms of Service Modal -->
 <div class="modal fade" id="termsModal" tabindex="-1" aria-labelledby="termsModalLabel" aria-hidden="true">
     <div class="modal-dialog modal-lg modal-dialog-scrollable">
-        <div class="modal-content glass-modal">
+        <div class="modal-content glass-modal bg-light">
             <div class="modal-header border-0">
                 <h5 class="modal-title luxury-title" id="termsModalLabel">Terms of Service</h5>
                 <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>

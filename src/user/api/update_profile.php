@@ -32,11 +32,18 @@ try {
             throw new Exception('First Name and Last Name are required');
         }
 
-        $stmt = $conn->prepare("UPDATE users SET FirstName = ?, LastName = ?, contact = ? WHERE userID = ?");
+        // Validate phone number - Required, 11 digits, must start with 09
+        if (empty($phone)) {
+            throw new Exception('Contact number is required');
+        } else if (!preg_match('/^09[0-9]{9}$/', $phone)) {
+            throw new Exception('Contact number must be 11 digits and start with 09 (e.g., 09171234567)');
+        }
+
+        $stmt = $conn->prepare("UPDATE users SET FirstName = ?, LastName = ?, contactNo = ? WHERE userID = ?");
         $stmt->bind_param("sssi", $firstName, $lastName, $phone, $userId);
         
         if ($stmt->execute()) {
-            // Update session variables
+            // Update ALL session variables to reflect changes
             $_SESSION['firstName'] = $firstName;
             $_SESSION['lastName'] = $lastName;
             $_SESSION['contact'] = $phone;
@@ -60,6 +67,22 @@ try {
             throw new Exception('New passwords do not match');
         }
 
+        if (strlen($newPassword) < 8) {
+            throw new Exception('Password must be at least 8 characters');
+        }
+        
+        if (!preg_match('/[A-Z]/', $newPassword)) {
+            throw new Exception('Password must contain at least one uppercase letter');
+        }
+        
+        if (!preg_match('/[a-z]/', $newPassword)) {
+            throw new Exception('Password must contain at least one lowercase letter');
+        }
+        
+        if (!preg_match('/[0-9]/', $newPassword)) {
+            throw new Exception('Password must contain at least one number');
+        }
+
         // Verify current password
         $stmt = $conn->prepare("SELECT password FROM users WHERE userID = ?");
         $stmt->bind_param("i", $userId);
@@ -69,6 +92,11 @@ try {
 
         if (!$user || !password_verify($currentPassword, $user['password'])) {
             throw new Exception('Incorrect current password');
+        }
+
+        // Check if new password is same as current password
+        if (password_verify($newPassword, $user['password'])) {
+            throw new Exception('New password cannot be the same as your current password');
         }
 
         // Update to new password

@@ -5,8 +5,6 @@ require_once './includes/functions/function.php';
 require_once './includes/functions/csrf.php';
 require_once './includes/functions/session.php';
 
-
-
 if (isset($_SESSION["userId"]) and isset($_SESSION["role"]) and  $_SESSION["role"] === "Admin" and isset($_SESSION["isVerified"]) and  $_SESSION["isVerified"]) {
     header("Location: admin/adminDashboard.php");
     exit;
@@ -20,6 +18,8 @@ $errors = [];
 $showVerification = false;
 $lastSentTime = null;
 $registrationEmail = '';
+$showArchivedRecovery = false;
+$archivedEmail = '';
 
 // --- CSRF & STATE HANDLING ---
 // Check for CSRF errors from previous requests.
@@ -50,26 +50,16 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
         $email = trim($_POST['email']);
         $password = $_POST['password'];
         $confirmPassword = $_POST['confirmPassword'];
-
-        //checking if there's an error in the password and email
-        if (empty($email)) {
-            $errors['email'] = "Email is required";
-        } else if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
-            $errors['email'] = "Please use a valid email";
-        }
-        if (empty($password)) {
-            $errors['password'] = "Password is required";
-        } else if (strlen($password) < 8) {
-            $errors['password'] = "The password must be at least 8 characters";
-        }
-
-        if ($password !== $confirmPassword) {
-            $errors['ConfirmPassword'] = "Password Mismatched";
-        }
-
         // Check if the email is already registered in the database.
         if (isEmailExists($email)) {
-            $errors['email'] = 'An account with this email already exists.';
+            $status = getAccountStatus($email);
+            if ($status && strtolower($status) === 'archived') {
+                $showArchivedRecovery = true;
+                $archivedEmail = $email;
+                $errors['email'] = 'This email belongs to an archived account.';
+            } else {
+                $errors['email'] = 'An account with this email already exists.';
+            }
         } else {
             // If there are no validation errors, proceed with registration.
             if (empty($errors)) {
@@ -90,8 +80,9 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
                 }
             }
         }
-        // --- VERIFICATION CODE FORM SUBMISSION ---
-    } else if (isset($_POST['formType']) && $_POST['formType'] === 'verification') {
+    } 
+    // --- VERIFICATION CODE FORM SUBMISSION ---
+    else if (isset($_POST['formType']) && $_POST['formType'] === 'verification') {
 
         // Concatenate the 6-digit code from individual input fields.
         $code = trim($_POST['code1'] . $_POST['code2'] . $_POST['code3'] . $_POST['code4'] . $_POST['code5'] . $_POST['code6']);
@@ -163,8 +154,6 @@ if (isset($_GET['cancel']) and $_GET['cancel'] === 'true') {
 }
 ?>
 
-
-
 <!DOCTYPE html>
 <html lang="en">
 
@@ -183,8 +172,6 @@ if (isset($_GET['cancel']) and $_GET['cancel'] === 'true') {
     <section class="w-100 min-vh-100   p-0 p-sm-2  d-flex flex-column justify-content-center align-items-center position-relative" id="reg">
 
         <a href="index.php"><img src="./assets/logo-for-light.png" alt="" id="logo"></a>
-
-
 
         <!-- Main container for the form -->
         <div class="container justify-content-center px-4 p-md-3">
@@ -227,7 +214,7 @@ if (isset($_GET['cancel']) and $_GET['cancel'] === 'true') {
 
                             <div class="form-check mb-2 d-flex gap-2 justify-content-center align-items-start">
                                 <input type="checkbox" name="termsCheck" id="termsCheck" class="form-check-input" required>
-                                <label for="termsCheck" id="termsLabel" class="form-check-label">By creating an account, you confirm that you have read, understood, and agreed to the <a href="#" type="button" data-bs-toggle="modal" data-bs-target="#dataModal">Terms and Conditions and Privacy Notice.</a></label>
+                                <label for="termsCheck" id="termsLabel" class="form-check-label">By creating an account, you confirm that you have read, understood, and agreed to the <a href="#" type="button" data-bs-toggle="modal" data-bs-target="#termsModal">Terms and Conditions and Privacy Notice.</a></label>
                             </div>
 
                             <?php include "./includes/modals/terms.php" ?>
@@ -470,6 +457,28 @@ if (isset($_GET['cancel']) and $_GET['cancel'] === 'true') {
                         confirmButtonColor: '#212529'
                     });
                 }
+            });
+        </script>
+    <?php endif; ?>
+
+    <!-- SweetAlert for Archived Account Recovery Redirect -->
+    <?php if ($showArchivedRecovery): ?>
+        <script>
+            document.addEventListener('DOMContentLoaded', function() {
+                Swal.fire({
+                    title: 'Account Archived',
+                    text: "This email belongs to an archived account. Do you want to log in and recover it?",
+                    icon: 'info',
+                    showCancelButton: true,
+                    confirmButtonColor: '#212529',
+                    cancelButtonColor: '#d33',
+                    confirmButtonText: 'Yes, go to Login',
+                    cancelButtonText: 'No, stay here'
+                }).then((result) => {
+                    if (result.isConfirmed) {
+                        window.location.href = 'logIn.php';
+                    }
+                });
             });
         </script>
     <?php endif; ?>

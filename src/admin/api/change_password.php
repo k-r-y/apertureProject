@@ -8,6 +8,7 @@ require_once '../../includes/functions/config.php';
 require_once '../../includes/functions/auth.php';
 require_once '../../includes/functions/csrf.php';
 require_once '../../includes/functions/session.php';
+require_once '../../includes/functions/logger.php';
 
 header('Content-Type: application/json');
 
@@ -49,8 +50,6 @@ if (empty($newPassword)) {
     $errors['newPassword'] = 'Password must contain at least one lowercase letter';
 } else if (!preg_match('/[0-9]/', $newPassword)) {
     $errors['newPassword'] = 'Password must contain at least one number';
-} else if (!preg_match('/[^A-Za-z0-9]/', $newPassword)) {
-    $errors['newPassword'] = 'Password must contain at least one special character';
 }
 
 if ($newPassword !== $confirmPassword) {
@@ -88,26 +87,34 @@ if (empty($errors)) {
     $stmt->bind_param("si", $hashedPassword, $userId);
     
     if ($stmt->execute()) {
-        // Log the password change
-        Logger::security('Password changed', [
-            'user_id' => $userId,
-            'email' => $userEmail
-        ]);
+        // Log the password change (wrapped in try-catch to prevent logging errors)
+        try {
+            Logger::security('Password changed', [
+                'user_id' => $userId,
+                'email' => $userEmail
+            ]);
+        } catch (Exception $e) {
+            // Logging failed but password was updated successfully
+        }
         
         echo json_encode([
             'success' => true,
             'message' => 'Password changed successfully'
         ]);
     } else {
+        http_response_code(500);
         echo json_encode([
             'success' => false,
-            'error' => 'Failed to update password'
+            'message' => 'Database error: Failed to update password'
         ]);
     }
 } else {
     http_response_code(400);
+    // Return first error message as main message
+    $firstError = reset($errors);
     echo json_encode([
         'success' => false,
+        'message' => $firstError,
         'errors' => $errors
     ]);
 }

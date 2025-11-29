@@ -14,6 +14,26 @@ function isEmailExists($email)
     return $exists;
 }
 
+// check account status
+function getAccountStatus($email)
+{
+    global $conn;
+
+    $stmt = $conn->prepare("SELECT status FROM users WHERE Email = ?");
+    $stmt->bind_param('s', $email);
+    $stmt->execute();
+    $result = $stmt->get_result();
+    
+    if ($result->num_rows === 1) {
+        $user = $result->fetch_assoc();
+        $stmt->close();
+        return $user['status'] ?? $user['Status'] ?? null;
+    }
+    
+    $stmt->close();
+    return null;
+}
+
 // generate verification code
 function createCode($email)
 {
@@ -181,6 +201,24 @@ function logInUser($email, $password, $type)
     $user = $result->fetch_assoc();
     $query->close();
     $userId = $user['userID'];
+
+    // CHECK IF ACCOUNT IS ARCHIVED
+    $accountStatus = $user['status'] ?? $user['Status'] ?? null;
+    if ($accountStatus && strtolower($accountStatus) === 'archived') {
+        // Verify password is correct before offering recovery
+        if (password_verify($password, $user['Password'])) {
+            return [
+                'success' => false,
+                'archived' => true,
+                'email' => $email,
+                'userId' => $userId,
+                'error' => 'Account is archived'
+            ];
+        } else {
+            // Wrong password for archived account
+            return ['success' => false, 'error' => "Invalid email or password"];
+        }
+    }
 
     // 2. CHECK IF ACCOUNT IS LOCKED
     $lockStatus = checkAndHandleLock($userId, $type);

@@ -68,12 +68,7 @@ $currentPage = basename($_SERVER['PHP_SELF']);
                 <span class="nav-text">Services & Packages</span>
             </a>
         </li>
-        <li class="sidebar-nav-item">
-            <a href="portfoliomanager.php" class="sidebar-nav-link <?= ($currentPage == 'portfoliomanager.php') ? 'active' : '' ?>">
-                <i class="bi bi-images nav-icon"></i>
-                <span class="nav-text">Portfolio Manager</span>
-            </a>
-        </li>
+        
         <li class="sidebar-nav-item">
             <a href="photoUpload.php" class="sidebar-nav-link <?= ($currentPage == 'photoUpload.php') ? 'active' : '' ?>">
                 <i class="bi bi-cloud-upload nav-icon"></i>

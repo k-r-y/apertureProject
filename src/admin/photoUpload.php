@@ -320,6 +320,10 @@ if (!isset($_SESSION["userId"]) || !isset($_SESSION["role"]) || $_SESSION["role"
             const formData = new FormData();
             formData.append('bookingID', bookingSelect.value);
             formData.append('gdriveLink', gdriveLinkInput.value);
+            
+            // Add Photo Type
+            const photoType = document.querySelector('input[name="photoType"]:checked').value;
+            formData.append('photoType', photoType);
 
             selectedFiles.forEach((file, index) => {
                 formData.append('photos[]', file);

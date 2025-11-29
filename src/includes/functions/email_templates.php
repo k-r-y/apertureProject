@@ -148,5 +148,30 @@ class EmailTemplates {
 
         return self::getHeader() . $body . self::getFooter();
     }
+
+    public static function getPhotoUploadNotification($name, $bookingRef, $count, $link = null) {
+        $body = "
+            <h2 style='color: #0a0a0a; margin-top: 0;'>Your Photos Are Ready!</h2>
+            <p>Dear {$name},</p>
+            <p>We are excited to inform you that <strong>{$count}</strong> new photos have been uploaded for your booking <strong>#{$bookingRef}</strong>.</p>
+            
+            <div style='background: #f8f9fa; padding: 20px; border-radius: 8px; margin: 30px 0; text-align: center;'>
+                <p style='margin-bottom: 20px; color: #666;'>You can view and download your photos by logging into your account:</p>
+                <a href='http://localhost/aperture/src/logIn.php' style='background: #d4af37; color: #fff; text-decoration: none; padding: 12px 25px; border-radius: 4px; font-weight: bold; display: inline-block;'>
+                    View My Photos
+                </a>";
+        
+        if ($link) {
+            $body .= "
+                <p style='margin-top: 20px; color: #666;'>You can also access the full gallery via Google Drive:</p>
+                <a href='{$link}' style='color: #d4af37; font-weight: bold;'>Open Google Drive Folder</a>";
+        }
+
+        $body .= "
+            </div>
+            <p>We hope you love them! If you have any questions, please don't hesitate to reach out.</p>";
+
+        return self::getHeader() . $body . self::getFooter();
+    }
 }
 ?>

@@ -26,6 +26,25 @@ document.addEventListener('DOMContentLoaded', function () {
                 return;
             }
 
+            // Validate Philippine phone number
+            if (!phone) {
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Validation Error',
+                    text: 'Contact number is required',
+                    confirmButtonColor: '#d4af37'
+                });
+                return;
+            } else if (!/^09[0-9]{9}$/.test(phone)) {
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Validation Error',
+                    text: 'Contact number must be 11 digits and start with 09 (e.g., 09171234567)',
+                    confirmButtonColor: '#d4af37'
+                });
+                return;
+            }
+
             // Show loading
             Swal.fire({
                 title: 'Updating Profile...',
@@ -49,6 +68,7 @@ document.addEventListener('DOMContentLoaded', function () {
                 });
 
                 const data = await response.json();
+                console.log('Profile update response:', data);
 
                 if (data.success) {
                     Swal.fire({
@@ -125,6 +145,7 @@ document.addEventListener('DOMContentLoaded', function () {
                 });
 
                 const data = await response.json();
+                console.log('Password change response:', data);
 
                 if (data.success) {
                     Swal.fire({
@@ -145,6 +166,58 @@ document.addEventListener('DOMContentLoaded', function () {
                     text: error.message,
                     confirmButtonColor: '#d4af37'
                 });
+            }
+        });
+    }
+
+    // ==========================================
+    // Account Deletion Handler
+    // ==========================================
+    const deleteAccountBtn = document.querySelector('button[class*="btn-outline-danger"]');
+
+    if (deleteAccountBtn) {
+        deleteAccountBtn.addEventListener('click', async function () {
+            const result = await Swal.fire({
+                icon: 'warning',
+                title: 'Archive Account?',
+                html: 'Your account will be archived (not permanently deleted).<br>You can recover it later by contacting support.<br><br><strong>Are you sure?</strong>',
+                showCancelButton: true,
+                confirmButtonText: 'Yes, Archive My Account',
+                cancelButtonText: 'Cancel',
+                confirmButtonColor: '#dc3545',
+                cancelButtonColor: '#6c757d'
+            });
+
+            if (result.isConfirmed) {
+                try {
+                    const response = await fetch('api/archive_account.php', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' }
+                    });
+
+                    const data = await response.json();
+                    console.log('Archive response:', data);
+
+                    if (data.success) {
+                        await Swal.fire({
+                            icon: 'success',
+                            title: 'Account Archived',
+                            text: 'Your account has been archived. You will be logged out.',
+                            confirmButtonColor: '#d4af37'
+                        });
+                        window.location.href = '../logIn.php';
+                    } else {
+                        throw new Error(data.message || 'Failed to archive account');
+                    }
+                } catch (error) {
+                    console.error('Archive error:', error);
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Error',
+                        text: error.message || 'Could not archive account',
+                        confirmButtonColor: '#d4af37'
+                    });
+                }
             }
         });
     }

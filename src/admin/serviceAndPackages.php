@@ -32,9 +32,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['update_package'])) {
     $name = sanitizeInput($_POST['name']);
     $price = sanitizeInput($_POST['price']);
     $desc = sanitizeInput($_POST['description']);
+    $duration = intval($_POST['duration']);
 
-    $stmt = $conn->prepare("UPDATE packages SET PackageName = ?, Price = ?, Description = ? WHERE packageID = ?");
-    $stmt->bind_param("sdss", $name, $price, $desc, $pkgId);
+    $stmt = $conn->prepare("UPDATE packages SET PackageName = ?, Price = ?, Description = ?, access_duration_months = ? WHERE packageID = ?");
+    $stmt->bind_param("sdssi", $name, $price, $desc, $duration, $pkgId);
     
     if ($stmt->execute()) {
         $successMsg = "Package updated successfully.";
@@ -117,7 +118,8 @@ if ($result) {
                                         <h4 class="text-gold font-serif mb-0"><?= htmlspecialchars($pkg['packageName']) ?></h4>
                                         <span class="text-light fs-5 fw-bold">₱<?= number_format($pkg['Price']) ?></span>
                                     </div>
-                                    <p class="text-muted small mb-4"><?= htmlspecialchars($pkg['description']) ?></p>
+                                    <p class="text-muted small mb-2"><?= htmlspecialchars($pkg['description']) ?></p>
+                                    <p class="text-gold small mb-4"><i class="bi bi-clock-history me-2"></i><?= $pkg['access_duration_months'] ?? 4 ?> months access</p>
                                     
                                     <div class="mb-3">
                                         <h6 class="text-gold small text-uppercase letter-spacing-1 mb-2">Inclusions</h6>
@@ -136,7 +138,8 @@ if ($result) {
                                             data-id="<?= $pkg['packageID'] ?>"
                                             data-name="<?= htmlspecialchars($pkg['packageName']) ?>"
                                             data-price="<?= $pkg['Price'] ?>"
-                                            data-desc="<?= htmlspecialchars($pkg['description']) ?>">
+                                            data-desc="<?= htmlspecialchars($pkg['description']) ?>"
+                                            data-duration="<?= $pkg['access_duration_months'] ?? 4 ?>">
                                         Edit Package
                                     </button>
                                 </div>
@@ -176,6 +179,11 @@ if ($result) {
                             <label class="text-muted small mb-2">Description</label>
                             <textarea name="description" id="edit_desc" class="neo-input" rows="3" required></textarea>
                         </div>
+
+                        <div class="mb-3">
+                            <label class="text-muted small mb-2">Access Duration (Months)</label>
+                            <input type="number" name="duration" id="edit_duration" class="neo-input" required min="1">
+                        </div>
                     </div>
                     <div class="modal-footer border-top border-secondary">
                         <button type="button" class="btn btn-ghost" data-bs-dismiss="modal">Cancel</button>
@@ -202,6 +210,7 @@ if ($result) {
             editModal.querySelector('#edit_name').value = name;
             editModal.querySelector('#edit_price').value = price;
             editModal.querySelector('#edit_desc').value = desc;
+            editModal.querySelector('#edit_duration').value = button.getAttribute('data-duration');
         });
     </script>
 </body>

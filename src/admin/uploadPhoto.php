@@ -70,6 +70,7 @@ $failed = [];
 
 // Get Photo Type
 $photoType = isset($_POST['photoType']) && in_array($_POST['photoType'], ['edited', 'raw']) ? $_POST['photoType'] : 'edited';
+error_log("Upload Debug: photoType received: " . (isset($_POST['photoType']) ? $_POST['photoType'] : 'NOT SET') . ", using: " . $photoType);
 
 // Process each uploaded file
 foreach ($_FILES['photos']['tmp_name'] as $index => $tmpName) {
@@ -155,6 +156,40 @@ foreach ($_FILES['photos']['tmp_name'] as $index => $tmpName) {
 $totalFiles = count($_FILES['photos']['name']);
 
 if ($uploadedCount > 0) {
+    // Send Notifications
+    require_once '../includes/functions/notifications.php';
+    
+    // Fetch user details
+    $userStmt = $conn->prepare("SELECT Email, FirstName, LastName FROM users WHERE userID = ?");
+    $userStmt->bind_param("i", $userID);
+    $userStmt->execute();
+    $userRes = $userStmt->get_result();
+    $userData = $userRes->fetch_assoc();
+    
+    if ($userData) {
+        $notifier = new NotificationSystem();
+        $fullName = $userData['FirstName'] . ' ' . $userData['LastName'];
+        
+        // Send Email
+        $notifier->sendPhotoUploadNotification(
+            $userData['Email'], 
+            $fullName, 
+            $bookingID, 
+            $uploadedCount, 
+            $gdriveLink
+        );
+        
+        // Send In-App Notification
+        $notifTitle = "Photos Uploaded";
+        $notifMessage = "{$uploadedCount} new photos have been uploaded for your booking #{$bookingID}.";
+        $notifType = "photo_upload";
+        $notifLink = "myPhotos.php";
+        
+        $notifStmt = $conn->prepare("INSERT INTO notifications (userID, title, message, type, link, created_at) VALUES (?, ?, ?, ?, ?, NOW())");
+        $notifStmt->bind_param("issss", $userID, $notifTitle, $notifMessage, $notifType, $notifLink);
+        $notifStmt->execute();
+    }
+
     $message = "Successfully uploaded $uploadedCount of $totalFiles photo(s)";
     if ($gdriveLink) $message .= " and updated GDrive link";
     

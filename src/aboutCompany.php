@@ -102,7 +102,7 @@ if ($_SERVER['REQUEST_METHOD'] == "POST") {
           <h1 class="display-3 fw-bold text-light m-0">APERTURE</h1>
           <p class="text-light fs-5 fw-light">We make finding the perfect photographer or videographer effortless, so you can focus on creating memories.</p>
           <div class="d-flex flex-column flex-md-row gap-3">
-            <a href="logIn.php" class="btn border-light px-4 text-light rounded">Book Now</a>
+            <a href="user/bookingForm.php" class="btn border-light px-4 text-light rounded">Book Now</a>
             <a href="register.php" class="btn bg-light text-dark px-4 rounded">Sign Up</a>
           </div>
         </div>

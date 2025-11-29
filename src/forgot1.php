@@ -130,10 +130,8 @@ if ($_SERVER["REQUEST_METHOD"] === 'POST') {
             $errors['password'] = "Password must contain at least one uppercase letter";
         } else if (!preg_match('/[a-z]/', $password)) {
             $errors['password'] = "Password must contain at least one lowercase letter";
-        } else if (!preg_match('/[0-9]/', $password)) {
+        } else if (!preg_match('/[0-9]/',  $password)) {
             $errors['password'] = "Password must contain at least one number";
-        } else if (!preg_match('/[^A-Za-z0-9]/', $password)) {
-            $errors['password'] = "Password must contain at least one special character";
         }
 
         if ($password !== $confirmPassword) {

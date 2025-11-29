@@ -60,7 +60,7 @@ class UserNotificationManager {
 
         this.notificationsList.innerHTML = notifications.map(notif => `
             <li class="notification-item px-3 py-2 border-bottom border-secondary ${notif.is_read == 0 ? 'bg-dark-highlight' : ''}" 
-                onclick="notificationManager.handleNotificationClick(${notif.id}, '${notif.link}')">
+                onclick="userNotificationManagerInstance.handleNotificationClick(${notif.id}, '${notif.link}')">
                 <div class="d-flex align-items-start">
                     <i class="bi ${this.getIcon(notif.type)} text-gold me-2 mt-1"></i>
                     <div class="flex-grow-1">
@@ -132,7 +132,7 @@ class UserNotificationManager {
 }
 
 // Initialize and expose global instance for onclick handlers
-let notificationManager;
+let userNotificationManagerInstance;
 document.addEventListener('DOMContentLoaded', () => {
-    notificationManager = new UserNotificationManager();
+    userNotificationManagerInstance = new UserNotificationManager();
 });

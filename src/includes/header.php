@@ -28,7 +28,7 @@
         </ul>
 
         <div class="d-flex flex-column flex-md-row gap-2 justify-content-center">
-          <a href="logIn.php" class="btn border-dark px-4 rounded-pill">Book Now</a>
+          <a href="user/bookingForm.php" class="btn border-dark px-4 rounded-pill">Book Now</a>
           <a href="register.php" class="btn bg-dark text-light px-4 rounded-pill">Sign Up</a>
         </div>
       </div>

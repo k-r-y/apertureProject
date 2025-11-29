@@ -144,16 +144,27 @@ async function handlePasswordChange(e) {
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ currentPassword, newPassword, confirmPassword })
                 });
+
                 const data = await response.json();
+                console.log('Password change response:', data);
 
                 if (data.success) {
                     Swal.fire('Success', 'Password updated successfully', 'success');
                     e.target.reset();
                 } else {
-                    Swal.fire('Error', data.message || 'Failed to update password', 'error');
+                    // Show specific error message from backend
+                    let errorMessage = data.message || 'Failed to update password';
+
+                    // If there are multiple errors, combine them
+                    if (data.errors && Object.keys(data.errors).length > 0) {
+                        errorMessage = Object.values(data.errors).join('\n');
+                    }
+
+                    Swal.fire('Error', errorMessage, 'error');
                 }
             } catch (error) {
-                Swal.fire('Error', 'An error occurred', 'error');
+                console.error('Password change error:', error);
+                Swal.fire('Error', 'Network error: Could not reach the server', 'error');
             }
         }
     });
