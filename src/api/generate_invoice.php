@@ -196,9 +196,20 @@ $booking['contactNo'] = $booking['contactNo'] ?? 'N/A';
                     <td><strong>Downpayment Paid</strong></td>
                     <td style="text-align: right;">- ₱<?= number_format($booking['downpayment_amount'], 2) ?></td>
                 </tr>
+                <?php if ($booking['final_payment_paid'] == 1 || $booking['is_fully_paid'] == 1): ?>
+                <tr>
+                    <td><strong>Final Payment Paid</strong></td>
+                    <td style="text-align: right;">- ₱<?= number_format($booking['total_amount'] - $booking['downpayment_amount'], 2) ?></td>
+                </tr>
+                <?php endif; ?>
                 <tr class="total-row">
-                    <td>BALANCE DUE</td>
-                    <td style="text-align: right;">₱<?= number_format($booking['total_amount'] - $booking['downpayment_amount'], 2) ?></td>
+                    <td><?= ($booking['final_payment_paid'] == 1 || $booking['is_fully_paid'] == 1) ? 'TOTAL PAID' : 'BALANCE DUE' ?></td>
+                    <td style="text-align: right;">₱<?= number_format(
+                        ($booking['final_payment_paid'] == 1 || $booking['is_fully_paid'] == 1) 
+                            ? 0 
+                            : $booking['total_amount'] - $booking['downpayment_amount'], 
+                        2
+                    ) ?></td>
                 </tr>
             </tbody>
         </table>

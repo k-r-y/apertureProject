@@ -157,6 +157,8 @@ if (isset($_GET['action']) and $_GET['action'] === 'logout') {
         </div>
     </div>
 
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script src="../../bootstrap-5.3.8-dist/js/bootstrap.bundle.min.js"></script>
     <script src="admin.js"></script>
 
     <script>

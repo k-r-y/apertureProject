@@ -66,8 +66,9 @@ function getUserActivities($userId = null, $activityType = null, $limit = 50, $o
     $query = "
         SELECT 
             a.*,
-            u.fullName as user_name,
-            u.email as user_email,
+            u.FirstName,
+            u.LastName,
+            u.Email as user_email,
             b.bookingID as booking_reference,
             b.event_type
         FROM user_activity_log a

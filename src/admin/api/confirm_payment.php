@@ -97,6 +97,7 @@ try {
             
         case 'final':
             // Mark final payment as paid
+            // Also mark downpayment as paid (you can't pay final without paying downpayment)
             // Check if event has passed
             if ($eventDate < $today) {
                 $newStatus = 'post_production';
@@ -106,13 +107,15 @@ try {
             
             $stmt = $conn->prepare("
                 UPDATE bookings 
-                SET final_payment_paid = 1,
+                SET downpayment_paid = 1,
+                    downpayment_paid_date = IF(downpayment_paid_date IS NULL, ?, downpayment_paid_date),
+                    final_payment_paid = 1,
                     final_payment_paid_date = ?,
                     booking_status = ?,
                     is_fully_paid = 1
                 WHERE bookingID = ?
             ");
-            $stmt->bind_param("ssi", $currentDate, $newStatus, $bookingId);
+            $stmt->bind_param("sssi", $currentDate, $currentDate, $newStatus, $bookingId);
             $stmt->execute();
             $stmt->close();
             

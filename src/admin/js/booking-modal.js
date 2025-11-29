@@ -5,6 +5,7 @@
 
 let currentBookingId = null;
 let bookingDetailsModal = null;
+let invoiceWindow = null; // Track invoice window
 
 document.addEventListener('DOMContentLoaded', function () {
     // Initialize Modal if element exists
@@ -293,7 +294,17 @@ function populateModal(booking) {
     // Add Download Invoice Button
     const invoiceBtn = document.getElementById('downloadInvoiceBtn');
     if (invoiceBtn) {
-        invoiceBtn.onclick = () => window.open(`../api/generate_invoice.php?id=${booking.bookingID}`, '_blank');
+        invoiceBtn.onclick = () => {
+            // Check if invoice window is already open
+            if (invoiceWindow && !invoiceWindow.closed) {
+                // Reload existing window
+                invoiceWindow.location.reload();
+                invoiceWindow.focus();
+            } else {
+                // Open new window and track it
+                invoiceWindow = window.open(`../api/generate_invoice.php?id=${booking.bookingID}`, 'invoiceWindow');
+            }
+        };
     }
 
     // Logs
@@ -512,6 +523,10 @@ function confirmPayment(bookingId, type, checkbox) {
                 viewBooking(bookingId); // Refresh modal to show updated status/badges
                 if (typeof fetchBookings === 'function') {
                     fetchBookings(); // Refresh list
+                }
+                // Refresh invoice window if it's open
+                if (invoiceWindow && !invoiceWindow.closed) {
+                    invoiceWindow.location.reload();
                 }
             } else {
                 LuxuryToast.show({ message: data.message || 'Failed to confirm payment', type: 'error' });

@@ -89,16 +89,13 @@ if (isset($_GET['action']) and $_GET['action'] === 'logout') {
                 </div>
                 <div class="modal-body">
                     <div class="row g-4">
-                        <!-- Status (Read-Only) -->
+                        <!-- Status & Actions -->
                         <div class="col-12">
                             <div class="neo-card p-3 bg-opacity-10 bg-white">
                                 <div class="d-flex justify-content-between align-items-center flex-wrap gap-3">
                                     <div>
                                         <label class="text-muted small d-block mb-1">Current Status</label>
                                         <span id="modalStatusBadge" class="badge bg-warning text-dark">Pending</span>
-                                        <small class="text-muted d-block mt-1">
-                                            <i class="bi bi-info-circle"></i> Status updates automatically based on payments
-                                        </small>
                                     </div>
                                 </div>
                             </div>
@@ -112,34 +109,67 @@ if (isset($_GET['action']) and $_GET['action'] === 'logout') {
                             <p class="mb-1"><i class="bi bi-phone me-2 text-muted"></i> <span id="modalClientPhone" class="text-light"></span></p>
                         </div>
                         <div class="col-md-6">
-                            <h6 class="text-gold mb-3">Event Details</h6>
-                            <p class="mb-1"><i class="bi bi-calendar-event me-2 text-muted"></i> <span id="modalEventDate" class="text-light"></span></p>
-                            <p class="mb-1"><i class="bi bi-clock me-2 text-muted"></i> <span id="modalEventTime" class="text-light"></span></p>
-                            <p class="mb-1"><i class="bi bi-geo-alt me-2 text-muted"></i> <span id="modalEventLocation" class="text-light"></span></p>
-                            <p class="mb-1"><i class="bi bi-camera me-2 text-muted"></i> <span id="modalEventType" class="text-light"></span></p>
+                            <div class="d-flex justify-content-between align-items-center mb-3">
+                                <h6 class="text-gold m-0">Event Details</h6>
+                                <button id="editDetailsBtn" class="btn btn-sm btn-link text-gold p-0" style="text-decoration: none;">
+                                    <i class="bi bi-pencil me-1"></i>Edit
+                                </button>
+                            </div>
+                            
+                            <!-- View Mode -->
+                            <div id="viewModeDetails">
+                                <p class="mb-1"><i class="bi bi-calendar-event me-2 text-muted"></i> <span id="modalEventDate" class="text-light"></span></p>
+                                <p class="mb-1"><i class="bi bi-clock me-2 text-muted"></i> <span id="modalEventTime" class="text-light"></span></p>
+                                <p class="mb-1"><i class="bi bi-geo-alt me-2 text-muted"></i> <span id="modalEventLocation" class="text-light"></span></p>
+                                <p class="mb-1"><i class="bi bi-camera me-2 text-muted"></i> <span id="modalEventType" class="text-light"></span></p>
+                            </div>
+
+                            <!-- Edit Mode (Hidden by default) -->
+                            <div id="editModeDetails" style="display: none;">
+                                <div class="mb-2">
+                                    <label class="text-muted small">Date</label>
+                                    <input type="date" id="editEventDate" class="form-control form-control-sm bg-dark text-light border-secondary">
+                                </div>
+                                <div class="row g-2 mb-2">
+                                    <div class="col-6">
+                                        <label class="text-muted small">Start Time</label>
+                                        <input type="time" id="editEventStartTime" class="form-control form-control-sm bg-dark text-light border-secondary">
+                                    </div>
+                                    <div class="col-6">
+                                        <label class="text-muted small">End Time</label>
+                                        <input type="time" id="editEventEndTime" class="form-control form-control-sm bg-dark text-light border-secondary">
+                                    </div>
+                                </div>
+                                <div class="mb-2">
+                                    <label class="text-muted small">Location</label>
+                                    <input type="text" id="editEventLocation" class="form-control form-control-sm bg-dark text-light border-secondary">
+                                </div>
+                                <div class="mb-3">
+                                    <label class="text-muted small">Event Type</label>
+                                    <select id="editEventType" class="form-select form-select-sm bg-dark text-light border-secondary">
+                                        <option value="Wedding">Wedding</option>
+                                        <option value="Debut">Debut</option>
+                                        <option value="Christening">Christening</option>
+                                        <option value="Corporate">Corporate</option>
+                                        <option value="Other">Other</option>
+                                    </select>
+                                </div>
+                                <div class="d-flex gap-2">
+                                    <button id="saveDetailsBtn" class="btn btn-sm btn-gold flex-grow-1">Save Changes</button>
+                                    <button id="cancelEditBtn" class="btn btn-sm btn-outline-light">Cancel</button>
+                                </div>
+                            </div>
                             
                             <!-- Consultation Info Container -->
                             <div id="modalConsultation"></div>
-                        </div>
 
-                        <!-- Meeting Link Section - Standalone & Prominent -->
-                        <div class="col-12">
-                            <div class="neo-card p-3 bg-opacity-10 bg-gold">
-                                <h6 class="text-gold mb-2">
-                                    <i class="bi bi-link-45deg me-2"></i>Meeting Link (Google Meet / Zoom)
-                                </h6>
+                            <!-- Meeting Link -->
+                            <div class="mt-3">
+                                <label class="text-muted small mb-1"><i class="bi bi-link-45deg me-1"></i>Meeting Link (Google Meet/Zoom)</label>
                                 <div class="input-group">
-                                    <input type="text" id="modalMeetingLink" 
-                                           class="form-control bg-dark text-light border-secondary" 
-                                           placeholder="Enter meeting link here (e.g., https://meet.google.com/...)">
-                                    <button id="saveLinkBtn" class="btn btn-gold">
-                                        <i class="bi bi-save me-1"></i>Save Link
-                                    </button>
+                                    <input type="text" id="modalMeetingLink" class="form-control bg-dark text-light border-secondary" placeholder="https://meet.google.com/...">
+                                    <button id="saveLinkBtn" class="btn btn-outline-gold">Save</button>
                                 </div>
-                                <small class="text-muted d-block mt-2">
-                                    <i class="bi bi-info-circle me-1"></i>
-                                    User will receive email and in-app notification when link is saved
-                                </small>
                             </div>
                         </div>
 
@@ -153,7 +183,17 @@ if (isset($_GET['action']) and $_GET['action'] === 'logout') {
                                         <div id="modalAddons" class="small text-muted"></div>
                                     </div>
                                     <div class="col-md-6 text-md-end">
-                                        <h6 class="text-gold mb-2">Payment</h6>
+                                        <h6 class="text-gold mb-2">Payment Status</h6>
+                                        <div class="mb-3 d-flex flex-column align-items-end gap-2">
+                                            <div class="form-check form-switch">
+                                                <label class="form-check-label text-light small me-2" for="confirmDownpayment">Downpayment Paid</label>
+                                                <input class="form-check-input" type="checkbox" id="confirmDownpayment">
+                                            </div>
+                                            <div class="form-check form-switch">
+                                                <label class="form-check-label text-light small me-2" for="confirmFinalPayment">Final Payment Paid</label>
+                                                <input class="form-check-input" type="checkbox" id="confirmFinalPayment">
+                                            </div>
+                                        </div>
                                         <p class="mb-1">Total: <span id="modalTotalAmount" class="text-light fw-bold"></span></p>
                                         <p class="mb-1">Downpayment: <span id="modalDownpayment" class="text-light"></span></p>
                                         <p class="mb-0">Balance: <span id="modalBalance" class="text-light"></span></p>
@@ -186,7 +226,9 @@ if (isset($_GET['action']) and $_GET['action'] === 'logout') {
         </div>
     </div>
 
+
     <script src="../../bootstrap-5.3.8-dist/js/bootstrap.bundle.min.js"></script>
+    <script src="../js/feedback.js"></script>
     <script src="js/notifications.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <script src="js/booking-modal.js"></script>

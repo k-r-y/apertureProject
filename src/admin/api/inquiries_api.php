@@ -31,14 +31,14 @@ try {
         case 'get_activity_log':
             require_once '../../includes/functions/activity_logger.php';
             // Fetch all activities (no user filter)
-            $activities = getUserActivities($conn); 
+            $activities = getUserActivities(null); // null = all users
             echo json_encode(['success' => true, 'activities' => $activities]);
             break;
 
         case 'get_all_activities':
             require_once '../../includes/functions/activity_logger.php';
             // Fetch all activities (no user filter)
-            $activities = getUserActivities($conn); 
+            $activities = getUserActivities(null); // null = all users
             echo json_encode(['success' => true, 'activities' => $activities]);
             break;
         case 'get_user_activities':
