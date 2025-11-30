@@ -192,14 +192,15 @@ if (isset($_GET['cancel']) and $_GET['cancel'] === 'true') {
                             <!-- Email  -->
                             <div class="mb-2">
                                 <label class="form-label" for="email">Email<span class="text-danger">*</span></label>
-                                <input type="email" name="email" id="email" value="<?= htmlspecialchars($email ?? '') ?>" class="form-control <?= (!isset($errors['email']) ? '' : 'is-invalid')  ?> " required>
+                                <input type="email" name="email" id="email" value="<?= htmlspecialchars($email ?? '') ?>" class="form-control <?= (!isset($errors['email']) ? '' : 'is-invalid')  ?> " placeholder="Enter your email" required>
                                 <p class="text-danger"><?= (isset($errors['email'])) ? htmlspecialchars($errors['email']) : '' ?></p>
                             </div>
 
                             <!-- Password -->
                             <div class="mb-3">
                                 <label class="form-label" for="password">Password<span class="text-danger">*</span></label>
-                                <input type="password" name="password" id="password" class="form-control <?= (isset($errors['password'])  ? 'is-invalid' : '')   ?> "  required>
+                                <input type="password" name="password" id="password" class="form-control <?= (isset($errors['password'])  ? 'is-invalid' : '')   ?> " required>
+                                <small style="font-size: 12px;">Password must be at least 8 characters long, include at least one uppercase letter, one lowercase letter, one number, and one special character.</small>
                                 <p class="text-danger"><?= (isset($errors['password'])) ? htmlspecialchars($errors['password']) : '' ?></p>
                             </div>
 

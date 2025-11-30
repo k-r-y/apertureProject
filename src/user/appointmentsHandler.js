@@ -388,32 +388,91 @@ document.getElementById('payBalanceForm').addEventListener('submit', function (e
 
 // Cancel Booking
 function cancelBooking(bookingID) {
-    if (!confirm('Are you sure you want to cancel this booking? This action cannot be undone.')) {
-        return;
-    }
+    // Get booking details to show refund amount
+    const appointment = allAppointments.find(app => app.bookingID === bookingID);
 
-    fetch('cancelBooking.php', {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({ bookingId: bookingID })
-    })
-        .then(response => response.json())
-        .then(data => {
-            if (data.success) {
-                // Show success message (using alert for now, or LuxuryToast if available)
-                alert('Booking cancelled successfully');
-                closeModal();
-                fetchAppointments(currentFilter); // Refresh list
-            } else {
-                alert('Error: ' + data.message);
+    // Close the booking modal first to fix z-index issue
+    closeModal();
+
+    // Small delay to ensure modal closes before SweetAlert appears
+    setTimeout(() => {
+        Swal.fire({
+            title: 'Request Cancellation?',
+            html: `
+                <p>Are you sure you want to request cancellation for this booking?</p>
+                ${appointment && appointment.isFullyPaid ?
+                    '<p class="text-warning"><strong>Refund Policy:</strong> You will receive 40% of your total payment.</p>' :
+                    '<p class="text-warning"><strong>Refund Policy:</strong> You will receive 40% of your downpayment.</p>'
+                }
+                <p class="text-muted small">Your cancellation request will be reviewed by admin before processing the refund.</p>
+            `,
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonColor: '#d4af37',
+            cancelButtonColor: '#6c757d',
+            confirmButtonText: 'Yes, Request Cancellation',
+            cancelButtonText: 'Keep Booking',
+            background: '#1a1a1a',
+            color: '#fff'
+        }).then((result) => {
+            if (result.isConfirmed) {
+                // Show loading
+                Swal.fire({
+                    title: 'Processing...',
+                    text: 'Submitting cancellation request',
+                    allowOutsideClick: false,
+                    didOpen: () => {
+                        Swal.showLoading();
+                    },
+                    background: '#1a1a1a',
+                    color: '#fff'
+                });
+
+                fetch('cancelBooking.php', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ bookingId: bookingID })
+                })
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.success) {
+                            Swal.fire({
+                                title: 'Cancellation Requested',
+                                html: data.message,
+                                icon: 'success',
+                                confirmButtonColor: '#d4af37',
+                                background: '#1a1a1a',
+                                color: '#fff'
+                            }).then(() => {
+                                fetchAppointments(currentFilter); // Refresh list
+                            });
+                        } else {
+                            Swal.fire({
+                                title: 'Request Failed',
+                                text: data.message,
+                                icon: 'error',
+                                confirmButtonColor: '#d4af37',
+                                background: '#1a1a1a',
+                                color: '#fff'
+                            });
+                        }
+                    })
+                    .catch(error => {
+                        console.error('Error:', error);
+                        Swal.fire({
+                            title: 'Error',
+                            text: 'An error occurred while submitting the cancellation request. Please try again.',
+                            icon: 'error',
+                            confirmButtonColor: '#d4af37',
+                            background: '#1a1a1a',
+                            color: '#fff'
+                        });
+                    });
             }
-        })
-        .catch(error => {
-            console.error('Error:', error);
-            alert('An error occurred while cancelling the booking');
         });
+    }, 300); // 300ms delay for smooth transition
 }
 
 // Close modal

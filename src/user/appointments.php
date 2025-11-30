@@ -23,6 +23,9 @@ if (!isset($_SESSION["userId"])) {
     <link rel="stylesheet" href="../style.css">
     <link rel="icon" href="../assets/camera.png" type="image/x-icon">
     
+    <!-- SweetAlert2 -->
+    <link rel="stylesheet" href="../libs/sweetalert2/sweetalert2.min.css">
+    
 </head>
 <body class="admin-dashboard">
     <?php include_once 'components/sidebar.php'; ?>
@@ -213,6 +216,7 @@ if (!isset($_SESSION["userId"])) {
     </div>
     
     <script src="../../bootstrap-5.3.8-dist/js/bootstrap.bundle.min.js"></script>
+    <script src="../libs/sweetalert2/sweetalert2.all.min.js"></script>
     <script src="user.js"></script>
 
     <script src="appointmentsHandler.js"></script>

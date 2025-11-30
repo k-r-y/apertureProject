@@ -54,17 +54,30 @@ if (isset($_GET['action']) and $_GET['action'] === 'logout') {
         <?php include_once 'components/header.php'; ?>
 
         <main class="main-content">
-            <div class="container-fluid p-0">
-
+            <div class="container-fluid px-3 px-lg-5 py-4">
+                <!-- Page Header -->
                 <div class="d-flex justify-content-between align-items-center mb-4">
-                    <h1 class="header-title m-0">Financial Overview</h1>
-                    <!-- <button class="btn btn-gold" onclick="showCreateInvoiceModal()">+ Create New Invoice</button> -->
+                    <div>
+                        <h1 class="header-title m-0">Financial Overview</h1>
+                        <p class="text-muted mb-0">Track all invoices and payments</p>
+                    </div>
+                    <div class="d-flex gap-2">
+                        <select id="filterType" class="form-select form-select-sm neo-input" style="width: auto;">
+                            <option value="all">All Transactions</option>
+                            <option value="Downpayment">Downpayments</option>
+                            <option value="Final Payment">Final Payments</option>
+                            <option value="Refund">Refunds</option>
+                        </select>
+                        <button class="btn btn-sm btn-gold" onclick="loadTransactions()">
+                            <i class="bi bi-arrow-clockwise"></i> Refresh
+                        </button>
+                    </div>
                 </div>
 
                 <!-- Transactions Table -->
-                <div class="glass-panel p-4">
+                <div class="neo-card">
                     <div class="table-responsive">
-                        <table class="table table-luxury align-middle mb-0">
+                        <table class="table table-hover align-middle mb-0">
                             <thead>
                                 <tr>
                                     <th class="ps-3">Type</th>
@@ -83,24 +96,31 @@ if (isset($_GET['action']) and $_GET['action'] === 'logout') {
                         </table>
                     </div>
                 </div>
-                </div>
             </div>
         </main>
     </div>
 
     <script src="../../bootstrap-5.3.8-dist/js/bootstrap.bundle.min.js"></script>
-    <script src="js/notifications.js"></script>
+    <script src="../libs/sweetalert2/sweetalert2.all.min.js"></script>
     <script src="admin.js"></script>
     <script>
+        // Load transactions on page load
         document.addEventListener('DOMContentLoaded', function() {
             loadTransactions();
+            
+            // Filter change event
+            document.getElementById('filterType').addEventListener('change', loadTransactions);
         });
 
         function loadTransactions() {
-            fetch('api/invoicing_api.php?action=get_all')
-                .then(r => r.json())
+            const tbody = document.getElementById('transactionsTableBody');
+            const filterType = document.getElementById('filterType').value;
+            
+            tbody.innerHTML = '<tr><td colspan="8" class="text-center text-muted">Loading...</td></tr>';
+            
+            fetch(`api/invoicing_api.php?type=${filterType}`)
+                .then(response => response.json())
                 .then(data => {
-                    const tbody = document.getElementById('transactionsTableBody');
                     if (data.success && data.transactions.length > 0) {
                         tbody.innerHTML = data.transactions.map(t => {
                             let typeClass = 'bg-dark border-secondary text-light';
@@ -135,6 +155,10 @@ if (isset($_GET['action']) and $_GET['action'] === 'logout') {
                     } else {
                         tbody.innerHTML = '<tr><td colspan="8" class="text-center text-muted">No transactions found</td></tr>';
                     }
+                })
+                .catch(error => {
+                    console.error('Error loading transactions:', error);
+                    tbody.innerHTML = '<tr><td colspan="8" class="text-center text-danger">Error loading transactions</td></tr>';
                 });
         }
         

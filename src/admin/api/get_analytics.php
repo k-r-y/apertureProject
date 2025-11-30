@@ -51,10 +51,74 @@ try {
 
     // 1. Key Metrics
     if ($action === 'all' || $action === 'metrics') {
-        // Total Revenue (Confirmed/Completed bookings)
-        $revSql = "SELECT SUM(total_amount) as total FROM bookings WHERE booking_status IN ('confirmed', 'completed') $dateCondition";
-        $revResult = $conn->query($revSql);
-        $response['revenue'] = $revResult->fetch_assoc()['total'] ?? 0;
+        // Total Revenue (Cash Basis: Paid Downpayments + Paid Final Payments - Processed Refunds)
+        // We need to construct date conditions for each payment type based on the timeframe
+        
+        $dpDateCond = "";
+        $fpDateCond = "";
+        $rfDateCond = "";
+
+        switch ($timeframe) {
+            case 'today':
+                $dpDateCond = "AND DATE(downpayment_paid_date) = CURDATE()";
+                $fpDateCond = "AND DATE(final_payment_paid_date) = CURDATE()";
+                $rfDateCond = "AND DATE(processed_at) = CURDATE()";
+                break;
+            case 'week':
+                $dpDateCond = "AND YEARWEEK(downpayment_paid_date, 1) = YEARWEEK(CURDATE(), 1)";
+                $fpDateCond = "AND YEARWEEK(final_payment_paid_date, 1) = YEARWEEK(CURDATE(), 1)";
+                $rfDateCond = "AND YEARWEEK(processed_at, 1) = YEARWEEK(CURDATE(), 1)";
+                break;
+            case 'month':
+                $dpDateCond = "AND MONTH(downpayment_paid_date) = MONTH(CURDATE()) AND YEAR(downpayment_paid_date) = YEAR(CURDATE())";
+                $fpDateCond = "AND MONTH(final_payment_paid_date) = MONTH(CURDATE()) AND YEAR(final_payment_paid_date) = YEAR(CURDATE())";
+                $rfDateCond = "AND MONTH(processed_at) = MONTH(CURDATE()) AND YEAR(processed_at) = YEAR(CURDATE())";
+                break;
+            case 'quarter':
+                $currentQuarter = ceil(date('n') / 3);
+                $dpDateCond = "AND QUARTER(downpayment_paid_date) = $currentQuarter AND YEAR(downpayment_paid_date) = YEAR(CURDATE())";
+                $fpDateCond = "AND QUARTER(final_payment_paid_date) = $currentQuarter AND YEAR(final_payment_paid_date) = YEAR(CURDATE())";
+                $rfDateCond = "AND QUARTER(processed_at) = $currentQuarter AND YEAR(processed_at) = YEAR(CURDATE())";
+                break;
+            case 'year':
+                $dpDateCond = "AND YEAR(downpayment_paid_date) = YEAR(CURDATE())";
+                $fpDateCond = "AND YEAR(final_payment_paid_date) = YEAR(CURDATE())";
+                $rfDateCond = "AND YEAR(processed_at) = YEAR(CURDATE())";
+                break;
+            case 'all':
+            default:
+                // No date condition
+                break;
+        }
+
+        $revenue = 0;
+
+        // 1. Paid Downpayments
+        $revSqlDP = "SELECT SUM(downpayment_amount) as total FROM bookings WHERE downpayment_paid = 1 AND booking_status != 'cancelled' $dpDateCond";
+        $revResultDP = $conn->query($revSqlDP);
+        $revenue += ($revResultDP->fetch_assoc()['total'] ?? 0);
+
+        // 2. Paid Final Payments
+        $revSqlFP = "SELECT SUM(total_amount - downpayment_amount) as total FROM bookings WHERE final_payment_paid = 1 AND booking_status != 'cancelled' $fpDateCond";
+        $revResultFP = $conn->query($revSqlFP);
+        $revenue += ($revResultFP->fetch_assoc()['total'] ?? 0);
+
+        // 3. Processed Refunds
+        try {
+            $revSqlRF = "SELECT SUM(amount) as total FROM refunds WHERE status = 'processed' $rfDateCond";
+            $revResultRF = $conn->query($revSqlRF);
+            if ($revResultRF) {
+                $revenue -= ($revResultRF->fetch_assoc()['total'] ?? 0);
+            }
+        } catch (Exception $e) {
+            // Ignore
+        }
+
+        $response['revenue'] = $revenue;
+
+        $response['revenue'] = $revenue;
+
+        $response['revenue'] = $revenue;
 
         // Total Bookings
         $bookSql = "SELECT COUNT(*) as total FROM bookings WHERE 1=1 $dateCondition";

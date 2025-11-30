@@ -34,12 +34,48 @@ switch ($action) {
     case 'get_all':
         getAllTransactions($conn);
         break;
+    case 'get_metrics':
+        getMetrics($conn);
+        break;
     case 'update_status':
         updateTransactionStatus($conn);
         break;
     default:
         ob_clean();
         echo json_encode(['success' => false, 'message' => 'Invalid action']);
+}
+
+function getMetrics($conn) {
+    // Calculate Total Revenue (All Time)
+    // Formula: (Paid Downpayments) + (Paid Final Payments) - (Processed Refunds)
+    
+    $revenue = 0;
+
+    // 1. Paid Downpayments
+    $sqlDP = "SELECT SUM(downpayment_amount) as total FROM bookings WHERE downpayment_paid = 1 AND booking_status != 'cancelled'";
+    $resultDP = $conn->query($sqlDP);
+    $revenue += ($resultDP->fetch_assoc()['total'] ?? 0);
+
+    // 2. Paid Final Payments
+    $sqlFP = "SELECT SUM(total_amount - downpayment_amount) as total FROM bookings WHERE final_payment_paid = 1 AND booking_status != 'cancelled'";
+    $resultFP = $conn->query($sqlFP);
+    $revenue += ($resultFP->fetch_assoc()['total'] ?? 0);
+
+    // 3. Processed Refunds
+    try {
+        $sqlRefund = "SELECT SUM(amount) as total FROM refunds WHERE status = 'processed'";
+        $resultRefund = $conn->query($sqlRefund);
+        if ($resultRefund) {
+            $revenue -= ($resultRefund->fetch_assoc()['total'] ?? 0);
+        }
+    } catch (Exception $e) {
+        // Ignore if refunds table doesn't exist
+    }
+
+    ob_end_clean();
+    header('Content-Type: application/json');
+    echo json_encode(['success' => true, 'revenue' => $revenue]);
+    exit;
 }
 
 function getAllTransactions($conn) {
@@ -127,7 +163,7 @@ function getAllTransactions($conn) {
                 'Refund' as type,
                 r.amount,
                 r.status,
-                r.created_at
+                r.requested_at
             FROM refunds r
             JOIN bookings b ON r.bookingID = b.bookingID
             JOIN users u ON b.userID = u.userID
@@ -143,7 +179,7 @@ function getAllTransactions($conn) {
                     'client_name' => $row['client_name'],
                     'amount' => $row['amount'],
                     'status' => ucfirst($row['status']),
-                    'date' => $row['created_at'],
+                    'date' => $row['requested_at'],
                     'proof' => null,
                     'raw_status' => $row['status']
                 ];

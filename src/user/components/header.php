@@ -1,6 +1,9 @@
 <header class="header admin-header position-fixed">
-    <div class="d-flex align-items-center justify-content-end w-100 px-3">
-        
+    <div class="d-flex align-items-center justify-content-between w-100 px-3">
+        <!-- Mobile/Tablet Toggle Button -->
+        <button class="header-toggle" id="mobile-toggle" aria-label="Toggle Menu">
+            <i class="bi bi-list"></i>
+        </button>
         
         <div class="d-flex align-items-center gap-3">
             <!-- Notifications Bell (Always Visible) -->

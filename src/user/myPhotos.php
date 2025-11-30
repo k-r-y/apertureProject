@@ -115,8 +115,7 @@ while ($row = $result->fetch_assoc()) {
         .badge-warning { background-color: rgba(255, 193, 7, 0.9); color: #000; }
         .badge-expired { background-color: rgba(220, 53, 69, 0.9); color: white; }
         
-        .gallery-item {
-            position: relative;
+    .gallery-item{
             margin-bottom: 20px;
         }
         
@@ -184,7 +183,7 @@ while ($row = $result->fetch_assoc()) {
                 <!-- Filter Controls -->
                 <div class="row mb-4">
                     <div class="col-md-4 mb-3 mb-md-0">
-                        <label class="text-muted small mb-2 text-uppercase">Event</label>
+                        <label class="text-light small mb-2 text-uppercase">Event</label>
                         <select class="form-select bg-dark text-light border-secondary" id="eventFilter">
                             <option value="all">All Events</option>
                             <?php foreach ($bookings as $booking): ?>
@@ -195,7 +194,7 @@ while ($row = $result->fetch_assoc()) {
                         </select>
                     </div>
                     <div class="col-md-6">
-                        <label class="text-muted small mb-2 text-uppercase">Photo Type</label>
+                        <label class="text-light small mb-2 text-uppercase">Photo Type</label>
                         <div class="btn-group w-100" role="group">
                             <input type="radio" class="btn-check" name="typeFilter" id="typeAll" value="all" checked>
                             <label class="btn btn-outline-gold" for="typeAll">All</label>

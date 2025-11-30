@@ -28,6 +28,8 @@ $stmt = $conn->prepare("
         booking_status, 
         downpayment_amount, 
         downpayment_paid,
+        final_payment_amount,
+        final_payment_paid,
         total_amount,
         event_type
     FROM bookings 
@@ -44,33 +46,47 @@ if (!$booking) {
     exit;
 }
 
-// Allow cancellation for pending_consultation and confirmed bookings
-if (!in_array($booking['booking_status'], ['pending_consultation', 'confirmed'])) {
-    echo json_encode(['success' => false, 'message' => 'This booking cannot be cancelled']);
+// Allow cancellation for pending, pending_consultation and confirmed bookings
+if (!in_array($booking['booking_status'], ['pending', 'pending_consultation', 'confirmed'])) {
+    echo json_encode([
+        'success' => false, 
+        'message' => 'This booking cannot be cancelled. Current status: ' . $booking['booking_status'] . '. Only pending, pending_consultation, and confirmed bookings can be cancelled.'
+    ]);
     exit;
 }
 
-// Calculate refund amount (40% of downpayment if paid)
+// Calculate refund amount (40% of TOTAL amount paid)
+$totalPaid = 0;
 $refundAmount = 0;
 $adminRetains = 0;
 
+// Add downpayment if paid
 if ($booking['downpayment_paid'] == 1 && $booking['downpayment_amount'] > 0) {
-    $refundAmount = $booking['downpayment_amount'] * 0.40; // User gets 40%
-    $adminRetains = $booking['downpayment_amount'] * 0.60; // Admin keeps 60%
+    $totalPaid += $booking['downpayment_amount'];
 }
 
-// Update booking status to cancelled and set refund amount
+// Add final payment if paid
+if ($booking['final_payment_paid'] == 1 && $booking['final_payment_amount'] > 0) {
+    $totalPaid += $booking['final_payment_amount'];
+}
+
+// Calculate 40/60 split on total paid amount
+if ($totalPaid > 0) {
+    $refundAmount = $totalPaid * 0.40; // User gets 40%
+    $adminRetains = $totalPaid * 0.60; // Admin keeps 60%
+}
+
+// Don't change booking status yet - admin will change it to 'cancelled' after approving
+// Just store the refund amount for reference
 $updateStmt = $conn->prepare("
     UPDATE bookings 
-    SET booking_status = 'cancelled',
-        refund_amount = ?,
-        refund_processed_date = NOW()
+    SET refund_amount = ?
     WHERE bookingID = ?
 ");
 $updateStmt->bind_param("di", $refundAmount, $bookingId);
 
 if (!$updateStmt->execute()) {
-    echo json_encode(['success' => false, 'message' => 'Failed to cancel booking']);
+    echo json_encode(['success' => false, 'message' => 'Failed to submit cancellation request']);
     $updateStmt->close();
     exit;
 }
@@ -81,13 +97,14 @@ $refundMessage = '';
 if ($refundAmount > 0) {
     $refundStmt = $conn->prepare("
         INSERT INTO refunds (bookingID, amount, reason, status, created_at) 
-        VALUES (?, ?, 'Booking cancelled by client - 40% refund policy', 'pending', NOW())
+        VALUES (?, ?, 'Cancellation requested by client - Pending admin approval (40% refund policy)', 'pending', NOW())
     ");
     $refundStmt->bind_param("id", $bookingId, $refundAmount);
     
     if ($refundStmt->execute()) {
         $refundMessage = sprintf(
-            ' You will receive a refund of ₱%s (40%% of your downpayment). Admin retains ₱%s (60%%) as cancellation fee.',
+            ' Total paid: ₱%s. You will receive a refund of ₱%s (40%%). Admin retains ₱%s (60%%) as cancellation fee.',
+            number_format($totalPaid, 2),
             number_format($refundAmount, 2),
             number_format($adminRetains, 2)
         );
@@ -98,8 +115,8 @@ if ($refundAmount > 0) {
 // Log cancellation activity
 logUserActivity(
     $userId,
-    'booking_cancelled',
-    "Cancelled {$booking['event_type']} booking. Refund: ₱" . number_format($refundAmount, 2),
+    'cancellation_requested',
+    "Requested cancellation for {$booking['event_type']} booking. Refund: ₱" . number_format($refundAmount, 2),
     $bookingId,
     [
         'refund_amount' => $refundAmount,
@@ -110,7 +127,7 @@ logUserActivity(
 
 echo json_encode([
     'success' => true,
-    'message' => 'Booking cancelled successfully.' . $refundMessage,
+    'message' => 'Cancellation request submitted successfully.' . $refundMessage . ' <br><br><strong>Note:</strong> Your request is pending admin review. You will be notified once the refund is processed.',
     'refund_amount' => $refundAmount,
     'admin_retains' => $adminRetains
 ]);

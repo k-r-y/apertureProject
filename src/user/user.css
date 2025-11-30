@@ -1214,6 +1214,123 @@ body.admin-dashboard {
 }
 
 /* Responsive Design for Appointments */
+/* Tablet Responsive (768px - 991px) - Fix whitespace and text overflow */
+@media (min-width: 768px) and (max-width: 991px) {
+  /* Fix container padding to prevent gaps */
+  .container-fluid {
+    padding-left: 1.5rem !important;
+    padding-right: 1.5rem !important;
+  }
+
+  /* Ensure text wraps and fits in containers */
+  .neo-card,
+  .glass-card,
+  .stat-card,
+  .chart-card,
+  .appointment-card {
+    word-wrap: break-word;
+    overflow-wrap: break-word;
+    hyphens: auto;
+  }
+
+  /* Fix text overflow in tables */
+  .table-luxury td,
+  .table-luxury th {
+    word-break: break-word;
+    white-space: normal;
+  }
+
+  /* Ensure detail values wrap properly */
+  .detail-value {
+    word-break: break-word;
+    max-width: 200px;
+    text-align: right;
+  }
+
+  /* Fix package cards */
+  .luxury-package-card {
+    padding: 1rem;
+  }
+
+  .package-name,
+  .package-content {
+    word-wrap: break-word;
+    overflow-wrap: break-word;
+  }
+
+  /* Fix summary sidebar text */
+  #summary-client-name,
+  #summary-client-email,
+  #summary-client-phone,
+  #summary-event-venue {
+    word-break: break-word;
+    overflow-wrap: break-word;
+  }
+
+  /* Ensure modal content fits */
+  .modal-content {
+    max-width: 90vw;
+    margin: 0 auto;
+  }
+
+  /* Fix photo grid */
+  .photo-grid,
+  .gallery-grid {
+    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+    gap: 1rem;
+  }
+
+  /* Fix appointments grid */
+  .appointments-grid {
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+    gap: 1rem;
+  }
+
+  /* Ensure no horizontal overflow */
+  body,
+  .page-wrapper,
+  .main-content {
+    overflow-x: hidden;
+    max-width: 100vw;
+  }
+
+  /* Fix row gutters */
+  .row {
+    margin-left: -0.75rem;
+    margin-right: -0.75rem;
+  }
+
+  .row > * {
+    padding-left: 0.75rem;
+    padding-right: 0.75rem;
+  }
+
+  /* Fix sticky summary on tablets */
+  .sticky-luxury-summary {
+    position: relative;
+    top: 0;
+    margin-top: 2rem;
+  }
+
+  /* Ensure form inputs fit */
+  .luxury-input,
+  .luxury-textarea,
+  .neo-input {
+    max-width: 100%;
+    box-sizing: border-box;
+  }
+
+  /* Fix filter buttons */
+  .filter-buttons {
+    gap: 0.5rem;
+  }
+
+  .filter-btn {
+    padding: 8px 16px;
+    font-size: 0.85rem;
+  }
+}
+
 @media (max-width: 768px) {
   .appointments-grid {
     grid-template-columns: 1fr;
