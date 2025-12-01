@@ -432,16 +432,37 @@ function updateMeetingLink(bookingId, meeting_link) {
         .then(response => response.json())
         .then(data => {
             if (data.success) {
-                alert('✅ Meeting link saved successfully! User will receive email notification.');
+                Swal.fire({
+                    icon: 'success',
+                    title: 'Success',
+                    text: 'Meeting link saved successfully! User will receive email notification.',
+                    confirmButtonColor: '#d4af37',
+                    background: '#1a1a1a',
+                    color: '#fff'
+                });
                 // Refresh modal to show updated link
                 viewBooking(currentBookingId);
             } else {
-                alert('❌ Error: ' + (data.message || 'Failed to save link'));
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Error',
+                    text: data.message || 'Failed to save link',
+                    confirmButtonColor: '#d4af37',
+                    background: '#1a1a1a',
+                    color: '#fff'
+                });
             }
         })
         .catch(error => {
             console.error('Error:', error);
-            alert('❌ Failed to save meeting link: ' + error.message);
+            Swal.fire({
+                icon: 'error',
+                title: 'Error',
+                text: 'Failed to save meeting link: ' + error.message,
+                confirmButtonColor: '#d4af37',
+                background: '#1a1a1a',
+                color: '#fff'
+            });
         })
         .finally(() => {
             if (btn) {

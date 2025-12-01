@@ -1,35 +1,55 @@
 document.addEventListener('DOMContentLoaded', function () {
-    // Initialize Charts
-    initDashboard();
+    // Initialize Charts with saved state or default
+    const savedTimeframe = sessionStorage.getItem('dashboardTimeframe') || 'month';
+
+    // Set dropdown value
+    const timeframeSelect = document.getElementById('timeframeFilter');
+    if (timeframeSelect) {
+        timeframeSelect.value = savedTimeframe;
+    }
+
+    initDashboard(savedTimeframe);
 
     // Refresh Button Listener
     document.getElementById('refreshDashboard')?.addEventListener('click', function () {
         const btn = this;
         const icon = btn.querySelector('i');
         icon.classList.add('spin-animation');
-        initDashboard().then(() => {
+        // Use current dropdown value
+        const currentTimeframe = document.getElementById('timeframeFilter')?.value || 'month';
+        initDashboard(currentTimeframe).then(() => {
             setTimeout(() => icon.classList.remove('spin-animation'), 500);
         });
     });
 
     // Timeframe Filter Listener
     document.getElementById('timeframeFilter')?.addEventListener('change', function () {
-        initDashboard(this.value);
+        const selectedTimeframe = this.value;
+        sessionStorage.setItem('dashboardTimeframe', selectedTimeframe);
+        initDashboard(selectedTimeframe);
     });
 });
 
 async function initDashboard(timeframe = 'month') {
     try {
-        const response = await fetch(`api/get_analytics.php?action=all&timeframe=${timeframe}`);
+        // Use the new metrics API with cache busting
+        const response = await fetch(`api/get_dashboard_metrics.php?timeframe=${timeframe}&_=${new Date().getTime()}`);
         const result = await response.json();
 
         if (result.success) {
-            updateMetrics(result.data);
-            renderRevenueChart(result.data.revenue_trend);
-            renderActionCenter(result.data.recent_activity, result.data.upcoming_events);
-            renderTopPackagesChart(result.data.package_performance);
-            renderBookingStatusChart(result.data.booking_status);
-            renderEventTypeChart(result.data.event_type_distribution);
+            // Map the new API structure to the UI functions
+            updateMetrics({
+                revenue: result.revenue.total,
+                bookings: result.bookings.total,
+                pending_count: result.bookings.pending,
+                avg_value: result.bookings.average_value
+            });
+
+            renderRevenueChart(result.revenue_trend);
+            renderActionCenter(result.recent_activity, result.upcoming_events);
+            renderTopPackagesChart(result.package_performance);
+            renderBookingStatusChart(result.status_breakdown);
+            renderEventTypeChart(result.event_types);
         }
     } catch (error) {
         console.error('Error loading dashboard data:', error);
@@ -40,7 +60,7 @@ function updateMetrics(data) {
     const animateValue = (id, value, prefix = '') => {
         const el = document.getElementById(id);
         if (el) {
-            el.textContent = prefix + Number(value).toLocaleString();
+            el.textContent = prefix + Number(value).toLocaleString(undefined, { minimumFractionDigits: 0, maximumFractionDigits: 2 });
             el.style.transform = 'scale(1.1)';
             setTimeout(() => el.style.transform = 'scale(1)', 200);
         }
@@ -49,7 +69,7 @@ function updateMetrics(data) {
     animateValue('stat-revenue', data.revenue, '₱');
     animateValue('stat-bookings', data.bookings);
     animateValue('stat-pending', data.pending_count);
-    animateValue('stat-avg-value', Math.round(data.avg_value), '₱');
+    animateValue('stat-avg-value', data.avg_value, '₱');
 }
 
 let revenueChartInstance = null;
@@ -57,7 +77,7 @@ function renderRevenueChart(data) {
     const options = {
         series: [{
             name: 'Revenue',
-            data: data.map(item => item.total)
+            data: data.map(item => item.revenue)
         }],
         chart: {
             type: 'area',
@@ -159,29 +179,34 @@ function renderActionCenter(pending, upcoming) {
 
 let packageChartInstance = null;
 function renderTopPackagesChart(data) {
+    // Safety check: if no data or empty series, clear chart or show message
+    if (!data || !data.series || data.series.length === 0) {
+        const chartEl = document.querySelector("#topPackagesChart");
+        if (chartEl) chartEl.innerHTML = '<p class="text-muted text-center py-5">No package data available for this period.</p>';
+        return;
+    }
+
     const options = {
-        series: [{
-            name: 'Bookings',
-            data: data.map(item => item.count)
-        }],
+        series: data.series,
         chart: {
             type: 'bar',
-            height: 250,
+            height: 350,
+            stacked: true, // Enable stacking
             toolbar: { show: false },
             background: 'transparent',
             fontFamily: 'Inter, sans-serif'
         },
         plotOptions: {
             bar: {
-                borderRadius: 4,
                 horizontal: true,
-                barHeight: '50%'
+                barHeight: '60%',
+                borderRadius: 2
             }
         },
-        colors: ['#D4AF37'],
+        colors: ['#D4AF37', '#C5A028', '#B69119', '#A7820A', '#987300', '#896500', '#7A5600'], // Gold Palette
         dataLabels: { enabled: false },
         xaxis: {
-            categories: data.map(item => item.packageName),
+            categories: data.categories,
             labels: { style: { colors: '#888' } },
             axisBorder: { show: false },
             axisTicks: { show: false }
@@ -189,12 +214,26 @@ function renderTopPackagesChart(data) {
         yaxis: {
             labels: { style: { colors: '#fff' } }
         },
-        grid: { show: false },
-        theme: { mode: 'dark' }
+        grid: {
+            borderColor: 'rgba(255,255,255,0.05)',
+            xaxis: { lines: { show: true } },
+            yaxis: { lines: { show: false } }
+        },
+        legend: {
+            position: 'top',
+            horizontalAlign: 'left',
+            labels: { colors: '#fff' }
+        },
+        theme: { mode: 'dark' },
+        tooltip: {
+            theme: 'dark',
+            y: { formatter: function (val) { return val + " bookings" } }
+        }
     };
 
     const chartEl = document.querySelector("#topPackagesChart");
     if (chartEl) {
+        chartEl.innerHTML = ''; // Clear previous content/message
         if (packageChartInstance) packageChartInstance.destroy();
         packageChartInstance = new ApexCharts(chartEl, options);
         packageChartInstance.render();
@@ -203,6 +242,9 @@ function renderTopPackagesChart(data) {
 
 let statusChartInstance = null;
 function renderBookingStatusChart(data) {
+    // Safety check
+    if (!data) return;
+
     const series = [
         parseInt(data.confirmed || 0),
         parseInt(data.pending || 0),
@@ -255,7 +297,11 @@ function renderBookingStatusChart(data) {
 
 let eventTypeChartInstance = null;
 function renderEventTypeChart(data) {
-    if (!data || data.length === 0) return;
+    if (!data || data.length === 0) {
+        const chartEl = document.querySelector("#eventTypeChart");
+        if (chartEl) chartEl.innerHTML = '<p class="text-muted text-center py-5">No event data available for this period.</p>';
+        return;
+    }
 
     const options = {
         series: data.map(item => parseInt(item.count)),
@@ -268,7 +314,7 @@ function renderEventTypeChart(data) {
         labels: data.map(item => item.event_type),
         stroke: { colors: ['#fff'] },
         fill: { opacity: 0.8 },
-        colors: ['#D4AF37', '#C5A028', '#B69119', '#A7820A', '#987300'], // Shades of Gold
+        colors: ['#D4AF37', '#C5A028', '#B69119', '#A7820A', '#987300'],
         legend: {
             position: 'bottom',
             labels: { colors: '#fff' }
@@ -293,6 +339,7 @@ function renderEventTypeChart(data) {
 
     const chartEl = document.querySelector("#eventTypeChart");
     if (chartEl) {
+        chartEl.innerHTML = ''; // Clear previous content/message
         if (eventTypeChartInstance) eventTypeChartInstance.destroy();
         eventTypeChartInstance = new ApexCharts(chartEl, options);
         eventTypeChartInstance.render();

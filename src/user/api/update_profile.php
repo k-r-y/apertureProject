@@ -2,6 +2,7 @@
 require_once '../../includes/functions/config.php';
 require_once '../../includes/functions/session.php';
 require_once '../../includes/functions/auth.php';
+require_once '../../includes/functions/validation.php';
 
 // Check if user is logged in
 if (!isset($_SESSION['userId'])) {
@@ -67,20 +68,10 @@ try {
             throw new Exception('New passwords do not match');
         }
 
-        if (strlen($newPassword) < 8) {
-            throw new Exception('Password must be at least 8 characters');
-        }
-        
-        if (!preg_match('/[A-Z]/', $newPassword)) {
-            throw new Exception('Password must contain at least one uppercase letter');
-        }
-        
-        if (!preg_match('/[a-z]/', $newPassword)) {
-            throw new Exception('Password must contain at least one lowercase letter');
-        }
-        
-        if (!preg_match('/[0-9]/', $newPassword)) {
-            throw new Exception('Password must contain at least one number');
+        // Use standard validation
+        $validation = validatePassword($newPassword);
+        if (!$validation['valid']) {
+            throw new Exception(implode('. ', $validation['errors']));
         }
 
         // Verify current password

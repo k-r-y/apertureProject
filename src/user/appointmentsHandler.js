@@ -116,7 +116,8 @@ function formatStatus(status) {
         'confirmed': 'Confirmed',
         'post_production': 'Post Production',
         'completed': 'Completed',
-        'cancelled': 'Cancelled'
+        'cancelled': 'Cancelled',
+        'cancellation_pending': 'Cancellation Pending'
     };
     return statusMap[status] || status;
 }
@@ -290,7 +291,14 @@ function openAppointmentModal(bookingID) {
                     <i class="bi bi-file-pdf me-2"></i>Download Invoice
                 </button>
             </div>
-            <div class="d-flex gap-2">
+            <div class="d-flex gap-2 w-100 justify-content-end">
+                ${appointment.bookingStatus === 'cancellation_pending' ? `
+                <div class="alert alert-warning mb-0 py-1 px-3 d-flex align-items-center">
+                    <i class="bi bi-hourglass-split me-2"></i>
+                    <small>Cancellation Pending Approval</small>
+                </div>
+                ` : ''}
+
                 ${(appointment.bookingStatus === 'pending' || appointment.bookingStatus === 'confirmed') ? `
                 <button class="btn btn-outline-gold btn-sm" onclick="openEditModal(${appointment.bookingID})">
                     <i class="bi bi-pencil me-2"></i>Edit
@@ -309,6 +317,15 @@ function openAppointmentModal(bookingID) {
     // Show modal
     modal.classList.add('active');
     document.body.style.overflow = 'hidden';
+}
+
+// Close appointment modal
+function closeModal() {
+    const modal = document.getElementById('appointmentModal');
+    if (modal) {
+        modal.classList.remove('active');
+        document.body.style.overflow = '';
+    }
 }
 
 // Pay Balance / Upload Proof Modal Logic
@@ -349,7 +366,14 @@ document.getElementById('payBalanceForm').addEventListener('submit', function (e
     const submitBtn = this.querySelector('button[type="submit"]');
 
     if (fileInput.files.length === 0) {
-        alert('Please upload a proof of payment');
+        Swal.fire({
+            icon: 'warning',
+            title: 'Missing File',
+            text: 'Please upload a proof of payment',
+            confirmButtonColor: '#d4af37',
+            background: '#1a1a1a',
+            color: '#fff'
+        });
         return;
     }
 
@@ -368,17 +392,39 @@ document.getElementById('payBalanceForm').addEventListener('submit', function (e
         .then(r => r.json())
         .then(data => {
             if (data.success) {
-                alert(data.message);
-                closePayBalanceModal();
-                closeModal(); // Close appointment modal too
-                fetchAppointments(currentFilter); // Refresh list
+                Swal.fire({
+                    icon: 'success',
+                    title: 'Success',
+                    text: data.message,
+                    confirmButtonColor: '#d4af37',
+                    background: '#1a1a1a',
+                    color: '#fff'
+                }).then(() => {
+                    closePayBalanceModal();
+                    closeModal(); // Close appointment modal too
+                    fetchAppointments(currentFilter); // Refresh list
+                });
             } else {
-                alert('Error: ' + data.message);
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Error',
+                    text: data.message,
+                    confirmButtonColor: '#d4af37',
+                    background: '#1a1a1a',
+                    color: '#fff'
+                });
             }
         })
         .catch(error => {
             console.error('Error:', error);
-            alert('An error occurred while uploading payment proof');
+            Swal.fire({
+                icon: 'error',
+                title: 'Error',
+                text: 'An error occurred while uploading payment proof',
+                confirmButtonColor: '#d4af37',
+                background: '#1a1a1a',
+                color: '#fff'
+            });
         })
         .finally(() => {
             submitBtn.disabled = false;
@@ -399,13 +445,13 @@ function cancelBooking(bookingID) {
         Swal.fire({
             title: 'Request Cancellation?',
             html: `
-                <p>Are you sure you want to request cancellation for this booking?</p>
-                ${appointment && appointment.isFullyPaid ?
+        <p>Are you sure you want to request cancellation for this booking?</p>
+        ${appointment && appointment.isFullyPaid ?
                     '<p class="text-warning"><strong>Refund Policy:</strong> You will receive 40% of your total payment.</p>' :
                     '<p class="text-warning"><strong>Refund Policy:</strong> You will receive 40% of your downpayment.</p>'
                 }
-                <p class="text-muted small">Your cancellation request will be reviewed by admin before processing the refund.</p>
-            `,
+        <p class="text-muted small">Your cancellation request will be reviewed by admin before processing the refund.</p>
+    `,
             icon: 'warning',
             showCancelButton: true,
             confirmButtonColor: '#d4af37',
@@ -463,7 +509,7 @@ function cancelBooking(bookingID) {
                         console.error('Error:', error);
                         Swal.fire({
                             title: 'Error',
-                            text: 'An error occurred while submitting the cancellation request. Please try again.',
+                            text: 'An unexpected error occurred.',
                             icon: 'error',
                             confirmButtonColor: '#d4af37',
                             background: '#1a1a1a',
@@ -472,193 +518,8 @@ function cancelBooking(bookingID) {
                     });
             }
         });
-    }, 300); // 300ms delay for smooth transition
+    }, 300);
 }
-
-// Close modal
-function closeModal() {
-    const modal = document.getElementById('appointmentModal');
-    modal.classList.remove('active');
-    document.body.style.overflow = 'auto';
-}
-
-// Close modal when clicking outside
-document.getElementById('appointmentModal').addEventListener('click', function (e) {
-    if (e.target === this) {
-        closeModal();
-    }
-});
-
-// Close modal on ESC key
-document.addEventListener('keydown', function (e) {
-    if (e.key === 'Escape') {
-        closeModal();
-    }
-});
-
-// Review Modal Logic
-function openReviewModal(bookingID, event) {
-    if (event) event.stopPropagation();
-    document.getElementById('reviewBookingId').value = bookingID;
-    document.getElementById('reviewModal').classList.add('active');
-
-    // Reset form
-    document.getElementById('reviewForm').reset();
-    document.getElementById('reviewRating').value = '';
-    document.querySelectorAll('.rating-stars i').forEach(star => {
-        star.classList.remove('bi-star-fill', 'text-warning');
-        star.classList.add('bi-star', 'text-muted');
-    });
-}
-
-function closeReviewModal() {
-    document.getElementById('reviewModal').classList.remove('active');
-}
-
-// Star Rating Interaction
-document.querySelectorAll('.rating-stars i').forEach(star => {
-    star.addEventListener('click', function () {
-        const rating = this.dataset.value;
-        document.getElementById('reviewRating').value = rating;
-
-        document.querySelectorAll('.rating-stars i').forEach(s => {
-            if (s.dataset.value <= rating) {
-                s.classList.remove('bi-star', 'text-muted');
-                s.classList.add('bi-star-fill', 'text-warning');
-            } else {
-                s.classList.remove('bi-star-fill', 'text-warning');
-                s.classList.add('bi-star', 'text-muted');
-            }
-        });
-    });
-});
-
-// Submit Review
-document.getElementById('reviewForm').addEventListener('submit', function (e) {
-    e.preventDefault();
-
-    const bookingId = document.getElementById('reviewBookingId').value;
-    const rating = document.getElementById('reviewRating').value;
-    const comment = document.getElementById('reviewComment').value;
-
-    if (!rating) {
-        alert('Please select a rating');
-        return;
-    }
-
-    fetch('api/reviews_api.php?action=submit_review', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ bookingId, rating, comment })
-    })
-        .then(r => r.json())
-        .then(data => {
-            if (data.success) {
-                alert('Review submitted successfully!');
-                closeReviewModal();
-            } else {
-                alert('Error: ' + data.message);
-            }
-        });
-});
-
-// Edit Booking Modal Logic
-function openEditModal(bookingID) {
-    const appointment = allAppointments.find(app => app.bookingID === bookingID);
-    if (!appointment) return;
-
-    document.getElementById('editBookingId').value = bookingID;
-
-    // Populate fields
-    const dateInput = document.getElementById('editEventDate');
-    const startTimeSelect = document.getElementById('editStartTime');
-    const endTimeSelect = document.getElementById('editEndTime');
-    const locationInput = document.getElementById('editLocation');
-    const themeInput = document.getElementById('editTheme');
-    const messageInput = document.getElementById('editMessage');
-
-    dateInput.value = appointment.eventDate;
-    locationInput.value = appointment.eventLocation;
-    themeInput.value = appointment.eventTheme || '';
-    messageInput.value = appointment.clientMessage || '';
-
-    // Populate Time Selects
-    populateTimeSelect(startTimeSelect, appointment.eventTimeStart);
-    populateTimeSelect(endTimeSelect, appointment.eventTimeEnd);
-
-    // Status-based restrictions
-    const isConfirmed = appointment.bookingStatus === 'confirmed';
-    dateInput.disabled = isConfirmed;
-    startTimeSelect.disabled = isConfirmed;
-    endTimeSelect.disabled = isConfirmed;
-
-    if (isConfirmed) {
-        dateInput.title = "Cannot change date for confirmed booking";
-        startTimeSelect.title = "Cannot change time for confirmed booking";
-    }
-
-    document.getElementById('editBookingModal').classList.add('active');
-    closeModal(); // Close details modal
-}
-
-function closeEditModal() {
-    document.getElementById('editBookingModal').classList.remove('active');
-}
-
-function populateTimeSelect(selectElement, selectedValue) {
-    selectElement.innerHTML = '';
-    const start = 7 * 60; // 7:00 AM
-    const end = 22 * 60; // 10:00 PM
-
-    for (let i = start; i <= end; i += 30) {
-        const hours = Math.floor(i / 60);
-        const minutes = i % 60;
-        const timeStr = `${String(hours).padStart(2, '0')}:${String(minutes).padStart(2, '0')}:00`;
-        const displayTime = new Date(`2000-01-01T${timeStr}`).toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' });
-
-        const option = document.createElement('option');
-        option.value = timeStr;
-        option.textContent = displayTime;
-        if (selectedValue && timeStr.startsWith(selectedValue.substring(0, 5))) {
-            option.selected = true;
-        }
-        selectElement.appendChild(option);
-    }
-}
-
-// Submit Edit Booking
-document.getElementById('editBookingForm').addEventListener('submit', function (e) {
-    e.preventDefault();
-
-    const formData = new FormData(this);
-    const submitBtn = this.querySelector('button[type="submit"]');
-
-    submitBtn.disabled = true;
-    submitBtn.innerHTML = '<span class="spinner-border spinner-border-sm"></span> Saving...';
-
-    fetch('api/update_booking.php', {
-        method: 'POST',
-        body: formData
-    })
-        .then(response => response.json())
-        .then(data => {
-            if (data.success) {
-                alert('Booking updated successfully');
-                closeEditModal();
-                fetchAppointments(currentFilter);
-            } else {
-                alert('Error: ' + data.message);
-            }
-        })
-        .catch(error => {
-            console.error('Error:', error);
-            alert('An error occurred while updating the booking');
-        })
-        .finally(() => {
-            submitBtn.disabled = false;
-            submitBtn.textContent = 'Save Changes';
-        });
-});
 
 // Helper function to escape HTML
 function escapeHtml(text) {
@@ -684,4 +545,11 @@ document.addEventListener('DOMContentLoaded', () => {
         const newUrl = window.location.pathname;
         window.history.replaceState({}, '', newUrl);
     }
+    // Close modals when clicking outside
+    window.addEventListener('click', function (event) {
+        if (event.target.classList.contains('modal-overlay')) {
+            event.target.classList.remove('active');
+            document.body.style.overflow = '';
+        }
+    });
 });

@@ -34,17 +34,41 @@ if (isset($_GET['action']) and $_GET['action'] === 'logout') {
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Calendar - Aperture Admin</title>
 
-    <link rel="stylesheet" href="../../bootstrap-5.3.8-dist/css/bootstrap.min.css">
-    <link rel="stylesheet" href="../../bootstrap-5.3.8-dist/font/bootstrap-icons.css">
     <link rel="stylesheet" href="../luxuryDesignSystem.css">
     <link rel="stylesheet" href="../css/modal.css">
-    <link rel="stylesheet" href="../css/sidebar.css">
-    <link rel="stylesheet" href="admin.css">
+ 
     <link rel="stylesheet" href="../style.css">
+    <link rel="icon" href="../assets/camera.png" type="image/x-icon">
+  
+
+    <link rel="stylesheet" href="../../bootstrap-5.3.8-dist/css/bootstrap.min.css">
+    <link rel="stylesheet" href="../../bootstrap-5.3.8-dist/font/bootstrap-icons.css">
+    <link rel="stylesheet" href="../luxuryDesignSystem.css?v=<?= time() ?>">
+
+    <link rel="stylesheet" href="../css/sidebar.css">
+    <link rel="stylesheet" href="admin.css?v=<?= time() ?>">
+
     <link rel="icon" href="../assets/camera.png" type="image/x-icon">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Playfair+Display:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        /* Fix for modal width issue */
+        .modal-dialog {
+            max-width: 500px;
+            margin: 1.75rem auto;
+        }
+        @media (min-width: 576px) {
+            .modal-dialog {
+                max-width: 500px;
+            }
+        }
+        @media (min-width: 992px) {
+            .modal-lg {
+                max-width: 800px;
+            }
+        }
+    </style>
 
     <!-- FullCalendar -->
     <script src='https://cdn.jsdelivr.net/npm/fullcalendar@6.1.10/index.global.min.js'></script>
@@ -231,7 +255,7 @@ if (isset($_GET['action']) and $_GET['action'] === 'logout') {
     <script src="../js/feedback.js"></script>
     <script src="js/notifications.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
-    <script src="js/booking-modal.js"></script>
+    <script src="js/booking-modal.js?v=<?= time() ?>"></script>
     <script src="admin.js"></script>
     <script>
         document.addEventListener('DOMContentLoaded', function() {

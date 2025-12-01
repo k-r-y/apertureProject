@@ -167,27 +167,18 @@ if ($uploadedCount > 0) {
     $userData = $userRes->fetch_assoc();
     
     if ($userData) {
-        $notifier = new NotificationSystem();
+        $notifier = new NotificationSystem($conn);
         $fullName = $userData['FirstName'] . ' ' . $userData['LastName'];
         
-        // Send Email
+        // Send Notification (Email + In-App handled by class)
         $notifier->sendPhotoUploadNotification(
             $userData['Email'], 
             $fullName, 
+            $userID, 
             $bookingID, 
             $uploadedCount, 
             $gdriveLink
         );
-        
-        // Send In-App Notification
-        $notifTitle = "Photos Uploaded";
-        $notifMessage = "{$uploadedCount} new photos have been uploaded for your booking #{$bookingID}.";
-        $notifType = "photo_upload";
-        $notifLink = "myPhotos.php";
-        
-        $notifStmt = $conn->prepare("INSERT INTO notifications (userID, title, message, type, link, created_at) VALUES (?, ?, ?, ?, ?, NOW())");
-        $notifStmt->bind_param("issss", $userID, $notifTitle, $notifMessage, $notifType, $notifLink);
-        $notifStmt->execute();
     }
 
     $message = "Successfully uploaded $uploadedCount of $totalFiles photo(s)";

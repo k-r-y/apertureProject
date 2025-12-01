@@ -442,7 +442,7 @@ $minBookingDate = date('Y-m-d', strtotime('+3 days'));
                                     <div class="form-check mt-4 mb-4">
                                         <input class="form-check-input" type="checkbox" id="termsConfirm" required>
                                         <label class="form-check-label text-muted small" for="termsConfirm">
-                                            I agree to the <a href="#" data-bs-toggle="modal" data-bs-target="#termsModal" class="text-gold text-decoration-none">Terms</a>, <a href="#" data-bs-toggle="modal" data-bs-target="#privacyModal" class="text-gold text-decoration-none">Privacy</a>, and <a href="#" data-bs-toggle="modal" data-bs-target="#refundModal" class="text-gold text-decoration-none">Refund Policy</a>
+                                            I agree to the <a href="#" data-bs-toggle="modal" data-bs-target="#termsModal" class="text-gold text-decoration-none">Terms</a>, <a href="#" data-bs-toggle="modal" data-bs-target="#privacyModal" class="text-gold text-decoration-none">Privacy</a>, and <a href="#" data-bs-toggle="modal" data-bs-target="#refundPolicyModal" class="text-gold text-decoration-none">Refund Policy</a>
                                         </label>
                                     </div>
 

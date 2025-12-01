@@ -18,7 +18,7 @@ $currentPage = 'bookings.php';
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Manage Bookings - Aperture Admin</title>
-    <link rel="stylesheet" href="../../bootstrap-5.3.8-dist/css/bootstrap.min.css">
+       <link rel="stylesheet" href="../../bootstrap-5.3.8-dist/css/bootstrap.min.css">
     <link rel="stylesheet" href="../../bootstrap-5.3.8-dist/font/bootstrap-icons.css">
     <link rel="stylesheet" href="../luxuryDesignSystem.css">
     <link rel="stylesheet" href="../css/modal.css">
@@ -26,9 +26,24 @@ $currentPage = 'bookings.php';
     <link rel="stylesheet" href="admin.css">
     <link rel="stylesheet" href="../style.css">
     <link rel="icon" href="../assets/camera.png" type="image/x-icon">
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Playfair+Display:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        /* Fix for modal width issue */
+        .modal-dialog {
+            max-width: 500px;
+            margin: 1.75rem auto;
+        }
+        @media (min-width: 576px) {
+            .modal-dialog {
+                max-width: 500px;
+            }
+        }
+        @media (min-width: 992px) {
+            .modal-lg {
+                max-width: 800px;
+            }
+        }
+    </style>
 </head>
 <body class="admin-dashboard">
     <?php include_once 'components/sidebar.php'; ?>

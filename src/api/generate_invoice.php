@@ -2,6 +2,10 @@
 require_once '../includes/functions/config.php';
 require_once '../includes/functions/session.php';
 
+// Enable error reporting for debugging
+error_reporting(E_ALL);
+ini_set('display_errors', 1);
+
 // Check if user is logged in
 if (!isset($_SESSION['userId'])) {
     http_response_code(401);
@@ -9,16 +13,17 @@ if (!isset($_SESSION['userId'])) {
 }
 
 $bookingId = isset($_GET['id']) ? intval($_GET['id']) : 0;
+$userRole = $_SESSION['role'] ?? 'User';
 
 // Verify booking belongs to user or user is admin
 $stmt = $conn->prepare("
-    SELECT b.*, u.FirstName, u.LastName, u.Email, u.contactNo, p.packageName, p.Description as packageDesc
+    SELECT b.*, u.FirstName, u.LastName, u.Email, u.contactNo, p.packageName, p.description as packageDesc
     FROM bookings b
-    JOIN users u ON b.userID = u.userID
-    JOIN packages p ON b.packageID = p.packageID
+    LEFT JOIN users u ON b.userID = u.userID
+    LEFT JOIN packages p ON b.packageID = p.packageID
     WHERE b.bookingID = ? AND (b.userID = ? OR ? = 'Admin')
 ");
-$stmt->bind_param("iis", $bookingId, $_SESSION['userId'], $_SESSION['role']);
+$stmt->bind_param("iis", $bookingId, $_SESSION['userId'], $userRole);
 $stmt->execute();
 $booking = $stmt->get_result()->fetch_assoc();
 
@@ -29,6 +34,11 @@ if (!$booking) {
 // Generate Booking Reference
 $booking['bookingRef'] = str_pad($booking['bookingID'], 6, '0', STR_PAD_LEFT);
 $booking['contactNo'] = $booking['contactNo'] ?? 'N/A';
+$booking['FirstName'] = $booking['FirstName'] ?? 'Unknown';
+$booking['LastName'] = $booking['LastName'] ?? 'Client';
+$booking['Email'] = $booking['Email'] ?? 'N/A';
+$booking['packageName'] = $booking['packageName'] ?? 'Custom Package';
+$booking['packageDesc'] = $booking['packageDesc'] ?? 'No description available';
 ?>
 <!DOCTYPE html>
 <html>
@@ -176,6 +186,18 @@ $booking['contactNo'] = $booking['contactNo'] ?? 'N/A';
                 <p><strong>Status:</strong> <span class="status-badge status-<?= $booking['booking_status'] ?>"><?= ucfirst(str_replace('_', ' ', $booking['booking_status'])) ?></span></p>
             </div>
         </div>
+
+        <?php if (!empty($booking['proof_payment']) || !empty($booking['proof_final_payment'])): ?>
+        <div class="detail-section" style="margin-bottom: 20px;">
+            <h3>Payment Proofs</h3>
+            <?php if (!empty($booking['proof_payment'])): ?>
+                <p><strong>Downpayment:</strong> <a href="<?= htmlspecialchars($booking['proof_payment']) ?>" target="_blank" style="color: #D4AF37; text-decoration: none;">View Receipt</a></p>
+            <?php endif; ?>
+            <?php if (!empty($booking['proof_final_payment'])): ?>
+                <p><strong>Final Payment:</strong> <a href="<?= htmlspecialchars($booking['proof_final_payment']) ?>" target="_blank" style="color: #D4AF37; text-decoration: none;">View Receipt</a></p>
+            <?php endif; ?>
+        </div>
+        <?php endif; ?>
 
         <table>
             <thead>

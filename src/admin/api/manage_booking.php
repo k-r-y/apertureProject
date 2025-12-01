@@ -175,6 +175,12 @@ try {
             if (!empty($meetingLink) && !preg_match("~^(?:f|ht)tps?://~i", $meetingLink)) {
                 $meetingLink = "https://" . $meetingLink;
             }
+
+            if (empty($meetingLink)) {
+                ob_clean();
+                echo json_encode(['success' => false, 'message' => 'Meeting link cannot be empty']);
+                exit;
+            }
             
             // Fetch booking and user details first
             $detailsStmt = $conn->prepare("
@@ -203,7 +209,7 @@ try {
                 
                 // Send Email Notification
                 require_once '../../includes/functions/notifications.php';
-                $notifier = new NotificationSystem();
+                $notifier = new NotificationSystem($conn);
                 $bookingRef = str_pad($bookingId, 6, '0', STR_PAD_LEFT);
                 $fullName = $bookingDetails['firstname'] . ' ' . $bookingDetails['lastname'];
                 $eventDate = date('F j, Y', strtotime($bookingDetails['event_date']));
@@ -211,22 +217,11 @@ try {
                 $notifier->sendMeetingLinkNotification(
                     $bookingDetails['email'],
                     $fullName,
+                    $bookingDetails['userID'], // Added userID
                     $bookingRef,
                     $meetingLink,
                     $eventDate
                 );
-
-                // Create In-App Notification
-                $notifTitle = "Meeting Link Updated";
-                $notifMessage = "A meeting link has been added for your booking #{$bookingRef}.";
-                $notifType = "info";
-                $targetUserId = $bookingDetails['userID'];
-                $link = "appointments.php?booking_id=" . $bookingId;
-                
-                $notifStmt = $conn->prepare("INSERT INTO notifications (userID, title, message, type, link, created_at) VALUES (?, ?, ?, ?, ?, NOW())");
-                $notifStmt->bind_param("issss", $targetUserId, $notifTitle, $notifMessage, $notifType, $link);
-                $notifStmt->execute();
-                $notifStmt->close();
 
                 ob_clean();
                 echo json_encode(['success' => true, 'message' => 'Meeting link updated and user notified']);

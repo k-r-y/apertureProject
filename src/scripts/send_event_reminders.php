@@ -45,7 +45,7 @@ foreach ($reminderDays as $days) {
     $stmt->execute();
     $result = $stmt->get_result();
     
-    $notification = new NotificationSystem();
+    $notification = new NotificationSystem($conn);
     
     while ($booking = $result->fetch_assoc()) {
         try {

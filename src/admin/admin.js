@@ -1,6 +1,6 @@
 document.addEventListener("DOMContentLoaded", function () {
     // ===================================
-    // SIDEBAR TOGGLE LOGIC - RESPONSIVE
+    // SIDEBAR TOGGLE LOGIC - RESPONSIVE & PERSISTENT
     // ===================================
 
     const sidebarCollapseBtn = document.getElementById('sidebar-collapse-btn');
@@ -9,15 +9,30 @@ document.addEventListener("DOMContentLoaded", function () {
     const body = document.body;
     const sidebar = document.getElementById('sidebar');
 
-    // Desktop toggle (in sidebar header)
+    // 1. Load Saved State (Desktop Only)
+    const savedState = localStorage.getItem('sidebarState');
+    const isMobile = window.innerWidth <= 991;
+
+    if (!isMobile && savedState === 'collapsed') {
+        body.classList.add('sidebar-mini');
+    }
+
+    // 2. Desktop Toggle (Sidebar Header)
     if (sidebarCollapseBtn) {
         sidebarCollapseBtn.addEventListener('click', (e) => {
             e.stopPropagation();
             body.classList.toggle('sidebar-mini');
+
+            // Save state
+            if (body.classList.contains('sidebar-mini')) {
+                localStorage.setItem('sidebarState', 'collapsed');
+            } else {
+                localStorage.setItem('sidebarState', 'expanded');
+            }
         });
     }
 
-    // Mobile toggle (in admin header)
+    // 3. Mobile Toggle (Header Hamburger)
     if (headerToggle) {
         headerToggle.addEventListener('click', (e) => {
             e.stopPropagation();
@@ -25,7 +40,8 @@ document.addEventListener("DOMContentLoaded", function () {
         });
     }
 
-    // Close mobile sidebar when clicking on the main content
+    // 4. Close Mobile Sidebar (Click Outside)
+    // Click on main content
     if (pageWrapper) {
         pageWrapper.addEventListener('click', () => {
             if (window.innerWidth <= 991 && body.classList.contains('sidebar-mobile-active')) {
@@ -34,7 +50,7 @@ document.addEventListener("DOMContentLoaded", function () {
         });
     }
 
-    // Close mobile sidebar when clicking on overlay (body::before)
+    // Click on overlay (pseudo-element on body)
     body.addEventListener('click', (e) => {
         if (window.innerWidth <= 991 &&
             body.classList.contains('sidebar-mobile-active') &&
@@ -44,16 +60,24 @@ document.addEventListener("DOMContentLoaded", function () {
         }
     });
 
-    // Handle window resize - cleanup states
+    // 5. Handle Window Resize
     window.addEventListener('resize', () => {
-        const isMobile = window.innerWidth <= 991;
+        const isMobileNow = window.innerWidth <= 991;
 
-        if (!isMobile) {
-            // Switched to desktop - remove mobile class
+        if (!isMobileNow) {
+            // Desktop Mode
             body.classList.remove('sidebar-mobile-active');
+
+            // Restore saved preference for desktop
+            const savedState = localStorage.getItem('sidebarState');
+            if (savedState === 'collapsed') {
+                body.classList.add('sidebar-mini');
+            } else {
+                body.classList.remove('sidebar-mini');
+            }
         } else {
-            // Switched to mobile - remove mini class
-            body.classList.remove('sidebar-mini');
+            // Mobile Mode
+            body.classList.remove('sidebar-mini'); // Always expand content in mobile (sidebar is hidden/overlay)
         }
     });
 });

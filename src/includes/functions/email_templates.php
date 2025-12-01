@@ -173,5 +173,37 @@ class EmailTemplates {
 
         return self::getHeader() . $body . self::getFooter();
     }
+    public static function getAdminCancellationRequest($adminName, $bookingRef, $clientName, $eventType, $refundAmount) {
+        $body = "
+            <h2 style='color: #dc3545; margin-top: 0;'>Cancellation Request</h2>
+            <p>Dear {$adminName},</p>
+            <p>A cancellation request has been submitted by <strong>{$clientName}</strong>.</p>
+            
+            <div style='background: #f8f9fa; padding: 20px; border-radius: 8px; margin: 30px 0;'>
+                <h3 style='margin-top: 0; font-size: 16px; color: #666;'>Request Details</h3>
+                <table style='width: 100%; border-collapse: collapse;'>
+                    <tr>
+                        <td style='padding: 8px 0; color: #666;'>Reference No:</td>
+                        <td style='padding: 8px 0; text-align: right; font-weight: 600; color: #d4af37;'>#{$bookingRef}</td>
+                    </tr>
+                    <tr>
+                        <td style='padding: 8px 0; color: #666;'>Event Type:</td>
+                        <td style='padding: 8px 0; text-align: right; font-weight: 600;'>{$eventType}</td>
+                    </tr>
+                    <tr>
+                        <td style='padding: 8px 0; color: #666;'>Refund Amount:</td>
+                        <td style='padding: 8px 0; text-align: right; font-weight: 600; color: #dc3545;'>₱" . number_format($refundAmount, 2) . "</td>
+                    </tr>
+                </table>
+            </div>
+
+            <p>Please review this request in the admin panel to approve or reject the refund.</p>
+
+            <div style='text-align: center; margin-top: 30px;'>
+                <a href='http://localhost/aperture/src/admin/refunds.php' style='background: #0a0a0a; color: #d4af37; text-decoration: none; padding: 12px 25px; border-radius: 4px; font-weight: bold;'>Process Refund</a>
+            </div>";
+
+        return self::getHeader() . $body . self::getFooter();
+    }
 }
 ?>

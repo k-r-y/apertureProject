@@ -1,5 +1,5 @@
 <!-- Refund Policy Modal -->
-<div class="modal fade" id="refundModal" tabindex="-1" aria-labelledby="refundModalLabel" aria-hidden="true">
+<div class="modal fade" id="refundPolicyModal" tabindex="-1" aria-labelledby="refundModalLabel" aria-hidden="true">
     <div class="modal-dialog modal-lg modal-dialog-scrollable">
         <div class="modal-content glass-modal bg-light">
             <div class="modal-header border-0">
@@ -13,7 +13,7 @@
                 <p>This Cancellation & Refund Policy outlines the terms for cancelling your booking with Aperture ("we," "us," or "our"). By booking our Services, you ("the Client") agree to this policy. We understand that plans can change, and we aim to handle cancellations fairly for both parties.</p>
 
                 <h6 class="text-gold mt-4">2. Booking Deposit</h6>
-                <p>To confirm your booking, a deposit of <strong>30%</strong> of your chosen package's total price is required. This secures your event date and covers our initial administrative and planning costs.</p>
+                <p>To confirm your booking, a deposit of <strong>25%</strong> of your chosen package's total price is required. This secures your event date and covers our initial administrative and planning costs.</p>
 
                 <h6 class="text-gold mt-4">3. Cancellation by Client</h6>
                 <p>We accept cancellations for any reason.</p>
@@ -23,7 +23,7 @@
                     <li>The remaining 60% of the amount paid will be retained by Aperture as a cancellation fee to compensate for the reserved date and costs incurred.</li>
                 </ul>
 
-                <div class="alert alert-secondary bg-transparent border-secondary text-light">
+                <div class="alert alert-secondary bg-transparent border-secondary text-dark">
                     <strong>Example for Clarity:</strong><br>
                     Your Package Total: ₱20,000<br>
                     30% Deposit Paid: ₱6,000<br>

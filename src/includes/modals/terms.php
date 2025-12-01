@@ -26,7 +26,7 @@
                 <p>Our Service provides a platform to book event photography and videography services.</p>
                 <ul>
                     <li><strong>Booking Process:</strong> All bookings must be made through our booking process. Bookings are not confirmed until the required downpayment has been received and our team has confirmed the online consultation.</li>
-                    <li><strong>Booking Window:</strong> All bookings must be made at least five (5) days in advance of the event date.</li>
+                    <li><strong>Booking Window:</strong> All bookings must be made at least three (3) days in advance of the event date.</li>
                     <li><strong>Consultation:</strong> A successful booking includes a mandatory online consultation with our team to finalize all event details.</li>
                     <li><strong>Service Delivery:</strong> We will perform the agreed-upon services at the event on the specified date. After the event, we will engage in post-production (editing), which takes a minimum of one (1) week.</li>
                 </ul>
@@ -36,7 +36,7 @@
                     <li><strong>Downpayment:</strong> A non-refundable downpayment (retainer) is required to secure your booking date.</li>
                     <li><strong>Final Payment:</strong> The final balance for services is due after the event but before the final delivery of your media. It can also be paid before the actual event.</li>
                     <li><strong>Gated Delivery:</strong> Your final gallery (both on the Service and via cloud link) will only be made accessible after the final payment has been successfully processed and confirmed.</li>
-                    <li><strong>Refunds:</strong> All payments are subject to our <a href="#" data-bs-toggle="modal" data-bs-target="#refundModal" class="text-gold">Cancellation & Refund Policy</a>, which is incorporated by reference into these Terms.</li>
+                    <li><strong>Refunds:</strong> All payments are subject to our <a href="#" data-bs-toggle="modal" data-bs-target="#refundPolicyModal" class="text-gold">Cancellation & Refund Policy</a>, which is incorporated by reference into these Terms.</li>
                     <li><strong>Payment Processors:</strong> We use third-party payment processors (e.g., Stripe, PayPal) to handle all transactions. We do not store or retain your credit card information. You agree to be bound by the terms of service of our chosen payment processor.</li>
                 </ul>
 

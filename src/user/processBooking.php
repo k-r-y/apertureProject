@@ -244,7 +244,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
             // Send Confirmation Email
             // Send Notifications
             require_once '../includes/functions/notifications.php';
-            $notificationSystem = new NotificationSystem();
+            $notificationSystem = new NotificationSystem($conn);
             
             // 1. Send Confirmation to User
             $userEmail = $_SESSION['email'] ?? ''; 
@@ -252,6 +252,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                 $notificationSystem->sendBookingConfirmation(
                     $userEmail,
                     $_SESSION['firstName'] . ' ' . $_SESSION['lastName'],
+                    $userId, // Added userId
                     str_pad($bookingId, 6, '0', STR_PAD_LEFT),
                     date('F j, Y', strtotime($eventDate)),
                     date('g:i A', strtotime($startTime)) . ' - ' . date('g:i A', strtotime($endTime)),
@@ -272,25 +273,6 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                 date('F j, Y', strtotime($eventDate)),
                 '₱' . number_format($totalPrice, 2)
             );
-
-            // 3. Create In-App Notification for Admin
-            require_once '../includes/functions/booking_workflow.php';
-            
-            // Find Admin User ID
-            $adminStmt = $conn->prepare("SELECT userID FROM users WHERE role = 'Admin' LIMIT 1");
-            $adminStmt->execute();
-            $adminResult = $adminStmt->get_result();
-            if ($adminRow = $adminResult->fetch_assoc()) {
-                $adminId = $adminRow['userID'];
-                createNotification(
-                    $adminId,
-                    'booking',
-                    'New Booking Request',
-                    "New booking #{$bookingId} from " . $_SESSION['firstName'] . " " . $_SESSION['lastName'],
-                    'bookings.php?status=pending'
-                );
-            }
-            $adminStmt->close();
 
             // Clear saved form data on success
             unset($_SESSION['booking_form_data']);

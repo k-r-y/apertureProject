@@ -12,6 +12,9 @@ error_reporting(E_ALL);
 ini_set('display_errors', 1);
 
 header('Content-Type: application/json');
+header('Cache-Control: no-cache, no-store, must-revalidate');
+header('Pragma: no-cache');
+header('Expires: 0');
 
 // Check admin authentication
 if (!isset($_SESSION['userId']) || $_SESSION['role'] !== 'Admin') {
@@ -25,132 +28,162 @@ global $conn;
 
 // Get timeframe parameter (default: month)
 $timeframe = isset($_GET['timeframe']) ? $_GET['timeframe'] : 'month';
+$startDate = isset($_GET['start']) ? $_GET['start'] : null;
+$endDate = isset($_GET['end']) ? $_GET['end'] : null;
 
-// Build date filter based on timeframe
-$dateFilter = "";
-switch ($timeframe) {
-    case 'today':
-        $dateFilter = "AND DATE(b.created_at) = CURDATE()";
-        break;
-    case 'week':
-        $dateFilter = "AND YEARWEEK(b.created_at, 1) = YEARWEEK(CURDATE(), 1)";
-        break;
-    case 'month':
-        $dateFilter = "AND MONTH(b.created_at) = MONTH(CURDATE()) AND YEAR(b.created_at) = YEAR(CURDATE())";
-        break;
-    case 'quarter':
-        $dateFilter = "AND QUARTER(b.created_at) = QUARTER(CURDATE()) AND YEAR(b.created_at) = YEAR(CURDATE())";
-        break;
-    case 'year':
-        $dateFilter = "AND YEAR(b.created_at) = YEAR(CURDATE())";
-        break;
-    case 'all':
-    default:
-        $dateFilter = "";  // No filter for "all time"
-        break;
+/**
+ * Helper to generate SQL date filter
+ */
+function getDateFilter($column, $timeframe, $start = null, $end = null) {
+    global $conn;
+    switch ($timeframe) {
+        case 'today':
+            return "AND DATE($column) = CURDATE()";
+        case 'week':
+            return "AND YEARWEEK($column, 1) = YEARWEEK(CURDATE(), 1)";
+        case 'month':
+            return "AND MONTH($column) = MONTH(CURDATE()) AND YEAR($column) = YEAR(CURDATE())";
+        case 'quarter':
+            return "AND QUARTER($column) = QUARTER(CURDATE()) AND YEAR($column) = YEAR(CURDATE())";
+        case 'year':
+            return "AND YEAR($column) = YEAR(CURDATE())";
+        case 'custom':
+            if ($start && $end) {
+                $s = $conn->real_escape_string($start);
+                $e = $conn->real_escape_string($end);
+                // Ensure end date includes the full day (23:59:59) if it's just a date
+                return "AND $column BETWEEN '$s 00:00:00' AND '$e 23:59:59'";
+            }
+            return "";
+        case 'all':
+        default:
+            return "";
+    }
 }
+
+// Base filter for created_at (used for bookings count, new clients, etc.)
+$createdAtFilter = getDateFilter('created_at', $timeframe, $startDate, $endDate);
 
 try {
     // 1. REVENUE METRICS
+    // Revenue = (Downpayments paid in timeframe) + (Final payments paid in timeframe) - (Refunds processed in timeframe)
+    
     $revenueMetrics = [];
     
-    // Total Revenue (non-cancelled) with timeframe filter
-    // Note: For revenue, we use the bookings alias 'b' if we join, but here simple query
-    // We need to be consistent with aliases. Let's use 'b' alias in main queries or just standard WHERE
+    // Filters for payment dates
+    $downpaymentFilter = getDateFilter('downpayment_paid_date', $timeframe, $startDate, $endDate);
+    $finalPaymentFilter = getDateFilter('final_payment_paid_date', $timeframe, $startDate, $endDate);
+    $refundFilter = getDateFilter('refund_processed_date', $timeframe, $startDate, $endDate);
     
-    // Fix: Use simple WHERE for single table queries, but ensure alias compatibility if needed
-    // Actually, let's just use the table name directly or alias if we define it.
-    // For simplicity, I'll modify the $dateFilter to not assume an alias 'b' unless I use it.
-    // Wait, I used 'b.created_at' in the switch. Let's make sure queries use alias 'b' or I remove 'b.' from filter.
-    // Better: Remove 'b.' from filter and add it where needed or just use column name since most queries are single table.
-    // Actually, some queries join. Let's use a variable for the column name.
+    // Calculate Revenue Components
     
-    $colName = "created_at";
+    // A. Downpayments
+    $dpQuery = "SELECT SUM(downpayment_amount) as total FROM bookings WHERE downpayment_paid = 1 $downpaymentFilter";
+    $dpResult = $conn->query($dpQuery);
+    $dpTotal = floatval($dpResult->fetch_assoc()['total'] ?? 0);
     
-    // Re-build filter without alias
-    $filterSQL = "";
-    switch ($timeframe) {
-        case 'today':
-            $filterSQL = "AND DATE($colName) = CURDATE()";
-            break;
-        case 'week':
-            $filterSQL = "AND YEARWEEK($colName, 1) = YEARWEEK(CURDATE(), 1)";
-            break;
-        case 'month':
-            $filterSQL = "AND MONTH($colName) = MONTH(CURDATE()) AND YEAR($colName) = YEAR(CURDATE())";
-            break;
-        case 'quarter':
-            $filterSQL = "AND QUARTER($colName) = QUARTER(CURDATE()) AND YEAR($colName) = YEAR(CURDATE())";
-            break;
-        case 'year':
-            $filterSQL = "AND YEAR($colName) = YEAR(CURDATE())";
-            break;
-        case 'all':
-        default:
-            $filterSQL = "";
-            break;
-    }
+    // B. Final Payments (Balance)
+    // Balance is Total - Downpayment
+    $fpQuery = "SELECT SUM(total_amount - downpayment_amount) as total FROM bookings WHERE final_payment_paid = 1 $finalPaymentFilter";
+    $fpResult = $conn->query($fpQuery);
+    $fpTotal = floatval($fpResult->fetch_assoc()['total'] ?? 0);
+    
+    // C. Refunds
+    $refQuery = "SELECT SUM(refund_amount) as total FROM bookings WHERE refund_amount > 0 $refundFilter";
+    $refResult = $conn->query($refQuery);
+    $refTotal = floatval($refResult->fetch_assoc()['total'] ?? 0);
+    
+    // Net Revenue
+    $revenueMetrics['total'] = $dpTotal + $fpTotal - $refTotal;
+    
+    // Revenue Growth (Month over Month comparison)
+    // This is complex to calculate dynamically for all timeframes with the new logic.
+    // For simplicity, we'll stick to a simple "Current Month vs Last Month" calculation for the growth indicator,
+    // regardless of the selected filter, OR we can try to calculate "Previous Period" based on timeframe.
+    // Let's implement "Previous Period" logic for better accuracy.
+    
+    // Determine previous period date range
+    $prevFilterDP = "";
+    $prevFilterFP = "";
+    $prevFilterRef = "";
+    
+    // Simplified previous period logic (just supporting month for now to avoid huge complexity)
+    // If timeframe is not month, we default to 0 growth or hide it.
+    // Actually, let's just do Month-over-Month growth as a standard metric.
+    
+    $prevMonthDP = getDateFilter('downpayment_paid_date', 'prev_month'); // Custom handling needed
+    // ... implementing full dynamic previous period is too much code. 
+    // Let's stick to: Compare Current Selected Timeframe Revenue vs 0 (if all time) or just show N/A.
+    // User asked for "Revenue Trend", which is the chart. The "Growth %" is usually just a quick stat.
+    // Let's use the same logic as before: Current Month vs Last Month (hardcoded) for the growth badge.
+    
+    $currMonthDP = "AND MONTH(downpayment_paid_date) = MONTH(CURDATE()) AND YEAR(downpayment_paid_date) = YEAR(CURDATE())";
+    $lastMonthDP = "AND MONTH(downpayment_paid_date) = MONTH(DATE_SUB(CURDATE(), INTERVAL 1 MONTH)) AND YEAR(downpayment_paid_date) = YEAR(DATE_SUB(CURDATE(), INTERVAL 1 MONTH))";
+    
+    $currMonthFP = "AND MONTH(final_payment_paid_date) = MONTH(CURDATE()) AND YEAR(final_payment_paid_date) = YEAR(CURDATE())";
+    $lastMonthFP = "AND MONTH(final_payment_paid_date) = MONTH(DATE_SUB(CURDATE(), INTERVAL 1 MONTH)) AND YEAR(final_payment_paid_date) = YEAR(DATE_SUB(CURDATE(), INTERVAL 1 MONTH))";
+    
+    $currMonthRef = "AND MONTH(refund_processed_date) = MONTH(CURDATE()) AND YEAR(refund_processed_date) = YEAR(CURDATE())";
+    $lastMonthRef = "AND MONTH(refund_processed_date) = MONTH(DATE_SUB(CURDATE(), INTERVAL 1 MONTH)) AND YEAR(refund_processed_date) = YEAR(DATE_SUB(CURDATE(), INTERVAL 1 MONTH))";
+    
+    // Current Month Revenue
+    $cm_dp = $conn->query("SELECT SUM(downpayment_amount) as t FROM bookings WHERE downpayment_paid = 1 $currMonthDP")->fetch_assoc()['t'] ?? 0;
+    $cm_fp = $conn->query("SELECT SUM(total_amount - downpayment_amount) as t FROM bookings WHERE final_payment_paid = 1 $currMonthFP")->fetch_assoc()['t'] ?? 0;
+    $cm_ref = $conn->query("SELECT SUM(refund_amount) as t FROM bookings WHERE refund_amount > 0 $currMonthRef")->fetch_assoc()['t'] ?? 0;
+    $currentMonthRev = $cm_dp + $cm_fp - $cm_ref;
+    
+    // Previous Month Revenue
+    $lm_dp = $conn->query("SELECT SUM(downpayment_amount) as t FROM bookings WHERE downpayment_paid = 1 $lastMonthDP")->fetch_assoc()['t'] ?? 0;
+    $lm_fp = $conn->query("SELECT SUM(total_amount - downpayment_amount) as t FROM bookings WHERE final_payment_paid = 1 $lastMonthFP")->fetch_assoc()['t'] ?? 0;
+    $lm_ref = $conn->query("SELECT SUM(refund_amount) as t FROM bookings WHERE refund_amount > 0 $lastMonthRef")->fetch_assoc()['t'] ?? 0;
+    $prevMonthRev = $lm_dp + $lm_fp - $lm_ref;
+    
+    $revenueMetrics['growth_percentage'] = $prevMonthRev > 0 ? (($currentMonthRev - $prevMonthRev) / $prevMonthRev) * 100 : 0;
 
-    // Total Revenue
-    $revQuery = "SELECT SUM(CASE WHEN is_fully_paid = 1 THEN total_amount ELSE downpayment_amount END) as total FROM bookings WHERE booking_status != 'cancelled' $filterSQL";
-    $revResult = $conn->query($revQuery);
-    $revenueMetrics['total'] = floatval($revResult->fetch_assoc()['total'] ?? 0);
-    
-    // Revenue Growth (current vs previous period)
-    // This is tricky with variable timeframes. For now, let's keep the monthly growth logic 
-    // but maybe adapt it or just show it for monthly view. 
-    // Let's stick to the original "Current Month vs Previous Month" logic regardless of filter 
-    // OR disable it for non-monthly views. 
-    // Let's keep it as "Month over Month" growth for now as a general indicator.
-    
-    $growthQuery = "SELECT 
-        SUM(CASE WHEN MONTH(created_at) = MONTH(CURDATE()) AND YEAR(created_at) = YEAR(CURDATE()) THEN (CASE WHEN is_fully_paid = 1 THEN total_amount ELSE downpayment_amount END) ELSE 0 END) as current_month,
-        SUM(CASE WHEN MONTH(created_at) = MONTH(DATE_SUB(CURDATE(), INTERVAL 1 MONTH)) AND YEAR(created_at) = YEAR(DATE_SUB(CURDATE(), INTERVAL 1 MONTH)) THEN (CASE WHEN is_fully_paid = 1 THEN total_amount ELSE downpayment_amount END) ELSE 0 END) as previous_month
-    FROM bookings WHERE booking_status != 'cancelled'";
-    $growthResult = $conn->query($growthQuery);
-    $growthData = $growthResult->fetch_assoc();
-    $currentMonth = floatval($growthData['current_month'] ?? 0);
-    $previousMonth = floatval($growthData['previous_month'] ?? 0);
-    $revenueMetrics['current_month'] = $currentMonth;
-    $revenueMetrics['previous_month'] = $previousMonth;
-    $revenueMetrics['growth_percentage'] = $previousMonth > 0 ? (($currentMonth - $previousMonth) / $previousMonth) * 100 : 0;
     
     // 2. BOOKING METRICS
     $bookingMetrics = [];
     
-    // Total bookings
-    $totalBookingsQuery = "SELECT COUNT(*) as total FROM bookings WHERE 1=1 $filterSQL";
+    // Total bookings (Created in timeframe)
+    $totalBookingsQuery = "SELECT COUNT(*) as total FROM bookings WHERE 1=1 $createdAtFilter";
     $totalBookingsResult = $conn->query($totalBookingsQuery);
     $bookingMetrics['total'] = intval($totalBookingsResult->fetch_assoc()['total'] ?? 0);
     
-    // Upcoming events (Always future, so filter doesn't apply the same way, but maybe we filter by "created in timeframe"?)
-    // Usually "Upcoming" means future events regardless of when booked. Let's keep it as is (future events).
+    // Pending Requests (Created in timeframe AND currently pending)
+    // Note: User asked for "Pending request?". Usually implies current backlog.
+    // But if filtered by date, maybe "Pending requests received in that period"?
+    // Let's show: "Pending Bookings created in this timeframe"
+    $pendingQuery = "SELECT COUNT(*) as count FROM bookings WHERE booking_status IN ('pending', 'pending_consultation') $createdAtFilter";
+    $pendingResult = $conn->query($pendingQuery);
+    $bookingMetrics['pending'] = intval($pendingResult->fetch_assoc()['count'] ?? 0);
+    
+    // Upcoming events (Always future, ignore timeframe filter as per user request "except for action center" - assuming upcoming is action center related)
+    // Actually, "Upcoming" stat card usually implies future workload.
     $upcomingQuery = "SELECT COUNT(*) as count FROM bookings 
-                     WHERE booking_status NOT IN ('cancelled', 'completed') 
+                     WHERE booking_status NOT IN ('cancelled', 'completed', 'rejected') 
                      AND event_date >= CURDATE()";
     $upcomingResult = $conn->query($upcomingQuery);
     $bookingMetrics['upcoming'] = intval($upcomingResult->fetch_assoc()['count'] ?? 0);
     
-    // Average booking value (filtered)
-    $avgValueQuery = "SELECT AVG(total_amount) as avg_value FROM bookings WHERE booking_status != 'cancelled' $filterSQL";
-    $avgValueResult = $conn->query($avgValueQuery);
-    $bookingMetrics['average_value'] = floatval($avgValueResult->fetch_assoc()['avg_value'] ?? 0);
+    // Average Revenue (Total Revenue / Total Bookings)
+    // User requested: "calculate based on the total revenue divided by the number of bookings"
+    if ($bookingMetrics['total'] > 0) {
+        $bookingMetrics['average_value'] = $revenueMetrics['total'] / $bookingMetrics['total'];
+    } else {
+        $bookingMetrics['average_value'] = 0;
+    }
+    
     
     // 3. CLIENT METRICS
     $clientMetrics = [];
     
-    // New clients (filtered by timeframe)
-    $newClientsQuery = "SELECT COUNT(DISTINCT userID) as count FROM bookings 
-                       WHERE 1=1 $filterSQL";
+    // New clients (First booking in timeframe)
+    // Simplified: Clients who booked in timeframe
+    $newClientsQuery = "SELECT COUNT(DISTINCT userID) as count FROM bookings WHERE 1=1 $createdAtFilter";
     $newClientsResult = $conn->query($newClientsQuery);
     $clientMetrics['new_clients'] = intval($newClientsResult->fetch_assoc()['count'] ?? 0);
     
-    // Total unique clients (All time)
-    $totalClientsQuery = "SELECT COUNT(DISTINCT userID) as count FROM bookings";
-    $totalClientsResult = $conn->query($totalClientsQuery);
-    $clientMetrics['total_clients'] = intval($totalClientsResult->fetch_assoc()['count'] ?? 0);
-    
-    // Client retention (repeat clients) - Global metric
+    // Retention (Global)
     $retentionQuery = "SELECT 
         COUNT(DISTINCT userID) as total_clients,
         SUM(CASE WHEN booking_count > 1 THEN 1 ELSE 0 END) as repeat_clients
@@ -163,164 +196,238 @@ try {
     $retentionData = $retentionResult->fetch_assoc();
     $totalClients = intval($retentionData['total_clients'] ?? 0);
     $repeatClients = intval($retentionData['repeat_clients'] ?? 0);
-    $clientMetrics['repeat_clients'] = $repeatClients;
     $clientMetrics['retention_rate'] = $totalClients > 0 ? ($repeatClients / $totalClients) * 100 : 0;
     
-    // 4. CONVERSION METRICS (Filtered)
-    $conversionMetrics = [];
     
+    // 4. CONVERSION METRICS (Filtered by created_at)
+    $conversionMetrics = [];
     $conversionQuery = "SELECT 
         COUNT(*) as total,
-        SUM(CASE WHEN booking_status IN ('confirmed', 'completed') THEN 1 ELSE 0 END) as confirmed,
+        SUM(CASE WHEN booking_status IN ('confirmed', 'completed', 'post_production') THEN 1 ELSE 0 END) as confirmed,
         SUM(CASE WHEN booking_status = 'cancelled' THEN 1 ELSE 0 END) as cancelled
-    FROM bookings WHERE 1=1 $filterSQL";
+    FROM bookings WHERE 1=1 $createdAtFilter";
     $conversionResult = $conn->query($conversionQuery);
     $conversionData = $conversionResult->fetch_assoc();
     $totalBookings = intval($conversionData['total'] ?? 0);
     $confirmedBookings = intval($conversionData['confirmed'] ?? 0);
-    $cancelledBookings = intval($conversionData['cancelled'] ?? 0);
-    $conversionMetrics['total'] = $totalBookings;
-    $conversionMetrics['confirmed'] = $confirmedBookings;
-    $conversionMetrics['cancelled'] = $cancelledBookings;
     $conversionMetrics['conversion_rate'] = $totalBookings > 0 ? ($confirmedBookings / $totalBookings) * 100 : 0;
-    $conversionMetrics['cancellation_rate'] = $totalBookings > 0 ? ($cancelledBookings / $totalBookings) * 100 : 0;
+    
     
     // 5. BOOKING STATUS BREAKDOWN (Filtered)
     $statusBreakdown = [];
-    $statusQuery = "SELECT booking_status, COUNT(*) as count FROM bookings WHERE 1=1 $filterSQL GROUP BY booking_status";
+    $statusQuery = "SELECT booking_status, COUNT(*) as count FROM bookings WHERE 1=1 $createdAtFilter GROUP BY booking_status";
     $statusResult = $conn->query($statusQuery);
     while ($row = $statusResult->fetch_assoc()) {
         $statusBreakdown[$row['booking_status']] = intval($row['count']);
     }
     
-    // 6. MONTHLY REVENUE TREND (12 months) - Always show 12 months trend regardless of filter
-    $revenueQuery = "SELECT 
-        DATE_FORMAT(created_at, '%Y-%m') as month,
-        SUM(CASE WHEN is_fully_paid = 1 THEN total_amount ELSE downpayment_amount END) as revenue
-    FROM bookings
-    WHERE created_at >= DATE_SUB(NOW(), INTERVAL 12 MONTH)
-    AND booking_status != 'cancelled'
-    GROUP BY DATE_FORMAT(created_at, '%Y-%m')
-    ORDER BY month ASC";
-    $revenueResult = $conn->query($revenueQuery);
     
+    // 6. DYNAMIC TREND CHARTS
+    // Grouping depends on timeframe
+    $dateFormat = '%Y-%m-%d'; // Default daily
+    $interval = 'DAY';
+    $range = 30; // Default days
+    
+    if ($timeframe === 'year' || $timeframe === 'all') {
+        $dateFormat = '%Y-%m';
+        $interval = 'MONTH';
+        $range = 12;
+    } elseif ($timeframe === 'today') {
+        $dateFormat = '%H:00'; // Hourly
+        $interval = 'HOUR';
+        $range = 24;
+    } elseif ($timeframe === 'custom' && $startDate && $endDate) {
+        // Calculate difference in days
+        $start = new DateTime($startDate);
+        $end = new DateTime($endDate);
+        $diff = $start->diff($end)->days;
+        
+        if ($diff > 60) {
+            $dateFormat = '%Y-%m'; // Group by month if range > 60 days
+        } else {
+            $dateFormat = '%Y-%m-%d'; // Group by day otherwise
+        }
+    }
+    
+    // REVENUE TREND (Based on Payment Dates)
+    // This is complex because we need to union downpayments and final payments.
+    // Simplified approach: Query bookings where EITHER payment happened in timeframe.
+    // Actually, let's just use the `created_at` for the trend to show "Potential Revenue Generated" 
+    // OR stick to the payment date logic which is harder to group in one query without a UNION.
+    // Let's use UNION for accuracy.
+    
+    $trendFilterDate = "";
+    if ($timeframe === 'month') {
+        $trendFilterDate = "WHERE MONTH(payment_date) = MONTH(CURDATE()) AND YEAR(payment_date) = YEAR(CURDATE())";
+    } elseif ($timeframe === 'week') {
+        $trendFilterDate = "WHERE YEARWEEK(payment_date, 1) = YEARWEEK(CURDATE(), 1)";
+    } elseif ($timeframe === 'year') {
+        $trendFilterDate = "WHERE YEAR(payment_date) = YEAR(CURDATE())";
+    } elseif ($timeframe === 'quarter') {
+        $trendFilterDate = "WHERE QUARTER(payment_date) = QUARTER(CURDATE()) AND YEAR(payment_date) = YEAR(CURDATE())";
+    } elseif ($timeframe === 'today') {
+        $trendFilterDate = "WHERE DATE(payment_date) = CURDATE()";
+    } elseif ($timeframe === 'custom' && $startDate && $endDate) {
+        $s = $conn->real_escape_string($startDate);
+        $e = $conn->real_escape_string($endDate);
+        $trendFilterDate = "WHERE payment_date BETWEEN '$s 00:00:00' AND '$e 23:59:59'";
+    } else {
+        // Default to all time or some limit if 'all'
+        $trendFilterDate = ""; 
+    }
+    
+    $revenueTrendQuery = "
+        SELECT 
+            DATE_FORMAT(payment_date, '$dateFormat') as period,
+            SUM(amount) as revenue
+        FROM (
+            SELECT downpayment_paid_date as payment_date, downpayment_amount as amount FROM bookings WHERE downpayment_paid = 1
+            UNION ALL
+            SELECT final_payment_paid_date as payment_date, (total_amount - downpayment_amount) as amount FROM bookings WHERE final_payment_paid = 1
+            UNION ALL
+            SELECT refund_processed_date as payment_date, -refund_amount as amount FROM bookings WHERE refund_amount > 0
+        ) as payments
+        $trendFilterDate
+        GROUP BY period
+        ORDER BY period ASC
+    ";
+    
+    $revenueResult = $conn->query($revenueTrendQuery);
     $revenueTrend = [];
     while ($row = $revenueResult->fetch_assoc()) {
         $revenueTrend[] = [
-            'month' => $row['month'],
+            'month' => $row['period'], // Keeping key 'month' for compatibility with JS, though it might be day/hour
             'revenue' => floatval($row['revenue'])
         ];
     }
     
-    // 7. MONTHLY BOOKINGS TREND (12 months) - Always show 12 months trend
-    $monthlyQuery = "SELECT 
-        DATE_FORMAT(created_at, '%Y-%m') as month,
+    // BOOKINGS TREND (Based on Created Date)
+    $bookingsTrendQuery = "SELECT 
+        DATE_FORMAT(created_at, '$dateFormat') as period,
         COUNT(*) as count
     FROM bookings
-    WHERE created_at >= DATE_SUB(NOW(), INTERVAL 12 MONTH)
-    GROUP BY DATE_FORMAT(created_at, '%Y-%m')
-    ORDER BY month ASC";
-    $monthlyResult = $conn->query($monthlyQuery);
+    WHERE 1=1 $createdAtFilter
+    GROUP BY period
+    ORDER BY period ASC";
     
+    // If filter is 'all', we might want a limit or different grouping. 
+    // For now, let's just use the filter.
+    
+    $bookingsResult = $conn->query($bookingsTrendQuery);
     $bookingsTrend = [];
-    while ($row = $monthlyResult->fetch_assoc()) {
+    while ($row = $bookingsResult->fetch_assoc()) {
         $bookingsTrend[] = [
-            'month' => $row['month'],
+            'month' => $row['period'],
             'count' => intval($row['count'])
         ];
     }
     
-    // 8. PACKAGE PERFORMANCE (Filtered)
-    // Need to use alias 'b' for bookings here because of JOIN
-    $filterSQL_b = str_replace("created_at", "b.created_at", $filterSQL);
     
+    // 7. PACKAGE PERFORMANCE (Filtered)
+    // 7. PACKAGE POPULARITY (Filtered) - With Event Type Breakdown
+    // Query to get count per Package AND Event Type
     $packageQuery = "SELECT 
         COALESCE(p.packageName, 'No Package') as package_name,
-        COUNT(b.bookingID) as bookings,
-        SUM(CASE WHEN b.is_fully_paid = 1 THEN b.total_amount ELSE b.downpayment_amount END) as revenue
+        b.event_type,
+        COUNT(b.bookingID) as bookings
     FROM bookings b
     LEFT JOIN packages p ON b.packageID = p.packageID
-    WHERE b.booking_status != 'cancelled' $filterSQL_b
-    GROUP BY p.packageID, p.packageName
-    ORDER BY revenue DESC";
+    WHERE b.booking_status != 'cancelled' $createdAtFilter
+    GROUP BY p.packageID, p.packageName, b.event_type
+    ORDER BY bookings DESC";
     $packageResult = $conn->query($packageQuery);
     
-    $packagePerformance = [];
+    $packageData = [];
+    $allEventTypes = [];
+    
     while ($row = $packageResult->fetch_assoc()) {
-        $packagePerformance[] = [
-            'name' => $row['package_name'],
-            'bookings' => intval($row['bookings']),
-            'revenue' => floatval($row['revenue'])
-        ];
+        $pkg = $row['package_name'];
+        $evt = $row['event_type'] ?: 'Other';
+        $cnt = intval($row['bookings']);
+        
+        if (!isset($packageData[$pkg])) {
+            $packageData[$pkg] = ['total' => 0, 'breakdown' => []];
+        }
+        $packageData[$pkg]['total'] += $cnt;
+        $packageData[$pkg]['breakdown'][$evt] = $cnt;
+        
+        if (!in_array($evt, $allEventTypes)) {
+            $allEventTypes[] = $evt;
+        }
     }
     
-    // 9. EVENT TYPE DISTRIBUTION (Filtered)
-    $eventTypeQuery = "SELECT 
-        event_type,
-        COUNT(*) as count
-    FROM bookings
-    WHERE booking_status != 'cancelled' $filterSQL
-    GROUP BY event_type
-    ORDER BY count DESC
-    LIMIT 10";
-    $eventTypeResult = $conn->query($eventTypeQuery);
+    // Sort packages by total bookings
+    uasort($packageData, function($a, $b) {
+        return $b['total'] - $a['total'];
+    });
     
+    // Format for ApexCharts Stacked Bar
+    // Categories: Package Names
+    // Series: One per Event Type
+    $packageCategories = array_keys($packageData);
+    $packageSeries = [];
+    
+    foreach ($allEventTypes as $type) {
+        $data = [];
+        foreach ($packageCategories as $pkg) {
+            $data[] = $packageData[$pkg]['breakdown'][$type] ?? 0;
+        }
+        $packageSeries[] = ['name' => $type, 'data' => $data];
+    }
+    
+    $packagePerformance = [
+        'categories' => $packageCategories,
+        'series' => $packageSeries
+    ];
+    
+    // 8. EVENT TYPE DISTRIBUTION (Filtered)
+    // Ensure event_type is not null/empty in display
+    $eventTypeQuery = "SELECT COALESCE(NULLIF(event_type, ''), 'Other') as type_clean, COUNT(*) as count 
+                       FROM bookings 
+                       WHERE booking_status != 'cancelled' $createdAtFilter 
+                       GROUP BY type_clean 
+                       ORDER BY count DESC LIMIT 10";
+    $eventTypeResult = $conn->query($eventTypeQuery);
     $eventTypes = [];
     while ($row = $eventTypeResult->fetch_assoc()) {
-        $eventTypes[] = [
-            'type' => $row['event_type'] ?? 'Other',
-            'count' => intval($row['count'])
-        ];
+        $eventTypes[] = ['event_type' => $row['type_clean'], 'count' => intval($row['count'])];
     }
     
-    // 10. RECENT ACTIVITY (last 10) - Always show most recent
-    $activityQuery = "SELECT 
-        b.bookingID,
-        b.event_type,
-        b.booking_status,
-        b.created_at,
-        u.Email as client_email
-    FROM bookings b
-    LEFT JOIN users u ON b.userID = u.userID
-    ORDER BY b.created_at DESC
-    LIMIT 10";
+    // 9. RECENT ACTIVITY (Action Center - Pending Requests)
+    $activityQuery = "SELECT b.bookingID, b.event_type, b.booking_status, b.created_at, b.total_amount, u.FirstName, u.LastName 
+                      FROM bookings b LEFT JOIN users u ON b.userID = u.userID 
+                      WHERE b.booking_status IN ('pending', 'pending_consultation')
+                      ORDER BY b.created_at DESC LIMIT 10";
     $activityResult = $conn->query($activityQuery);
-    
     $recentActivity = [];
     while ($row = $activityResult->fetch_assoc()) {
         $recentActivity[] = [
-            'id' => $row['bookingID'],
-            'reference' => 'BK-' . str_pad($row['bookingID'], 6, '0', STR_PAD_LEFT),
+            'bookingID' => $row['bookingID'], // JS uses bookingID
             'event_type' => $row['event_type'],
-            'status' => $row['booking_status'],
-            'client' => $row['client_email'],
+            'booking_status' => $row['booking_status'],
+            'FirstName' => $row['FirstName'],
+            'LastName' => $row['LastName'],
+            'total_amount' => floatval($row['total_amount']),
             'created_at' => $row['created_at']
         ];
     }
     
-    // 11. UPCOMING EVENTS (next 7 days) - Always show upcoming
-    $upcomingEventsQuery = "SELECT 
-        b.bookingID,
-        b.event_type,
-        b.event_date,
-        b.event_time_start,
-        u.Email as client_email
-    FROM bookings b
-    LEFT JOIN users u ON b.userID = u.userID
-    WHERE b.event_date BETWEEN CURDATE() AND DATE_ADD(CURDATE(), INTERVAL 7 DAY)
-    AND b.booking_status IN ('confirmed', 'pending')
-    ORDER BY b.event_date ASC, b.event_time_start ASC";
+    // 10. UPCOMING EVENTS (Action Center - Unfiltered)
+    $upcomingEventsQuery = "SELECT b.bookingID, b.event_type, b.event_date, b.event_time_start, u.FirstName, u.LastName 
+                            FROM bookings b LEFT JOIN users u ON b.userID = u.userID 
+                            WHERE b.event_date BETWEEN CURDATE() AND DATE_ADD(CURDATE(), INTERVAL 7 DAY) 
+                            AND b.booking_status IN ('confirmed', 'pending', 'pending_consultation') 
+                            ORDER BY b.event_date ASC, b.event_time_start ASC";
     $upcomingEventsResult = $conn->query($upcomingEventsQuery);
-    
     $upcomingEvents = [];
     while ($row = $upcomingEventsResult->fetch_assoc()) {
         $upcomingEvents[] = [
-            'id' => $row['bookingID'],
-            'reference' => 'BK-' . str_pad($row['bookingID'], 6, '0', STR_PAD_LEFT),
+            'bookingID' => $row['bookingID'],
             'event_type' => $row['event_type'],
-            'date' => $row['event_date'],
-            'time' => $row['event_time_start'],
-            'client' => $row['client_email']
+            'event_date' => $row['event_date'],
+            'event_time_start' => $row['event_time_start'],
+            'FirstName' => $row['FirstName'],
+            'LastName' => $row['LastName']
         ];
     }
     
@@ -347,11 +454,6 @@ try {
 } catch (Exception $e) {
     error_log("Dashboard Metrics Error: " . $e->getMessage());
     http_response_code(500);
-    echo json_encode([
-        'success' => false,
-        'error' => 'Failed to fetch dashboard metrics',
-        'debug' => $e->getMessage(),
-        'trace' => $e->getTraceAsString()
-    ]);
+    echo json_encode(['success' => false, 'error' => 'Failed to fetch dashboard metrics', 'debug' => $e->getMessage()]);
 }
 ?>

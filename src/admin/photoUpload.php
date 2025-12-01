@@ -218,11 +218,21 @@ if (!isset($_SESSION["userId"]) || !isset($_SESSION["role"]) || $_SESSION["role"
         function handleFiles(files) {
             const validFiles = Array.from(files).filter(file => {
                 if (!file.type.startsWith('image/')) {
-                    alert(`${file.name} is not an image file`);
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Invalid File',
+                        text: `${file.name} is not an image file`,
+                        confirmButtonColor: '#D4AF37'
+                    });
                     return false;
                 }
                 if (file.size > 5 * 1024 * 1024) {
-                    alert(`${file.name} is too large (max 5MB)`);
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'File Too Large',
+                        text: `${file.name} is too large (max 5MB)`,
+                        confirmButtonColor: '#D4AF37'
+                    });
                     return false;
                 }
                 return true;
@@ -313,7 +323,12 @@ if (!isset($_SESSION["userId"]) || !isset($_SESSION["role"]) || $_SESSION["role"
         // Upload photos
         uploadBtn.addEventListener('click', async () => {
             if (!bookingSelect.value) {
-                alert('Please select a booking');
+                Swal.fire({
+                    icon: 'warning',
+                    title: 'Missing Selection',
+                    text: 'Please select a booking',
+                    confirmButtonColor: '#D4AF37'
+                });
                 return;
             }
 
@@ -357,7 +372,12 @@ if (!isset($_SESSION["userId"]) || !isset($_SESSION["role"]) || $_SESSION["role"
                              response = JSON.parse(xhr.responseText);
                         } catch (e) {
                             console.error("Invalid JSON response", xhr.responseText);
-                            alert("Server error: Invalid response");
+                            Swal.fire({
+                                icon: 'error',
+                                title: 'Server Error',
+                                text: 'Invalid response from server',
+                                confirmButtonColor: '#D4AF37'
+                            });
                             return;
                         }
                         
@@ -428,7 +448,12 @@ if (!isset($_SESSION["userId"]) || !isset($_SESSION["role"]) || $_SESSION["role"
                 });
 
                 xhr.addEventListener('error', () => {
-                    alert('Upload failed. Please try again.');
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Upload Failed',
+                        text: 'Network error. Please try again.',
+                        confirmButtonColor: '#D4AF37'
+                    });
                     uploadProgress.classList.remove('active');
                     uploadBtn.disabled = false;
                 });
@@ -438,7 +463,12 @@ if (!isset($_SESSION["userId"]) || !isset($_SESSION["role"]) || $_SESSION["role"
 
             } catch (error) {
                 console.error('Upload error:', error);
-                alert('Upload failed. Please try again.');
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Upload Failed',
+                    text: 'An unexpected error occurred. Please try again.',
+                    confirmButtonColor: '#D4AF37'
+                });
                 uploadProgress.classList.remove('active');
                 uploadBtn.disabled = false;
             }

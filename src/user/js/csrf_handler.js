@@ -90,6 +90,18 @@ document.addEventListener('DOMContentLoaded', function () {
                 saveFormState();
                 window.location.reload();
             });
+        } else if (typeof Swal !== 'undefined') {
+            Swal.fire({
+                icon: 'warning',
+                title: 'Session Expired',
+                text: 'Your session has expired. Please refresh the page.',
+                confirmButtonText: 'Refresh Page',
+                confirmButtonColor: '#D4AF37',
+                allowOutsideClick: false,
+                allowEscapeKey: false
+            }).then(() => {
+                window.location.reload();
+            });
         } else {
             alert('Your session has expired. Please refresh the page.');
             window.location.reload();

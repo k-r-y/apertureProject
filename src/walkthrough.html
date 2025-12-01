@@ -132,6 +132,8 @@
         <a href="#improvements" class="nav-link">Improvements</a>
         <a href="#recent-fixes" class="nav-link">Recent Fixes</a>
         <a href="#future" class="nav-link">Future Features</a>
+        <a href="#testing-guide" class="nav-link">Testing Guide</a>
+        <a href="#interview-guide" class="nav-link">Interview Guide</a>
       </div>
     </nav>
 
@@ -1816,7 +1818,508 @@ src/
           </div>
         </div>
       </section>
+
+
+    
+        <div class="card p-4 mb-4 border-warning">
+          <h5 class="text-warning">
+            <i class="bi bi-bell me-2"></i>Notification Badge UI Improvements
+          </h5>
+          <p class="text-muted small mt-3 mb-2">
+            <strong>Enhancement:</strong> Improved the notification badge positioning and sizing for better visibility and aesthetics.
+          </p>
+          <p class="text-muted small mb-2">
+            <strong>Changes Made:</strong>
+          </p>
+          <ul class="text-muted small mb-3">
+            <li>Reduced badge font size to <code>0.65rem</code> for a more compact appearance</li>
+            <li>Added custom padding (<code>0.25rem 0.4rem</code>) for better spacing</li>
+            <li>Maintained proper positioning at top-right of bell icon using Bootstrap utilities</li>
+          </ul>
+          <p class="text-muted small mb-0">
+            <strong>File:</strong> <code>src/admin/components/header.php</code>
+          </p>
+        </div>
+
+        <div class="card p-4 border-secondary">
+          <h5 class="text-light">
+            <i class="bi bi-info-circle me-2"></i>Meeting Link Feature Documentation
+          </h5>
+          <p class="text-muted small mt-3 mb-2">
+            <strong>Clarification:</strong> Meeting link visibility in the user's booking modal is fully functional and correctly implemented.
+          </p>
+          
+          <p class="text-muted small mb-2"><strong>How It Works:</strong></p>
+          <ol class="text-muted small mb-3">
+            <li>Admin adds a meeting link via the Bookings page booking details modal</li>
+            <li>System saves the link to the <code>bookings.meeting_link</code> column</li>
+            <li>User receives an email notification with the meeting link</li>
+            <li>Link automatically appears in user's appointment modal when viewing booking details</li>
+          </ol>
+
+          <p class="text-muted small mb-2"><strong>Implementation Details:</strong></p>
+          <ul class="text-muted small mb-0">
+            <li><strong>Backend:</strong> <code>src/user/getAppointments.php</code> includes <code>meeting_link</code> in API response</li>
+            <li><strong>Frontend:</strong> <code>src/user/appointmentsHandler.js</code> displays link if present (lines 195-205)</li>
+            <li><strong>Notifications:</strong> <code>src/admin/api/manage_booking.php</code> sends email when link is added/updated</li>
+          </ul>
+        </div>
+      </section>
+
+
+      <section id="future" class="mb-5">
+        <h2 class="section-title text-gold serif">Future Features Roadmap</h2>
+        <p class="text-muted mb-4">
+          Proposed enhancements to elevate the Aperture Studios experience.
+        </p>
+
+        <div class="row g-4">
+          <div class="col-md-4">
+            <div class="neo-card h-100">
+              <div class="icon-box mb-3"><i class="bi bi-robot"></i></div>
+              <h5 class="text-light">AI Integration</h5>
+              <p class="text-muted small">
+                Smart photo tagging and facial recognition to allow clients to instantly find their photos in large event galleries.
+              </p>
+            </div>
+          </div>
+          <div class="col-md-4">
+            <div class="neo-card h-100">
+              <div class="icon-box mb-3"><i class="bi bi-phone"></i></div>
+              <h5 class="text-light">Mobile App</h5>
+              <p class="text-muted small">
+                Dedicated iOS/Android app for clients to manage bookings, view galleries offline, and receive push notifications.
+              </p>
+            </div>
+          </div>
+          <div class="col-md-4">
+            <div class="neo-card h-100">
+              <div class="icon-box mb-3"><i class="bi bi-credit-card"></i></div>
+              <h5 class="text-light">Automated Payments</h5>
+              <p class="text-muted small">
+                Full integration with Stripe or PayMongo to handle credit card holds, automated downpayments, and instant refunds.
+              </p>
+            </div>
+          </div>
+          <div class="col-md-4">
+            <div class="neo-card h-100">
+              <div class="icon-box mb-3"><i class="bi bi-envelope-heart"></i></div>
+              <h5 class="text-light">Marketing Automation</h5>
+              <p class="text-muted small">
+                Automated email sequences for client retention (e.g., "Anniversary Shoot" reminders 1 year after a wedding).
+              </p>
+            </div>
+          </div>
+          <div class="col-md-4">
+            <div class="neo-card h-100">
+              <div class="icon-box mb-3"><i class="bi bi-star"></i></div>
+              <h5 class="text-light">Loyalty Program</h5>
+              <p class="text-muted small">
+                Points system for frequent bookers (e.g., corporate clients) redeemable for discounts or free prints.
+              </p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Comprehensive Testing & Debugging Guide -->
+      <section id="testing-guide" class="mb-5">
+        <h2 class="section-title text-gold serif">Testing &amp; Debugging Master Guide</h2>
+        <p class="text-muted mb-4">
+          A complete, industry-standard protocol for verifying system integrity, security, and functionality. 
+          Use this guide to ensure zero-bug deployment.
+        </p>
+
+        <!-- 1. Pre-Flight Checklist -->
+        <div class="card p-4 mb-4">
+          <h4 class="text-light mb-3"><i class="bi bi-clipboard-check text-gold me-2"></i>1. Pre-Flight Checklist</h4>
+          <p class="text-muted small">Verify the environment before running functional tests.</p>
+          <div class="table-responsive">
+            <table class="table table-dark table-hover border-secondary table-sm">
+              <thead>
+                <tr>
+                  <th class="text-gold">Component</th>
+                  <th class="text-gold">Check</th>
+                  <th class="text-gold">Expected Result</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td>Environment</td>
+                  <td>PHP Version</td>
+                  <td>PHP 8.0 or higher running.</td>
+                </tr>
+                <tr>
+                  <td>Database</td>
+                  <td>Connection</td>
+                  <td><code>config.php</code> connects without error. Tables exist.</td>
+                </tr>
+                <tr>
+                  <td>File System</td>
+                  <td>Permissions</td>
+                  <td><code>/uploads</code> and <code>/assets</code> are writable (755/777).</td>
+                </tr>
+                <tr>
+                  <td>Dependencies</td>
+                  <td>Composer/Vendor</td>
+                  <td><code>PHPMailer</code> and other libs are installed.</td>
+                </tr>
+                <tr>
+                  <td>Security</td>
+                  <td>SSL/TLS</td>
+                  <td>Application runs over HTTPS (or localhost for dev).</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <!-- 2. Functional Testing Checklist -->
+        <div class="card p-4 mb-4">
+          <h4 class="text-light mb-3"><i class="bi bi-laptop text-gold me-2"></i>2. Functional Testing Checklist</h4>
+          
+          <!-- Authentication -->
+          <h5 class="text-gold mt-3 border-bottom border-secondary pb-2">A. Authentication Module</h5>
+          <div class="form-check mb-2">
+            <input class="form-check-input" type="checkbox" id="auth1">
+            <label class="form-check-label text-muted" for="auth1"><strong>Registration:</strong> Verify valid email format, password strength (>8 chars), and matching confirm password. Ensure duplicate emails are rejected.</label>
+          </div>
+          <div class="form-check mb-2">
+            <input class="form-check-input" type="checkbox" id="auth2">
+            <label class="form-check-label text-muted" for="auth2"><strong>Email Verification:</strong> Check if OTP email is received. Verify correct code works, incorrect code fails.</label>
+          </div>
+          <div class="form-check mb-2">
+            <input class="form-check-input" type="checkbox" id="auth3">
+            <label class="form-check-label text-muted" for="auth3"><strong>Login:</strong> Test valid credentials (redirect to dashboard), invalid credentials (error message), and SQL injection attempts in fields.</label>
+          </div>
+          <div class="form-check mb-2">
+            <input class="form-check-input" type="checkbox" id="auth4">
+            <label class="form-check-label text-muted" for="auth4"><strong>Forgot Password:</strong> Request reset link. Verify link expires after set time. Ensure new password cannot be same as old.</label>
+          </div>
+          <div class="form-check mb-2">
+            <input class="form-check-input" type="checkbox" id="auth5">
+            <label class="form-check-label text-muted" for="auth5"><strong>Session Security:</strong> Verify session timeout after inactivity. Ensure back button doesn't work after logout.</label>
+          </div>
+
+          <!-- User Portal -->
+          <h5 class="text-gold mt-4 border-bottom border-secondary pb-2">B. User Portal (Client)</h5>
+          <div class="form-check mb-2">
+            <input class="form-check-input" type="checkbox" id="user1">
+            <label class="form-check-label text-muted" for="user1"><strong>Dashboard:</strong> Verify "Total Bookings" and "Total Spent" match database records. Charts should render correctly.</label>
+          </div>
+          <div class="form-check mb-2">
+            <input class="form-check-input" type="checkbox" id="user2">
+            <label class="form-check-label text-muted" for="user2"><strong>Booking Flow:</strong> Select package -> Select Date. <strong>CRITICAL:</strong> Ensure dates with confirmed bookings are disabled in calendar.</label>
+          </div>
+          <div class="form-check mb-2">
+            <input class="form-check-input" type="checkbox" id="user3">
+            <label class="form-check-label text-muted" for="user3"><strong>Payment Upload:</strong> Upload receipt image. Verify file type validation (JPG/PNG only) and size limit.</label>
+          </div>
+          <div class="form-check mb-2">
+            <input class="form-check-input" type="checkbox" id="user4">
+            <label class="form-check-label text-muted" for="user4"><strong>Appointments:</strong> Filter by "Pending", "Confirmed", "Completed". Verify "View Details" modal shows correct info.</label>
+          </div>
+          <div class="form-check mb-2">
+            <input class="form-check-input" type="checkbox" id="user5">
+            <label class="form-check-label text-muted" for="user5"><strong>Gallery:</strong> Ensure user can ONLY see photos linked to their booking ID. Test lightbox navigation.</label>
+          </div>
+
+          <!-- Admin Portal -->
+          <h5 class="text-gold mt-4 border-bottom border-secondary pb-2">C. Admin Portal</h5>
+          <div class="form-check mb-2">
+            <input class="form-check-input" type="checkbox" id="admin1">
+            <label class="form-check-label text-muted" for="admin1"><strong>Analytics:</strong> Verify "Revenue" calculation (Sum of payments - Refunds). Test date filters (Today, Month, Year).</label>
+          </div>
+          <div class="form-check mb-2">
+            <input class="form-check-input" type="checkbox" id="admin2">
+            <label class="form-check-label text-muted" for="admin2"><strong>Booking Actions:</strong> Approve booking (Status -> Confirmed). Reject booking (Status -> Rejected). Add Meeting Link (Verify email sent).</label>
+          </div>
+          <div class="form-check mb-2">
+            <input class="form-check-input" type="checkbox" id="admin3">
+            <label class="form-check-label text-muted" for="admin3"><strong>Calendar:</strong> Verify all confirmed bookings appear on the correct date/time slots.</label>
+          </div>
+          <div class="form-check mb-2">
+            <input class="form-check-input" type="checkbox" id="admin4">
+            <label class="form-check-label text-muted" for="admin4"><strong>Refunds:</strong> Process a refund. Verify status updates in User Portal and "Total Revenue" decreases.</label>
+          </div>
+          <div class="form-check mb-2">
+            <input class="form-check-input" type="checkbox" id="admin5">
+            <label class="form-check-label text-muted" for="admin5"><strong>CMS:</strong> Edit Package Price. Verify new price appears on User Booking page immediately.</label>
+          </div>
+        </div>
+
+        <!-- 3. System-Wide & Security -->
+        <div class="card p-4 mb-4">
+          <h4 class="text-light mb-3"><i class="bi bi-shield-lock text-gold me-2"></i>3. System-Wide &amp; Security</h4>
+          <div class="row g-3">
+            <div class="col-md-6">
+              <div class="p-3 border border-secondary rounded bg-dark">
+                <h6 class="text-gold">Security Audits</h6>
+                <ul class="list-unstyled text-muted small mb-0">
+                  <li><i class="bi bi-check-circle me-2"></i><strong>SQL Injection:</strong> Test inputs with <code>' OR 1=1 --</code>.</li>
+                  <li><i class="bi bi-check-circle me-2"></i><strong>XSS:</strong> Input <code>&lt;script&gt;alert(1)&lt;/script&gt;</code> in contact forms.</li>
+                  <li><i class="bi bi-check-circle me-2"></i><strong>CSRF:</strong> Verify <code>csrf_token</code> hidden field exists in ALL forms.</li>
+                  <li><i class="bi bi-check-circle me-2"></i><strong>Access Control:</strong> Try accessing <code>/admin</code> pages as a User.</li>
+                </ul>
+              </div>
+            </div>
+            <div class="col-md-6">
+              <div class="p-3 border border-secondary rounded bg-dark">
+                <h6 class="text-gold">Performance &amp; UX</h6>
+                <ul class="list-unstyled text-muted small mb-0">
+                  <li><i class="bi bi-check-circle me-2"></i><strong>Load Time:</strong> Dashboard loads &lt; 2 seconds.</li>
+                  <li><i class="bi bi-check-circle me-2"></i><strong>Mobile:</strong> Sidebar collapses, tables scroll horizontally.</li>
+                  <li><i class="bi bi-check-circle me-2"></i><strong>Images:</strong> Thumbnails use <code>object-fit: cover</code>.</li>
+                  <li><i class="bi bi-check-circle me-2"></i><strong>404 Page:</strong> Visit non-existent URL.</li>
+                </ul>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- 4. Debugging Protocol -->
+        <div class="card p-4 mb-4">
+          <h4 class="text-light mb-3"><i class="bi bi-bug text-gold me-2"></i>4. Debugging Protocol</h4>
+          <p class="text-muted small">Follow this flow when a bug is reported.</p>
+          <div class="alert alert-secondary bg-dark border-secondary text-light">
+            <strong>Step 1: Reproduce.</strong> Can you make it happen again? <br>
+            <strong>Step 2: Check Logs.</strong> Look at <code>/var/log/apache2/error.log</code> or PHP error output.<br>
+            <strong>Step 3: Check Network.</strong> Open DevTools (F12) -> Network. Look for red (4xx/5xx) requests.<br>
+            <strong>Step 4: Check Database.</strong> Is the data actually saved? Use phpMyAdmin.<br>
+            <strong>Step 5: Isolate.</strong> Comment out recent code changes to find the culprit.
+          </div>
+        </div>
+
+        <!-- 5. Role-Based Hard Questions -->
+        <div class="card p-4">
+          <h4 class="text-light mb-3"><i class="bi bi-patch-question text-gold me-2"></i>5. Role-Based Knowledge Check (Hard Mode)</h4>
+          <p class="text-muted small mb-4">Deep-dive questions to test mastery of the system logic.</p>
+          
+          <div class="accordion" id="hardQuestions">
+            
+            <!-- Admin Questions -->
+            <div class="accordion-item bg-dark border-secondary">
+              <h2 class="accordion-header" id="hqAdmin">
+                <button class="accordion-button collapsed bg-dark text-gold" type="button" data-bs-toggle="collapse" data-bs-target="#collapseAdmin">
+                  <i class="bi bi-person-badge-fill me-2"></i> Admin Role
+                </button>
+              </h2>
+              <div id="collapseAdmin" class="accordion-collapse collapse" data-bs-parent="#hardQuestions">
+                <div class="accordion-body text-muted">
+                  <ol>
+                    <li class="mb-3">
+                      <strong>Q: How do you resolve a booking conflict where two users pay simultaneously for the same slot?</strong><br>
+                      <span class="text-light">A: The system uses a "First-to-Confirm" logic. The database transaction for the second approval will fail or be blocked if the slot is already marked 'Confirmed'. You must manually refund the second user and offer an alternative slot.</span>
+                    </li>
+                    <li class="mb-3">
+                      <strong>Q: What is the exact SQL logic for calculating 'Net Revenue' vs 'Gross Revenue'?</strong><br>
+                      <span class="text-light">A: Gross = Sum of <code>total_amount</code> for all 'Confirmed' bookings. Net = (Sum of <code>downpayment_amount</code> + Sum of <code>final_payment_amount</code>) - Sum of <code>refund_amount</code>. We track actual cash flow, not just booking value.</span>
+                    </li>
+                    <li class="mb-3">
+                      <strong>Q: How does the system handle a 'pending' booking that expires (past event date)?</strong><br>
+                      <span class="text-light">A: It remains in the database as 'Pending' but is filtered out of the 'Upcoming' view. A cron job (or manual admin action) should mark these as 'Cancelled' or 'Archived' to clean up the dashboard.</span>
+                    </li>
+                    <li class="mb-3">
+                      <strong>Q: Explain the security implications of the `photoUpload.php` file handling.</strong><br>
+                      <span class="text-light">A: We do not store files directly in the web root without validation. We check MIME types (image/jpeg, image/png) and rename files with a unique hash to prevent overwriting and execution of malicious scripts (e.g., shell.php.jpg).</span>
+                    </li>
+                    <li>
+                      <strong>Q: If the email server fails (SMTP Error), how do you manually verify a user?</strong><br>
+                      <span class="text-light">A: Go to the database <code>users</code> table, find the user by email, and manually set the <code>isVerified</code> column to <code>1</code>. Then notify the user via alternative means.</span>
+                    </li>
+                  </ol>
+                </div>
+              </div>
+            </div>
+
+            <!-- User Questions -->
+            <div class="accordion-item bg-dark border-secondary">
+              <h2 class="accordion-header" id="hqUser">
+                <button class="accordion-button collapsed bg-dark text-gold" type="button" data-bs-toggle="collapse" data-bs-target="#collapseUser">
+                  <i class="bi bi-person-circle me-2"></i> User (Client) Role
+                </button>
+              </h2>
+              <div id="collapseUser" class="accordion-collapse collapse" data-bs-parent="#hardQuestions">
+                <div class="accordion-body text-muted">
+                  <ol>
+                    <li class="mb-3">
+                      <strong>Q: What happens to my downpayment if I cancel 24 hours before the event?</strong><br>
+                      <span class="text-light">A: Per the Terms of Service, downpayments are non-refundable within 48 hours of the event. The system will mark the booking as 'Cancelled' but the refund amount will be calculated as 0 unless overridden by an Admin.</span>
+                    </li>
+                    <li class="mb-3">
+                      <strong>Q: Can I download my photos in full resolution without a watermark?</strong><br>
+                      <span class="text-light">A: Yes, but only after the Final Payment is marked as 'Paid' by the admin. The 'Download' button in the Gallery is disabled/hidden until the booking status is 'Completed' or payment is verified.</span>
+                    </li>
+                    <li class="mb-3">
+                      <strong>Q: How do I change my registered email address without losing my booking history?</strong><br>
+                      <span class="text-light">A: You cannot change it yourself for security reasons. You must contact Admin via the 'Inquiries' page. The Admin will update the <code>users</code> table, which preserves the <code>userID</code> linkage to your bookings.</span>
+                    </li>
+                    <li class="mb-3">
+                      <strong>Q: If I forget my password and the reset link doesn't arrive, what should I do?</strong><br>
+                      <span class="text-light">A: Check Spam folder first. If still missing, it means the SMTP service is down or your email provider blocked it. Contact Support to manually trigger a password reset or verify your identity.</span>
+                    </li>
+                    <li>
+                      <strong>Q: Is my payment information (Credit Card) stored on your servers?</strong><br>
+                      <span class="text-light">A: No. We only record the <em>transaction reference number</em> and the <em>status</em>. Actual processing is done via the external gateway or manual bank transfer, so your sensitive financial data never touches our DB.</span>
+                    </li>
+                  </ol>
+                </div>
+              </div>
+            </div>
+
+          </div>
+        </div>
+      </section>
+
+      <!-- System Analysis & Interview Guide -->
+      <section id="interview-guide" class="mb-5">
+        <h2 class="section-title text-gold serif">System Analysis & Interview Guide</h2>
+        <p class="text-muted mb-4">
+          Advanced role-based scenarios and analysis for system improvement and candidate evaluation.
+        </p>
+
+        <div class="card p-4">
+          <div class="accordion" id="interviewQuestions">
+            
+            <!-- 1. UI/UX Designer -->
+            <div class="accordion-item bg-dark border-secondary">
+              <h2 class="accordion-header" id="headingUIUX">
+                <button class="accordion-button collapsed bg-dark text-gold" type="button" data-bs-toggle="collapse" data-bs-target="#collapseUIUX">
+                  <i class="bi bi-palette me-2"></i> 1. UI/UX Designer
+                </button>
+              </h2>
+              <div id="collapseUIUX" class="accordion-collapse collapse" data-bs-parent="#interviewQuestions">
+                <div class="accordion-body text-muted">
+                  <p><strong>Focus:</strong> Accessibility vs. Aesthetics, Information Architecture in High-Contrast Themes.</p>
+                  <p class="text-light"><strong>Question:</strong> "The Aperture system enforces a strict 'Luxury Dark Theme' using gold accents (#D4AF37) on dark backgrounds (#101010) with glassmorphism effects. While visually striking, this poses usability challenges in the Admin Dashboard (<code>adminDashboard.php</code>), specifically with the 'Revenue Trend' charts and dense data tables. How would you redesign the data visualization components to adhere to WCAG 2.1 AA accessibility standards for low-vision users without compromising the 'premium' brand identity?"</p>
+                  <hr class="border-secondary">
+                  <h6 class="text-gold">Best Answer</h6>
+                  <p><strong>Analysis:</strong> Acknowledges that gold-on-black often fails contrast ratios for small text.</p>
+                  <p><strong>Solution:</strong></p>
+                  <ul>
+                    <li><strong>Semantic Color Mapping:</strong> Propose using the Gold color (#D4AF37) only for primary actions and key data points, while shifting secondary text (axes, labels) to a high-contrast off-white (#E9ECEF) instead of the current muted gray.</li>
+                    <li><strong>Chart Optimization:</strong> For the ApexCharts implementation (<code>dashboard-charts.js</code>), suggest adding distinct patterns or textures to bar/pie charts in addition to color, ensuring users with color blindness can distinguish segments.</li>
+                    <li><strong>Glassmorphism Refinement:</strong> Propose increasing the opacity of the neo-card background (currently rgba(255, 255, 255, 0.02)) to at least 90% opacity for containers holding text, ensuring the background image doesn't interfere with legibility, while keeping the 'glass' border and glow effects.</li>
+                  </ul>
+                </div>
+              </div>
+            </div>
+
+            <!-- 2. Full Stack Developer -->
+            <div class="accordion-item bg-dark border-secondary">
+              <h2 class="accordion-header" id="headingFullStack">
+                <button class="accordion-button collapsed bg-dark text-gold" type="button" data-bs-toggle="collapse" data-bs-target="#collapseFullStack">
+                  <i class="bi bi-code-slash me-2"></i> 2. Full Stack Developer
+                </button>
+              </h2>
+              <div id="collapseFullStack" class="accordion-collapse collapse" data-bs-parent="#interviewQuestions">
+                <div class="accordion-body text-muted">
+                  <p><strong>Focus:</strong> Session Management, Security, and Frontend-Backend Synchronization.</p>
+                  <p class="text-light"><strong>Question:</strong> "We recently implemented a client-side CSRF token auto-refresh mechanism in <code>src/user/js/csrf_handler.js</code> to prevent form expiration during long booking sessions. Analyze the potential race condition or security flaw this introduces if a user has the application open in multiple tabs. How would you refactor the <code>auth.php</code> session logic and the frontend handler to support multi-tab usage without invalidating active forms?"</p>
+                  <hr class="border-secondary">
+                  <h6 class="text-gold">Best Answer</h6>
+                  <p><strong>Analysis:</strong> Identifies that if Tab A refreshes the CSRF token, the token in Tab B becomes invalid if the server rotates tokens on every request (or if the session ID is regenerated). Submitting a form in Tab B would then fail.</p>
+                  <p><strong>Solution:</strong></p>
+                  <ul>
+                    <li><strong>Backend (csrf.php):</strong> Implement a "per-session" token strategy (valid for the session life) rather than "per-request", OR maintain a list of recently valid tokens (token rotation with grace period).</li>
+                    <li><strong>Frontend (csrf_handler.js):</strong> Use the Broadcast Channel API or localStorage event listeners. When Tab A refreshes the token and updates localStorage, Tab B detects the change and updates its hidden csrfToken input field immediately, keeping all tabs synchronized with the active session state.</li>
+                  </ul>
+                </div>
+              </div>
+            </div>
+
+            <!-- 3. Quality Control (QC) -->
+            <div class="accordion-item bg-dark border-secondary">
+              <h2 class="accordion-header" id="headingQC">
+                <button class="accordion-button collapsed bg-dark text-gold" type="button" data-bs-toggle="collapse" data-bs-target="#collapseQC">
+                  <i class="bi bi-shield-check me-2"></i> 3. Quality Control (QC) / QA Engineer
+                </button>
+              </h2>
+              <div id="collapseQC" class="accordion-collapse collapse" data-bs-parent="#interviewQuestions">
+                <div class="accordion-body text-muted">
+                  <p><strong>Focus:</strong> Edge Cases, Security Testing, and Destructive Testing.</p>
+                  <p class="text-light"><strong>Question:</strong> "The <code>photoUpload.php</code> module allows admins to upload client photos. The frontend (<code>booking-modal.js</code>) restricts files to images under 5MB. Design a 'Destructive Testing' strategy to bypass these frontend checks and verify the server-side robustness of <code>manage_booking.php</code>. What specific payloads and tools would you use to test for Remote Code Execution (RCE) and MIME-type spoofing vulnerabilities?"</p>
+                  <hr class="border-secondary">
+                  <h6 class="text-gold">Best Answer</h6>
+                  <p><strong>Analysis:</strong> Frontend validation is for UX, not security.</p>
+                  <p><strong>Strategy:</strong></p>
+                  <ul>
+                    <li><strong>Tooling:</strong> Use Burp Suite or Postman to intercept the HTTP request after the JS validation passes.</li>
+                    <li><strong>Payloads:</strong>
+                      <ul>
+                        <li><strong>Extension Spoofing:</strong> Rename shell.php to shell.jpg.php or shell.php%00.jpg (Null Byte injection) to test if the server relies only on file extensions.</li>
+                        <li><strong>MIME Spoofing:</strong> Upload a PHP script but change the Content-Type header to image/jpeg.</li>
+                        <li><strong>Polyglot Files:</strong> Upload a valid JPEG image that contains embedded PHP code in the EXIF data.</li>
+                      </ul>
+                    </li>
+                    <li><strong>Verification:</strong> The answer must confirm that the backend uses getimagesize() or finfo_file() to verify the actual file content, and renames files upon storage (e.g., using a UUID) to prevent execution of malicious scripts.</li>
+                  </ul>
+                </div>
+              </div>
+            </div>
+
+            <!-- 4. System Analyst -->
+            <div class="accordion-item bg-dark border-secondary">
+              <h2 class="accordion-header" id="headingAnalyst">
+                <button class="accordion-button collapsed bg-dark text-gold" type="button" data-bs-toggle="collapse" data-bs-target="#collapseAnalyst">
+                  <i class="bi bi-diagram-3 me-2"></i> 4. System Analyst
+                </button>
+              </h2>
+              <div id="collapseAnalyst" class="accordion-collapse collapse" data-bs-parent="#interviewQuestions">
+                <div class="accordion-body text-muted">
+                  <p><strong>Focus:</strong> Data Modeling, Scalability, and Business Logic Decoupling.</p>
+                  <p class="text-light"><strong>Question:</strong> "Currently, the system couples 'Operational Status' (Pending/Confirmed) directly with 'Financial Status' (Downpayment Paid). A booking cannot be 'Confirmed' until a downpayment is verified. Critique this data model in the context of onboarding 'Corporate Clients' who pay Net-30 days after the event. How would you restructure the Entity-Relationship Diagram (ERD) and <code>booking_logic.php</code> to decouple these states?"</p>
+                  <hr class="border-secondary">
+                  <h6 class="text-gold">Best Answer</h6>
+                  <p><strong>Analysis:</strong> The current logic is too rigid for B2B workflows.</p>
+                  <p><strong>Solution:</strong></p>
+                  <ul>
+                    <li><strong>Schema Change:</strong> Split booking_status into two distinct columns: operational_status (Pending, Scheduled, Completed) and payment_status (Unpaid, Partial, Paid, Overdue).</li>
+                    <li><strong>Entity Update:</strong> Add a client_type (Individual/Corporate) field to the users table.</li>
+                    <li><strong>Logic Update:</strong> Modify <code>manage_booking.php</code>.
+                      <ul>
+                        <li>If Client = Individual: operational_status = 'Scheduled' ONLY IF payment_status != 'Unpaid'.</li>
+                        <li>If Client = Corporate: Allow operational_status = 'Scheduled' even if payment_status = 'Unpaid'.</li>
+                      </ul>
+                    </li>
+                    <li><strong>Impact:</strong> Update <code>get_dashboard_metrics.php</code> to calculate 'Revenue' based on payment_status (actual cash) vs 'Projected Revenue' based on operational_status.</li>
+                  </ul>
+                </div>
+              </div>
+            </div>
+
+            <!-- 5. Business Process Manager (BPM) -->
+            <div class="accordion-item bg-dark border-secondary">
+              <h2 class="accordion-header" id="headingBPM">
+                <button class="accordion-button collapsed bg-dark text-gold" type="button" data-bs-toggle="collapse" data-bs-target="#collapseBPM">
+                  <i class="bi bi-kanban me-2"></i> 5. Business Process Manager (BPM)
+                </button>
+              </h2>
+              <div id="collapseBPM" class="accordion-collapse collapse" data-bs-parent="#interviewQuestions">
+                <div class="accordion-body text-muted">
+                  <p><strong>Focus:</strong> Process Efficiency, Automation, and Bottleneck Analysis.</p>
+                  <p class="text-light"><strong>Question:</strong> "The current 'Refund Process' (<code>refunds.php</code>) is a high-friction loop: Client requests -> Admin calculates eligibility manually -> Admin approves -> Admin manually processes payment. Map out a 'To-Be' process flow that reduces Admin Turnaround Time (TAT) by 50%. Which specific decision points can be automated using the existing database data (event_date, created_at)?"</p>
+                  <hr class="border-secondary">
+                  <h6 class="text-gold">Best Answer</h6>
+                  <p><strong>Analysis:</strong> The bottleneck is the manual calculation of refund amounts based on policy (e.g., '40% if cancelled > 7 days').</p>
+                  <p><strong>Solution:</strong></p>
+                  <ul>
+                    <li><strong>Automated Decision Support:</strong> When a user requests cancellation, the system (<code>cancelBooking.php</code>) should immediately calculate the refund amount based on the DATEDIFF(event_date, NOW()) logic and the stored policy.</li>
+                    <li><strong>Pre-Approval:</strong> The Admin Dashboard should display the request with a pre-calculated tag: "System Recommendation: Approve (₱5,000 Refund)" or "System Recommendation: Reject (Within 24h window)".</li>
+                    <li><strong>One-Click Action:</strong> The Admin only needs to click "Confirm Recommendation".</li>
+                    <li><strong>Notification:</strong> The system automatically triggers the email (email_helper.php) with the breakdown, removing the need for the admin to draft a response.</li>
+                  </ul>
+                </div>
+              </div>
+            </div>
+
+          </div>
+        </div>
+      </section>
     </main>
+
+    
+     
 
     <script src="../bootstrap-5.3.8-dist/js/bootstrap.bundle.min.js"></script>
     <script type="module">

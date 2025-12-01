@@ -217,9 +217,9 @@ if (!isset($_SESSION["userId"])) {
     
     <script src="../../bootstrap-5.3.8-dist/js/bootstrap.bundle.min.js"></script>
     <script src="../libs/sweetalert2/sweetalert2.all.min.js"></script>
-    <script src="user.js"></script>
+    <script src="user.js?v=2"></script>
 
-    <script src="appointmentsHandler.js"></script>
-    <script src="js/user_notifications.js"></script>
+    <script src="appointmentsHandler.js?v=2"></script>
+    <script src="js/user_notifications.js?v=2"></script>
 </body>
 </html>

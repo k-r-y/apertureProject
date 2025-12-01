@@ -114,7 +114,8 @@ try {
         'confirmed' => 0,
         'post_production' => 0,
         'completed' => 0,
-        'cancelled' => 0
+        'cancelled' => 0,
+        'cancellation_pending' => 0
     ];
     
     $countQuery = "SELECT booking_status, COUNT(*) as count 

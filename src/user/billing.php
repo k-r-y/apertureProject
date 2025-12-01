@@ -28,25 +28,28 @@ if (!isset($_SESSION["userId"])) {
         <?php include_once 'components/header.php'; ?>
         
         <main class="main-content">
-            <div class="container-fluid px-3 px-lg-5 py-5">
-                
-                <div class="mb-5">
-                    <h1 class="mb-2">Billing History</h1>
-                    <p class="text-muted">View your invoices, payments, and refunds</p>
+            <div class="container-fluid px-3 px-lg-5 py-4">
+                <!-- Page Header -->
+                <div class="d-flex justify-content-between align-items-center mb-4">
+                    <div>
+                        <h1 class="header-title m-0">Billing History</h1>
+                        <p class="text-muted mb-0">Track your invoices, payments, and refunds</p>
+                    </div>
                 </div>
                 
-                <div class="glass-panel p-4">
+                <!-- Billing Table -->
+                <div class="neo-card">
                     <div class="table-responsive">
-                        <table class="table table-dark table-hover align-middle mb-0">
+                        <table class="table table-hover align-middle mb-0">
                             <thead>
                                 <tr>
-                                    <th class="text-gold text-uppercase small letter-spacing-1">Type</th>
-                                    <th class="text-gold text-uppercase small letter-spacing-1">Ref #</th>
-                                    <th class="text-gold text-uppercase small letter-spacing-1">Description</th>
-                                    <th class="text-gold text-uppercase small letter-spacing-1">Date</th>
-                                    <th class="text-gold text-uppercase small letter-spacing-1">Amount</th>
-                                    <th class="text-gold text-uppercase small letter-spacing-1">Status</th>
-                                    <th class="text-gold text-uppercase small letter-spacing-1 text-end">Details</th>
+                                    <th class="ps-3">Type</th>
+                                    <th>Ref #</th>
+                                    <th>Description</th>
+                                    <th>Date</th>
+                                    <th>Amount</th>
+                                    <th>Status</th>
+                                    <th class="text-end pe-3">Actions</th>
                                 </tr>
                             </thead>
                             <tbody id="billingTableBody">
@@ -54,7 +57,6 @@ if (!isset($_SESSION["userId"])) {
                             </tbody>
                         </table>
                     </div>
-                </div>
                 </div>
             </div>
         </main>
@@ -72,21 +74,32 @@ if (!isset($_SESSION["userId"])) {
                 .then(response => response.json())
                 .then(data => {
                     if (data.success && data.transactions.length > 0) {
-                        tbody.innerHTML = data.transactions.map(t => `
+                        tbody.innerHTML = data.transactions.map(t => {
+                            let typeClass = 'bg-dark border-secondary text-light';
+                            if (t.type === 'Downpayment') typeClass = 'bg-primary bg-opacity-10 text-primary border-primary';
+                            if (t.type === 'Balance Payment') typeClass = 'bg-success bg-opacity-10 text-success border-success';
+                            if (t.type === 'Refund') typeClass = 'bg-danger bg-opacity-10 text-danger border-danger';
+                            if (t.type === 'Invoice') typeClass = 'bg-warning bg-opacity-10 text-warning border-warning';
+
+                            let statusClass = 'status-pending';
+                            if (t.status === 'Paid' || t.status === 'Completed' || t.status === 'Processed') statusClass = 'status-confirmed';
+                            if (t.status === 'Cancelled' || t.status === 'Refunded' || t.status === 'Rejected') statusClass = 'status-cancelled';
+
+                            return `
                             <tr>
-                                <td><span class="badge bg-dark border border-secondary text-light">${t.type}</span></td>
-                                <td class="font-monospace text-gold">${t.ref_number}</td>
-                                <td>${t.description}</td>
-                                <td>${new Date(t.date).toLocaleDateString()}</td>
-                                <td>₱${Number(t.amount).toLocaleString()}</td>
+                                <td class="ps-3"><span class="badge ${typeClass}">${t.type}</span></td>
+                                <td class="text-gold font-monospace">${t.ref_number}</td>
+                                <td class="text-light">${t.description}</td>
+                                <td class="text-muted small">${new Date(t.date).toLocaleDateString()}</td>
+                                <td class="text-light fw-medium">₱${Number(t.amount).toLocaleString()}</td>
                                 <td>
-                                    <span class="badge ${getStatusClass(t.status)}">${t.status.toUpperCase()}</span>
+                                    <span class="status-badge ${statusClass}">${t.status.toUpperCase()}</span>
                                 </td>
-                                <td class="text-end">
+                                <td class="text-end pe-3">
                                     ${getActionButtons(t)}
                                 </td>
                             </tr>
-                        `).join('');
+                        `}).join('');
                     } else {
                         tbody.innerHTML = '<tr><td colspan="7" class="text-center py-5 text-muted">No transactions found</td></tr>';
                     }
@@ -97,25 +110,13 @@ if (!isset($_SESSION["userId"])) {
                 });
         });
 
-        function getStatusClass(status) {
-            switch(status.toLowerCase()) {
-                case 'paid': return 'bg-success';
-                case 'pending': return 'bg-warning text-dark';
-                case 'processed': return 'bg-info text-dark';
-                case 'approved': return 'bg-success';
-                case 'rejected': return 'bg-danger';
-                case 'cancelled': return 'bg-danger';
-                default: return 'bg-secondary';
-            }
-        }
-
         function getActionButtons(t) {
             if (t.type === 'Invoice') {
-                return `<button class="btn btn-sm btn-gold" onclick="window.open('../api/generate_invoice.php?id=${t.id}', '_blank')"><i class="bi bi-download"></i> PDF</button>`;
+                return `<button class="btn btn-sm btn-gold" onclick="window.open('../api/generate_invoice.php?id=${t.id}', '_blank')"><i class="bi bi-file-earmark-pdf me-1"></i>PDF</button>`;
             } else if (t.proof) {
-                return `<a href="${t.proof}" target="_blank" class="btn btn-sm btn-outline-light"><i class="bi bi-eye"></i> Proof</a>`;
+                return `<a href="${t.proof}" target="_blank" class="btn btn-sm btn-outline-light"><i class="bi bi-eye me-1"></i>Proof</a>`;
             }
-            return '<span class="text-muted">-</span>';
+            return '<span class="text-muted small">-</span>';
         }
     </script>
 </body>

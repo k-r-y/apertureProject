@@ -209,6 +209,19 @@ z .neo-input:focus {
   border-color: rgba(255, 255, 255, 0.1);
 }
 
+/* Outline Gold Button */
+.btn-outline-gold {
+  background: transparent;
+  color: var(--gold-main);
+  border: 1px solid var(--gold-main);
+}
+
+.btn-outline-gold:hover {
+  background: var(--gold-main);
+  color: var(--text-dark);
+  box-shadow: 0 0 15px rgba(212, 175, 55, 0.3);
+}
+
 /* --- 8. Utility Classes --- */
 
 /* Typography Utils */

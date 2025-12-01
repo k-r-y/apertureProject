@@ -19,14 +19,7 @@ class UserNotificationManager {
             this.fetchNotifications();
         }, 60000);
 
-        // Mark all read button
-        if (this.markAllBtn) {
-            this.markAllBtn.addEventListener('click', (e) => {
-                e.preventDefault();
-                e.stopPropagation();
-                this.markAllAsRead();
-            });
-        }
+
     }
 
     async fetchNotifications() {
@@ -109,10 +102,8 @@ class UserNotificationManager {
             console.error('Error marking as read:', error);
         }
 
-        // Redirect
-        if (link) {
-            window.location.href = link;
-        }
+        // Redirect to appointments page as requested
+        window.location.href = 'appointments.php';
     }
 
     async markAllAsRead() {

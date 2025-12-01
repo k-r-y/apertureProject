@@ -35,11 +35,11 @@ function updateBookingStatus($bookingId, $newStatus, $userId) {
         
         // Send email notification
         try {
-            require_once 'notifications.php';
-            $notification = new NotificationSystem();
+            require_once __DIR__ . '/notifications.php';
+            $notification = new NotificationSystem($conn);
             
             // Get client details
-            $stmt = $conn->prepare("SELECT u.Email, u.FirstName, b.event_date, b.bookingID 
+            $stmt = $conn->prepare("SELECT u.userID, u.Email, u.FirstName, b.event_date, b.bookingID 
                                      FROM bookings b 
                                      JOIN users u ON b.userID = u.userID 
                                      WHERE b.bookingID = ?");
@@ -52,26 +52,11 @@ function updateBookingStatus($bookingId, $newStatus, $userId) {
                 $notification->sendStatusUpdate(
                     $client['Email'],
                     $client['FirstName'],
+                    $client['userID'], // Added userID
                     $client['bookingID'],
                     $newStatus,
                     date('M d, Y', strtotime($client['event_date']))
                 );
-                
-                // Create in-app notification
-                $clientStmt = $conn->prepare("SELECT userID FROM bookings WHERE bookingID = ?");
-                $clientStmt->bind_param("i", $bookingId);
-                $clientStmt->execute();
-                $clientUser = $clientStmt->get_result()->fetch_assoc();
-                
-                if ($clientUser) {
-                    createNotification(
-                        $clientUser['userID'],
-                        'booking_status',
-                        'Booking Status Updated',
-                        "Your booking #{$bookingId} status has been updated to " . str_replace('_', ' ', ucwords($newStatus)),
-                        'appointments.php'
-                    );
-                }
             }
         } catch (Exception $e) {
             // Don't fail the status update if email fails

@@ -109,7 +109,15 @@ document.addEventListener('DOMContentLoaded', function () {
 
             if (!currentPassword) errors.push('Current password is required');
             if (!newPassword) errors.push('New password is required');
-            if (newPassword.length < 8) errors.push('Password must be at least 8 characters');
+
+            if (newPassword) {
+                if (newPassword.length < 8) errors.push('Password must be at least 8 characters');
+                if (!/[A-Z]/.test(newPassword)) errors.push('Password must contain at least one uppercase letter');
+                if (!/[a-z]/.test(newPassword)) errors.push('Password must contain at least one lowercase letter');
+                if (!/[0-9]/.test(newPassword)) errors.push('Password must contain at least one number');
+                if (!/[^A-Za-z0-9]/.test(newPassword)) errors.push('Password must contain at least one special character (!@#$%^&*)');
+            }
+
             if (newPassword !== confirmPassword) errors.push('Passwords do not match');
 
             if (errors.length > 0) {

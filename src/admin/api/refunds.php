@@ -135,7 +135,7 @@ try {
                     if ($notes) {
                         $notifMessage .= " Note: $notes";
                     }
-                    createNotification($details['userID'], 'refund_update', $notifTitle, $notifMessage, 'billing.php');
+                    createNotification($details['userID'], 'refund_update', $notifTitle, $notifMessage, 'appointments.php');
 
                     // Auto-update booking status to cancelled if refund is approved or processed
                     if ($status === 'approved' || $status === 'processed') {

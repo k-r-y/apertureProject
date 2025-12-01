@@ -12,6 +12,8 @@
     
     <!-- PhotoSwipe -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/photoswipe/5.4.2/photoswipe.min.css">
+    <!-- SweetAlert2 -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css">
     
     <style>
         body { background-color: #000; color: #fff; min-height: 100vh; display: flex; flex-direction: column; }
@@ -56,6 +58,8 @@
         </div>
     </div>
 
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
     <script type="module">
         import PhotoSwipeLightbox from 'https://cdnjs.cloudflare.com/ajax/libs/photoswipe/5.4.2/photoswipe-lightbox.esm.min.js';
         import PhotoSwipe from 'https://cdnjs.cloudflare.com/ajax/libs/photoswipe/5.4.2/photoswipe.esm.min.js';
@@ -64,8 +68,16 @@
         const token = urlParams.get('token');
 
         if (!token) {
-            alert('Invalid gallery link');
-            window.location.href = 'index.php';
+            Swal.fire({
+                icon: 'error',
+                title: 'Invalid Link',
+                text: 'Invalid gallery link',
+                confirmButtonColor: '#D4AF37',
+                background: '#1a1a1a',
+                color: '#fff'
+            }).then(() => {
+                window.location.href = 'index.php';
+            });
         }
 
         document.getElementById('pinForm').addEventListener('submit', async (e) => {
@@ -86,10 +98,24 @@
                     document.getElementById('galleryTitle').textContent = `${data.event_type} - ${new Date(data.event_date).toLocaleDateString()}`;
                     loadPhotos();
                 } else {
-                    alert(data.message);
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Access Denied',
+                        text: data.message,
+                        confirmButtonColor: '#D4AF37',
+                        background: '#1a1a1a',
+                        color: '#fff'
+                    });
                 }
             } catch (err) {
-                alert('An error occurred');
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Error',
+                    text: 'An error occurred',
+                    confirmButtonColor: '#D4AF37',
+                    background: '#1a1a1a',
+                    color: '#fff'
+                });
             }
         });
 

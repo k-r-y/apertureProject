@@ -75,7 +75,13 @@ if (!isset($_SESSION['fullName'])) {
                         </div>
                         
                         <!-- Timeframe Filter -->
-                        <div class="d-flex gap-2 align-items-center">
+                        <div class="d-flex gap-2 align-items-center flex-wrap justify-content-end">
+                            <div id="customDateRange" class="d-none d-flex gap-2 align-items-center">
+                                <input type="date" id="startDate" class="form-control form-control-sm neo-input text-light bg-dark border-secondary" placeholder="Start Date">
+                                <span class="text-muted">-</span>
+                                <input type="date" id="endDate" class="form-control form-control-sm neo-input text-light bg-dark border-secondary" placeholder="End Date">
+                            </div>
+                            
                             <label class="text-light mb-0 me-2">
                                 <i class="bi bi-calendar3"></i> Timeframe:
                             </label>
@@ -86,6 +92,7 @@ if (!isset($_SESSION['fullName'])) {
                                 <option value="quarter">This Quarter</option>
                                 <option value="year">This Year</option>
                                 <option value="all">All Time</option>
+                                <option value="custom">Custom Range</option>
                             </select>
                             <button id="refreshDashboard" class="btn btn-sm btn-gold">
                                 <i class="bi bi-arrow-clockwise"></i> Refresh
@@ -120,7 +127,7 @@ if (!isset($_SESSION['fullName'])) {
                     <div class="col-xl-3 col-md-6">
                         <div class="neo-card h-100">
                             <div class="stat-icon"><i class="bi bi-graph-up-arrow"></i></div>
-                            <div class="stat-title">Avg. Booking Value</div>
+                            <div class="stat-title">Average Revenue</div>
                             <div class="stat-value" id="stat-avg-value">₱0.00</div>
                         </div>
                     </div>
@@ -156,6 +163,7 @@ if (!isset($_SESSION['fullName'])) {
                                 </div>
                             </div>
                         </div>
+                        </div>
                     </div>
                 </div>
 
@@ -163,7 +171,7 @@ if (!isset($_SESSION['fullName'])) {
                 <div class="row g-4 mb-4">
                     <div class="col-lg-6">
                         <div class="neo-card h-100">
-                            <h4 class="card-header-title mb-4">Top Packages</h4>
+                            <h4 class="card-header-title mb-4">Package Popularity</h4>
                             <div id="topPackagesChart"></div>
                         </div>
                     </div>

@@ -7,6 +7,13 @@ document.addEventListener('DOMContentLoaded', function () {
     // Modal Elements - Handled in booking-modal.js
 
     // Initial Load
+    // 1. Restore state from sessionStorage
+    const savedStatus = sessionStorage.getItem('bookingStatus');
+    const savedSearch = sessionStorage.getItem('bookingSearch');
+
+    if (savedStatus) statusFilter.value = savedStatus;
+    if (savedSearch) searchInput.value = savedSearch;
+
     fetchBookings();
 
     // Check for ID param
@@ -29,6 +36,10 @@ document.addEventListener('DOMContentLoaded', function () {
     function fetchBookings() {
         const status = statusFilter.value;
         const search = searchInput.value;
+
+        // Save state
+        sessionStorage.setItem('bookingStatus', status);
+        sessionStorage.setItem('bookingSearch', search);
 
         bookingsTableBody.innerHTML = '<tr><td colspan="7" class="text-center py-5 text-muted">Loading...</td></tr>';
 
