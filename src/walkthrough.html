@@ -119,11 +119,13 @@
         <a href="#admin" class="nav-link">Admin Dashboard</a>
 
         <div class="nav-group-title">Core Logic</div>
-        <a href="#security" class="nav-link">Security & Auth</a>
+        <a href="#authentication" class="nav-link">Authentication System</a>
         <a href="#helpers" class="nav-link">Helper Functions</a>
         <a href="#api" class="nav-link">API Reference</a>
 
-        <div class="nav-group-title">Audit</div>
+        <div class="nav-group-title">Team</div>
+        <a href="#team-roles" class="nav-link">Role Distribution</a>
+
         <div class="nav-group-title">Workflows</div>
         <a href="#refund-process" class="nav-link">Refund Process</a>
         <a href="#user-journey" class="nav-link">User Journey</a>
@@ -2313,6 +2315,578 @@ src/
               </div>
             </div>
 
+          </div>
+        </div>
+      </section>
+
+      <!-- Authentication System Documentation -->
+      <section id="authentication" class="mb-5">
+        <h2 class="section-title text-gold serif">Authentication System</h2>
+        <p class="text-muted mb-4">
+          Comprehensive documentation covering login, registration, forgot password, and email verification processes.
+        </p>
+
+        <!-- Overview Cards -->
+        <div class="row g-4 mb-5">
+          <div class="col-md-6">
+            <div class="card p-4 h-100">
+              <h5 class="text-gold mb-3">
+                <i class="bi bi-shield-check"></i> Security Features
+              </h5>
+              <ul class="text-light small mb-0">
+                <li><strong>CSRF Protection:</strong> All forms protected with tokens</li>
+                <li><strong>Rate Limiting:</strong> 5 failed attempts = 60s lockout</li>
+                <li><strong>Email Verification:</strong> OTP-based email confirmation</li>
+                <li><strong>Password Security:</strong> bcrypt hashing (PASSWORD_DEFAULT)</li>
+                <li><strong>Anti-Enumeration:</strong> Prevents email discovery</li>
+              </ul>
+            </div>
+          </div>
+          <div class="col-md-6">
+            <div class="card p-4 h-100">
+              <h5 class="text-gold mb-3">
+                <i class="bi bi-diagram-3"></i> System Components
+              </h5>
+              <ul class="text-light small mb-0">
+                <li><code>register.php</code> - User registration + OTP verification</li>
+                <li><code>logIn.php</code> - Authentication + account recovery</li>
+                <li><code>forgot1.php</code> - Password reset (3-step process)</li>
+                <li><code>completeProfile.php</code> - Profile completion</li>
+                <li><code>auth.php</code> - Core authentication functions</li>
+              </ul>
+            </div>
+          </div>
+        </div>
+
+        <!-- Registration Process -->
+        <h4 class="text-light mt-5 mb-3">1. Registration System</h4>
+        <div class="card p-4 mb-4">
+          <h6 class="text-gold">Process Overview</h6>
+          <div class="table-responsive">
+            <table class="table table-dark table-sm table-hover border-secondary">
+              <thead>
+                <tr>
+                  <th class="text-gold">Step</th>
+                  <th class="text-gold">Action</th>
+                  <th class="text-gold">Validation</th>
+                  <th class="text-gold">Outcome</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td>1</td>
+                  <td>User submits email + password</td>
+                  <td>Email format, unique email, password strength (8+ chars, upper, lower, number, special)</td>
+                  <td>User record created with <code>status='pending'</code></td>
+                </tr>
+                <tr>
+                  <td>2</td>
+                  <td>System generates 6-digit OTP</td>
+                  <td>Random numeric code (str_pad 6 digits)</td>
+                  <td>OTP sent via email, stored in DB with 5-min expiry</td>
+                </tr>
+                <tr>
+                  <td>3</td>
+                  <td>User enters OTP code</td>
+                  <td>Must match DB, not expired, under 5 failed attempts</td>
+                  <td>Email verified, <code>status='active'</code>, redirects to profile completion</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+
+          <h6 class="text-gold mt-4">Edge Cases & Prevention</h6>
+          <ul class="text-light small">
+            <li><strong>Email Already Exists (Active):</strong> Error "An account with this email already exists." - prevents duplicates</li>
+            <li><strong>Email Archived:</strong> SweetAlert prompts user to recover account via login - prevents confusion</li>
+            <li><strong>Weak Password:</strong> Inline validation errors with specific requirements - ensures security</li>
+            <li><strong>Wrong OTP (< 5 attempts):</strong> Error displayed, retry allowed - user-friendly</li>
+            <li><strong>Wrong OTP (5th attempt):</strong> Account locked for 60 seconds with countdown timer - prevents brute force</li>
+            <li><strong>Expired OTP (> 5 min):</strong> Error shown, user must resend - maintains security window</li>
+            <li><strong>Resend Spamming:</strong> 60-second cooldown between resend requests - prevents abuse</li>
+          </ul>
+        </div>
+
+        <!-- Login Process -->
+        <h4 class="text-light mt-5 mb-3">2. Login System</h4>
+        <div class="card p-4 mb-4">
+          <h6 class="text-gold">Login Flow Scenarios</h6>
+          <div class="table-responsive">
+            <table class="table table-dark table-sm table-hover border-secondary">
+              <thead>
+                <tr>
+                  <th class="text-gold">Scenario</th>
+                  <th class="text-gold">Condition</th>
+                  <th class="text-gold">System Response</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td>✅ Success (Verified + Complete)</td>
+                  <td>Credentials valid, email verified, profile complete</td>
+                  <td>Full session created → Dashboard redirect (Admin/User based on role)</td>
+                </tr>
+                <tr>
+                  <td>⚠️ Unverified Account</td>
+                  <td>Credentials valid but <code>isVerified=false</code></td>
+                  <td>System generates & sends OTP → Forces email verification → Then profile completion</td>
+                </tr>
+                <tr>
+                  <td>⚠️ Incomplete Profile</td>
+                  <td>Verified but profile fields missing</td>
+                  <td>Partial session created → Redirects to <code>completeProfile.php</code></td>
+                </tr>
+                <tr>
+                  <td>❌ Wrong Credentials (< 5 attempts)</td>
+                  <td>Invalid email or password</td>
+                  <td>Generic error "Invalid email or password" - prevents enumeration</td>
+                </tr>
+                <tr>
+                  <td>🔒 Account Locked (5 attempts)</td>
+                  <td>5 consecutive failed login attempts</td>
+                  <td>60-second lockout with countdown timer, automatic unlock after duration</td>
+                </tr>
+                <tr>
+                  <td>🗂️ Archived Account</td>
+                  <td><code>status='archived'</code> with correct password</td>
+                  <td>SweetAlert modal offers account recovery → Reactivates to 'active' → Auto-login</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+
+          <h6 class="text-gold mt-4">Security Measures</h6>
+          <ul class="text-light small">
+            <li><strong>Timing Attack Prevention:</strong> Dummy password hash verification for non-existent users (same execution time)</li>
+            <li><strong>Generic Error Messages:</strong> "Invalid email or password" doesn't reveal which field is wrong</li>
+            <li><strong>Database-Tracked Lockout:</strong> Lock timestamp stored in DB, can't bypass via refresh</li>
+            <li><strong>Password Verification:</strong> Uses <code>password_verify()</code> with bcrypt hashes</li>
+          </ul>
+        </div>
+
+        <!-- Forgot Password Process -->
+        <h4 class="text-light mt-5 mb-3">3. Forgot Password System</h4>
+        <div class="card p-4 mb-4">
+          <h6 class="text-gold">3-Step Password Reset Process</h6>
+          <div class="table-responsive">
+            <table class="table table-dark table-sm table-hover border-secondary">
+              <thead>
+                <tr>
+                  <th class="text-gold">Step</th>
+                  <th class="text-gold">User Action</th>
+                  <th class="text-gold">System Behavior</th>
+                  <th class="text-gold">Page</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td>1</td>
+                  <td>Enter email address</td>
+                  <td><strong>If email exists:</strong> Send OTP<br><strong>If email doesn't exist:</strong> Fake success message (prevents enumeration)</td>
+                  <td><code>forgot1.php</code> (Email Form)</td>
+                </tr>
+                <tr>
+                  <td>2</td>
+                  <td>Enter 6-digit OTP from email</td>
+                  <td>Validate OTP (5-min expiry), rate limiting (5 attempts), set session for password reset</td>
+                  <td><code>forgot1.php</code> (OTP Form)</td>
+                </tr>
+                <tr>
+                  <td>3</td>
+                  <td>Create new password + confirm</td>
+                  <td>Validate password strength, ensure new ≠ old password (hash comparison), update DB</td>
+                  <td><code>forgot1.php</code> (Password Form)</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+
+          <h6 class="text-gold mt-4">Email Enumeration Prevention</h6>
+          <p class="text-light small">
+            When a user requests password reset for a non-existent email, the system:
+          </p>
+          <ol class="text-light small">
+            <li>Adds random delay (1-2 seconds) via <code>sleep(rand(1, 2))</code> to mimic real processing</li>
+            <li>Shows same success message: "Verification Code Sent"</li>
+            <li>Displays same OTP input form (but validation will always fail for fake requests)</li>
+            <li><strong>Purpose:</strong> Prevents attackers from discovering which emails are registered in the system</li>
+          </ol>
+
+          <h6 class="text-gold mt-4">Password Reuse Prevention</h6>
+          <p class="text-light small">
+            System prevents users from setting their new password to match their current password:
+          </p>
+          <ul class="text-light small">
+            <li>Retrieves current password hash from database</li>
+            <li>Uses <code>password_verify()</code> to check if new password matches old hash</li>
+            <li>If match found: Error "New password cannot be the same as your current password"</li>
+            <li><strong>Security Benefit:</strong> Enforces meaningful password changes during reset</li>
+          </ul>
+        </div>
+
+        <!-- Profile Completion -->
+        <h4 class="text-light mt-5 mb-3">4. Profile Completion System</h4>
+        <div class="card p-4 mb-4">
+          <h6 class="text-gold">Required Fields & Validation</h6>
+          <div class="table-responsive">
+            <table class="table table-dark table-sm table-hover border-secondary">
+              <thead>
+                <tr>
+                  <th class="text-gold">Field</th>
+                  <th class="text-gold">Validation Rules</th>
+                  <th class="text-gold">Example</th>
+                  <th class="text-gold">Error Handling</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td>First Name</td>
+                  <td>Required, non-empty</td>
+                  <td><code>Juan</code></td>
+                  <td>"First Name is required"</td>
+                </tr>
+                <tr>
+                  <td>Last Name</td>
+                  <td>Required, non-empty</td>
+                  <td><code>Dela Cruz</code></td>
+                  <td>"Last name is required"</td>
+                </tr>
+                <tr>
+                  <td>Contact Number</td>
+                  <td>Required, exactly 11 digits, must start with "09", numeric only</td>
+                  <td><code>09171234567</code></td>
+                  <td>"Contact number must start with 09" / "Invalid contact number"</td>
+                </tr>
+                <tr>
+                  <td>Terms & Conditions</td>
+                  <td>Must be checked (browser validation)</td>
+                  <td><code>checked</code></td>
+                  <td>Browser prevents submission</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+
+          <h6 class="text-gold mt-4">Philippine Mobile Number Validation</h6>
+          <p class="text-light small"><strong>Format:</strong> <code>09XXXXXXXXX</code> (11 digits)</p>
+          <ul class="text-light small">
+            <li><strong>Regex Pattern:</strong> <code>/^09[0-9]{9}$/</code></li>
+            <li><strong>Checks:</strong> Starts with "09", exactly 11 digits, all numeric</li>
+            <li><strong>Valid Examples:</strong> 09171234567, 09051234567, 09991234567</li>
+            <li><strong>Invalid Examples:</strong> 9171234567 (missing 0), +639171234567 (wrong format), 081234567891 (12 digits)</li>
+          </ul>
+        </div>
+
+        <!-- Security Summary Table -->
+        <h4 class="text-light mt-5 mb-3">5. Security Measures Summary</h4>
+        <div class="card p-4">
+          <div class="table-responsive">
+            <table class="table table-dark table-hover border-secondary">
+              <thead>
+                <tr>
+                  <th class="text-gold">Threat</th>
+                  <th class="text-gold">Prevention Mechanism</th>
+                  <th class="text-gold">Implementation</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td>Brute Force Attacks</td>
+                  <td>Rate Limiting</td>
+                  <td>5 failed attempts = 60-second lockout (tracked in <code>ratelimiting</code> table)</td>
+                </tr>
+                <tr>
+                  <td>CSRF Attacks</td>
+                  <td>CSRF Tokens</td>
+                  <td>All forms include <code>csrfField()</code> validated via <code>validateCSRFToken()</code></td>
+                </tr>
+                <tr>
+                  <td>Email Enumeration</td>
+                  <td>Fake Success Messages</td>
+                  <td>Same response for existing/non-existing emails + random delays (1-2s)</td>
+                </tr>
+                <tr>
+                  <td>Timing Attacks</td>
+                  <td>Constant-Time Operations</td>
+                  <td>Dummy password verification for non-existent users, random delays</td>
+                </tr>
+                <tr>
+                  <td>Weak Passwords</td>
+                  <td>Complex Password Requirements</td>
+                  <td>Min 8 chars, upper, lower, number, special character (validated via <code>validatePassword()</code>)</td>
+                </tr>
+                <tr>
+                  <td>Session Hijacking</td>
+                  <td>Secure Session Management</td>
+                  <td>Server-side validation, verification states, auto-expire mechanisms</td>
+                </tr>
+                <tr>
+                  <td>Expired OTP Usage</td>
+                  <td>Time-Based Validation</td>
+                  <td>5-minute expiration window (<code>codeExpires_at > NOW()</code>)</td>
+                </tr>
+                <tr>
+                  <td>Password Reuse</td>
+                  <td>Hash Comparison</td>
+                  <td>Prevents setting new password same as current during reset</td>
+                </tr>
+                <tr>
+                  <td>Bot Attacks</td>
+                  <td>CSRF + Rate Limiting</td>
+                  <td>Combined protection prevents automated submissions</td>
+                </tr>
+                <tr>
+                  <td>Account Takeover</td>
+                  <td>Email Verification Required</td>
+                  <td>Users must verify email via OTP before accessing account</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </section>
+
+      <!-- Team Role Distribution -->
+      <section id="team-roles" class="mb-5">
+        <h2 class="section-title text-gold serif">Team Role Distribution & Presentation Responsibilities</h2>
+        <p class="text-muted mb-4">
+          Contribution breakdown for the Aperture Studios project, including individual responsibilities and presentation assignments.
+        </p>
+
+        <!-- Team Structure Overview -->
+        <div class="row g-4 mb-5">
+          <div class="col-md-12">
+            <div class="card p-4">
+              <h5 class="text-gold mb-3">
+                <i class="bi bi-people-fill"></i> Team Composition
+              </h5>
+              <p class="text-light">
+                The Aperture Studios project was developed by a multidisciplinary team of 5 members, each specializing in critical aspects of system development:
+              </p>
+              <ul class="text-light small">
+                <li><strong>UI/UX Designer:</strong> User interface design and user experience optimization</li>
+                <li><strong>Full Stack Developer:</strong> Complete system implementation (frontend + backend)</li>
+                <li><strong>Business Process Manager (BPM):</strong> Workflow design and process optimization</li>
+                <li><strong>System Analyst:</strong> Requirements analysis and system architecture</li>
+                <li><strong>Quality Control (QC):</strong> Testing, validation, and quality assurance</li>
+              </ul>
+            </div>
+          </div>
+        </div>
+
+        <!-- Detailed Role Breakdown -->
+        <div class="row g-4 mb-4">
+          <!-- UI/UX Designer -->
+          <div class="col-md-6">
+            <div class="card p-4 h-100">
+              <h6 class="text-gold mb-3">
+                <i class="bi bi-palette-fill"></i> UI/UX Designer
+              </h6>
+              <p class="text-light small"><strong>Primary Contributions:</strong></p>
+              <ul class="text-light small">
+                <li>Designed all user interfaces using Figma/Adobe XD</li>
+                <li>Created responsive layouts for public, user, and admin portals</li>
+                <li>Developed design system (<code>luxuryDesignSystem.css</code>)</li>
+                <li>Established color schemes, typography, and component library</li>
+                <li>Designed user flows and wireframes for all major features</li>
+                <li>Optimized mobile responsiveness and accessibility</li>
+              </ul>
+              <p class="text-light small"><strong>Presentation Responsibilities:</strong></p>
+              <ul class="text-warning small">
+                <li><strong>Present:</strong> UI/UX Design Showcase</li>
+                <li><strong>Explain:</strong> Design decisions, color theory, user journey maps</li>
+                <li><strong>Demo:</strong> Interactive prototypes, responsive design across devices</li>
+                <li><strong>Highlight:</strong> Before/after iterations, accessibility features</li>
+              </ul>
+            </div>
+          </div>
+
+          <!-- Full Stack Developer -->
+          <div class="col-md-6">
+            <div class="card p-4 h-100">
+              <h6 class="text-gold mb-3">
+                <i class="bi bi-code-slash"></i> Full Stack Developer
+              </h6>
+              <p class="text-light small"><strong>Primary Contributions:</strong></p>
+              <ul class="text-light small">
+                <li>Implemented entire codebase (PHP backend + JavaScript frontend)</li>
+                <li>Built authentication system (registration, login, forgot password)</li>
+                <li>Developed booking system, calendar integration, payment flow</li>
+                <li>Created admin dashboard with analytics (ApexCharts)</li>
+                <li>Implemented API endpoints for AJAX interactions</li>
+                <li>Database design and migration scripts (MySQL)</li>
+                <li>Email system integration (PHPMailer with SMTP)</li>
+                <li>Security implementation (CSRF, rate limiting, password hashing)</li>
+              </ul>
+              <p class="text-light small"><strong>Presentation Responsibilities:</strong></p>
+              <ul class="text-warning small">
+                <li><strong>Present:</strong> Authentication System Process Flow</li>
+                <li><strong>Explain:</strong> Login/Registration/Forgot Password with all validations and edge cases</li>
+                <li><strong>Demo:</strong> Live coding walkthrough of key functions (e.g., <code>registerUser()</code>, <code>verifyEmail()</code>)</li>
+                <li><strong>Highlight:</strong> Security measures (OTP verification, rate limiting, CSRF protection)</li>
+                <li><strong>Cover:</strong> Database schema, API architecture, email verification flow</li>
+              </ul>
+            </div>
+          </div>
+
+          <!-- Business Process Manager -->
+          <div class="col-md-6">
+            <div class="card p-4 h-100">
+              <h6 class="text-gold mb-3">
+                <i class="bi bi-diagram-3-fill"></i> Business Process Manager (BPM)
+              </h6>
+              <p class="text-light small"><strong>Primary Contributions:</strong></p>
+              <ul class="text-light small">
+                <li>Mapped existing manual business processes (as-is analysis)</li>
+                <li>Designed automated workflows (booking, payment, refund processes)</li>
+                <li>Created process flow diagrams (Mermaid, Lucidchart)</li>
+                <li>Defined business rules for refunds, cancellations, and payments</li>
+                <li>Optimized admin workflows to reduce turnaround time</li>
+                <li>Documented user journey from booking to photo delivery</li>
+              </ul>
+              <p class="text-light small"><strong>Presentation Responsibilities:</strong></p>
+              <ul class="text-warning small">
+                <li><strong>Present:</strong> Business Process Flows</li>
+                <li><strong>Explain:</strong> Booking lifecycle, refund policy automation, payment workflow</li>
+                <li><strong>Demo:</strong> Process diagrams (registration → verification → profile → booking)</li>
+                <li><strong>Highlight:</strong> Before (manual) vs. After (automated) process improvements</li>
+                <li><strong>Metrics:</strong> Time savings, error reduction, user satisfaction improvements</li>
+              </ul>
+            </div>
+          </div>
+
+          <!-- System Analyst -->
+          <div class="col-md-6">
+            <div class="card p-4 h-100">
+              <h6 class="text-gold mb-3">
+                <i class="bi bi-clipboard-data-fill"></i> System Analyst
+              </h6>
+              <p class="text-light small"><strong>Primary Contributions:</strong></p>
+              <ul class="text-light small">
+                <li>Conducted requirements gathering and stakeholder interviews</li>
+                <li>Created System Requirements Specification (SRS) document</li>
+                <li>Designed Entity Relationship Diagrams (ERD)</li>
+                <li>Defined functional and non-functional requirements</li>
+                <li>Architecture planning (LAMP stack, MVC-like structure)</li>
+                <li>Use case analysis for all user roles (Admin, User, Guest)</li>
+                <li>Gap analysis of existing vs. required features</li>
+              </ul>
+              <p class="text-light small"><strong>Presentation Responsibilities:</strong></p>
+              <ul class="text-warning small">
+                <li><strong>Present:</strong> System Architecture & Requirements</li>
+                <li><strong>Explain:</strong> Database schema (ERD), system components, directory structure</li>
+                <li><strong>Demo:</strong> Requirements traceability matrix, use case diagrams</li>
+                <li><strong>Highlight:</strong> Key problems solved (double booking, lost payments, communication lag)</li>
+                <li><strong>Cover:</strong> Project goals, scope, constraints, and success metrics</li>
+              </ul>
+            </div>
+          </div>
+
+          <!-- Quality Control -->
+          <div class="col-md-12">
+            <div class="card p-4">
+              <h6 class="text-gold mb-3">
+                <i class="bi bi-shield-fill-check"></i> Quality Control (QC)
+              </h6>
+              <p class="text-light small"><strong>Primary Contributions:</strong></p>
+              <ul class="text-light small">
+                <li>Created comprehensive test plans and test cases</li>
+                <li>Performed manual and automated testing (unit, integration, system, acceptance)</li>
+                <li>Bug tracking and issue reporting (Jira/GitHub Issues)</li>
+                <li>Validated all edge cases and error handling scenarios</li>
+                <li>Security testing (CSRF, SQL injection, XSS attempts)</li>
+                <li>Performance testing and load testing</li>
+                <li>User acceptance testing (UAT) coordination</li>
+                <li>Regression testing after bug fixes</li>
+              </ul>
+              <p class="text-light small"><strong>Presentation Responsibilities:</strong></p>
+              <ul class="text-warning small">
+                <li><strong>Present:</strong> Testing Strategy & Quality Assurance</li>
+                <li><strong>Explain:</strong> Test coverage (authentication, booking, payment, refund flows)</li>
+                <li><strong>Demo:</strong> Live testing scenarios (e.g., wrong OTP 5 times → account lock, archived account recovery)</li>
+                <li><strong>Highlight:</strong> Bug reports, defect density, test case pass rates</li>
+                <li><strong>Cover:</strong> Security validation (rate limiting, CSRF protection, email enumeration prevention)</li>
+                <li><strong>Metrics:</strong> Test coverage percentage, critical bugs found & fixed, system stability</li>
+              </ul>
+            </div>
+          </div>
+        </div>
+
+        <!-- Presentation Structure Recommendation -->
+        <div class="card p-4 bg-dark border-gold">
+          <h5 class="text-gold mb-3">
+            <i class="bi bi-presentation"></i> Recommended Presentation Flow
+          </h5>
+          <div class="table-responsive">
+            <table class="table table-dark table-hover border-secondary">
+              <thead>
+                <tr>
+                  <th class="text-gold">Order</th>
+                  <th class="text-gold">Presenter</th>
+                  <th class="text-gold">Section</th>
+                  <th class="text-gold">Duration</th>
+                  <th class="text-gold">Key Points</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td>1</td>
+                  <td>System Analyst</td>
+                  <td>Introduction & Context</td>
+                  <td>5 min</td>
+                  <td>Problem statement, project goals, system architecture overview</td>
+                </tr>
+                <tr>
+                  <td>2</td>
+                  <td>UI/UX Designer</td>
+                  <td>Design Showcase</td>
+                  <td>5 min</td>
+                  <td>UI/UX decisions, design system, user journey, responsive design</td>
+                </tr>
+                <tr>
+                  <td>3</td>
+                  <td>Full Stack Developer</td>
+                  <td>Authentication System Deep Dive</td>
+                  <td>10 min</td>
+                  <td>Registration/Login/Forgot Password flows, security measures, live demo</td>
+                </tr>
+                <tr>
+                  <td>4</td>
+                  <td>Business Process Manager</td>
+                  <td>Business Workflows</td>
+                  <td>5 min</td>
+                  <td>Booking process, refund automation, payment flow, process optimization</td>
+                </tr>
+                <tr>
+                  <td>5</td>
+                  <td>System Analyst</td>
+                  <td>Database & API Architecture</td>
+                  <td>5 min</td>
+                  <td>ERD, table relationships, API endpoints, data flow</td>
+                </tr>
+                <tr>
+                  <td>6</td>
+                  <td>Quality Control</td>
+                  <td>Testing & Quality Assurance</td>
+                  <td>7 min</td>
+                  <td>Test strategy, edge case validation, security testing, demo of error handling</td>
+                </tr>
+                <tr>
+                  <td>7</td>
+                  <td>Full Stack Developer</td>
+                  <td>Live System Demo</td>
+                  <td>8 min</td>
+                  <td>End-to-end user journey (register → verify → login → book → pay)</td>
+                </tr>
+                <tr>
+                  <td>8</td>
+                  <td>All Team Members</td>
+                  <td>Q&A</td>
+                  <td>5 min</td>
+                  <td>Panel answers questions from audience</td>
+                </tr>
+              </tbody>
+            </table>
           </div>
         </div>
       </section>

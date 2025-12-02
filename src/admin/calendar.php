@@ -34,20 +34,13 @@ if (isset($_GET['action']) and $_GET['action'] === 'logout') {
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Calendar - Aperture Admin</title>
 
-    <link rel="stylesheet" href="../luxuryDesignSystem.css">
-    <link rel="stylesheet" href="../css/modal.css">
- 
-    <link rel="stylesheet" href="../style.css">
-    <link rel="icon" href="../assets/camera.png" type="image/x-icon">
-  
-
     <link rel="stylesheet" href="../../bootstrap-5.3.8-dist/css/bootstrap.min.css">
     <link rel="stylesheet" href="../../bootstrap-5.3.8-dist/font/bootstrap-icons.css">
-    <link rel="stylesheet" href="../luxuryDesignSystem.css?v=<?= time() ?>">
-
+    <link rel="stylesheet" href="../luxuryDesignSystem.css">
+    <link rel="stylesheet" href="../css/modal.css">
     <link rel="stylesheet" href="../css/sidebar.css">
-    <link rel="stylesheet" href="admin.css?v=<?= time() ?>">
-
+    <link rel="stylesheet" href="admin.css">
+    <link rel="stylesheet" href="../style.css">
     <link rel="icon" href="../assets/camera.png" type="image/x-icon">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -95,9 +88,10 @@ if (isset($_GET['action']) and $_GET['action'] === 'logout') {
                     <a href="bookings.php" class="btn btn-gold">Manage Bookings</a>
                 </div>
 
-                <div class="glass-panel p-4">
-                    <div class="calendar-luxury" id="calendar"></div>
-                </div>
+           
+                
+                        <div id="calendar"></div>
+          
 
             </div>
         </main>

@@ -91,8 +91,6 @@ if (!isset($_SESSION['fullName'])) {
                                 <option value="month" selected>This Month</option>
                                 <option value="quarter">This Quarter</option>
                                 <option value="year">This Year</option>
-                                <option value="all">All Time</option>
-                                <option value="custom">Custom Range</option>
                             </select>
                             <button id="refreshDashboard" class="btn btn-sm btn-gold">
                                 <i class="bi bi-arrow-clockwise"></i> Refresh

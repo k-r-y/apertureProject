@@ -425,6 +425,74 @@ z .neo-input:focus {
   letter-spacing: 1px;
 }
 
+/* ===================================
+   RESPONSIVE COMPONENTS
+   =================================== */
+
+/* Table Responsive Wrapper */
+.table-responsive-wrapper {
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  margin-bottom: 1rem;
+}
+
+.table-responsive-wrapper .table-luxury {
+  min-width: 700px;
+  margin-bottom: 0;
+}
+
+.table-luxury thead th {
+  white-space: nowrap;
+}
+
+.table-luxury tbody td {
+  white-space: normal;
+  word-wrap: break-word;
+}
+
+/* Calendar Responsive Wrapper */
+.calendar-luxury {
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
+.calendar-luxury #calendar,
+.calendar-luxury .fc {
+  width: 100%;
+  max-width: 100%;
+}
+
+/* Mobile Table Adjustments */
+@media (max-width: 767px) {
+  .table-luxury {
+    font-size: 0.85rem;
+  }
+
+  .table-luxury thead th {
+    font-size: 0.75rem;
+    padding: 0.75rem 0.5rem;
+  }
+
+  .table-luxury tbody td {
+    padding: 0.75rem 0.5rem;
+  }
+
+  /* Calendar mobile adjustments */
+  .fc .fc-toolbar {
+    flex-direction: column;
+    gap: 0.5rem;
+  }
+
+  .fc .fc-toolbar-title {
+    font-size: 1.25rem;
+  }
+
+  .fc .fc-button {
+    font-size: 0.85rem;
+    padding: 0.375rem 0.75rem;
+  }
+}
+
 /* File Upload Icon Luxury */
 .file-label-luxury i {
   color: var(--text-dark); /* Dark by default */
@@ -698,4 +766,9 @@ body {
   h3 {
     font-size: 1.25rem;
   }
+}
+
+input[type="date"]::-webkit-calendar-picker-indicator {
+    filter: invert(1);
+    cursor: pointer; /* Optional: Adds a hand cursor on hover */
 }

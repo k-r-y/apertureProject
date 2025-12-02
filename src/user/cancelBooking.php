@@ -149,7 +149,10 @@ try {
         // Send Admin Notification
         $notifier = new NotificationSystem($conn);
         $adminEmail = $_ENV['SMTP_USERNAME'] ?? 'admin@aperture.com'; // Fallback
-        
+        $notifier->sendAdminCancellationSubmitted(
+            $adminEmail,
+            $userId,
+            $booking['bookingID'],
             $booking['event_type'],
             $refundAmount
         );

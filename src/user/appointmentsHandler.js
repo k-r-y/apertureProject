@@ -59,9 +59,17 @@ function renderAppointments(appointments) {
     appointmentsGrid.innerHTML = appointments.map(appointment => `
         <div class="appointment-card" onclick="openAppointmentModal(${appointment.bookingID})">
             <div class="d-flex justify-content-between align-items-start mb-3">
-                <span class="status-badge status-${appointment.bookingStatus}">
-                    ${formatStatus(appointment.bookingStatus)}
-                </span>
+                <div class="d-flex flex-column gap-1">
+                    <span class="status-badge status-${appointment.bookingStatus}">
+                        ${formatStatus(appointment.bookingStatus)}
+                    </span>
+                    ${appointment.refund_status ? `
+                    <span class="status-badge refund-${appointment.refund_status}" style="font-size: 0.7rem;">
+                        <i class="bi bi-${appointment.refund_status === 'approved' || appointment.refund_status === 'processed' ? 'check-circle' : (appointment.refund_status === 'rejected' ? 'x-circle' : 'hourglass-split')}"></i>
+                        Refund: ${appointment.refund_status.charAt(0).toUpperCase() + appointment.refund_status.slice(1)}
+                    </span>
+                    ` : ''}
+                </div>
                 <small class="text-muted">Ref: #${appointment.bookingRef}</small>
             </div>
             
@@ -437,16 +445,32 @@ function cancelBooking(bookingID) {
     // Get booking details to show refund amount
     const appointment = allAppointments.find(app => app.bookingID === bookingID);
 
+    // Check if appointment exists
+    if (!appointment) {
+        Swal.fire({
+            title: 'Error',
+            text: 'Appointment not found. Please refresh the page and try again.',
+            icon: 'error',
+            confirmButtonColor: '#d4af37',
+            background: '#1a1a1a',
+            color: '#fff'
+        });
+        return;
+    }
+
     // Close the booking modal first to fix z-index issue
     closeModal();
 
     // Small delay to ensure modal closes before SweetAlert appears
     setTimeout(() => {
+        // Determine if fully paid (check both camelCase and snake_case)
+        const isFullyPaid = appointment.isFullyPaid || appointment.is_fully_paid || false;
+
         Swal.fire({
             title: 'Request Cancellation?',
             html: `
         <p>Are you sure you want to request cancellation for this booking?</p>
-        ${appointment && appointment.isFullyPaid ?
+        ${isFullyPaid ?
                     '<p class="text-warning"><strong>Refund Policy:</strong> You will receive 40% of your total payment.</p>' :
                     '<p class="text-warning"><strong>Refund Policy:</strong> You will receive 40% of your downpayment.</p>'
                 }
@@ -509,7 +533,7 @@ function cancelBooking(bookingID) {
                         console.error('Error:', error);
                         Swal.fire({
                             title: 'Error',
-                            text: 'An unexpected error occurred.',
+                            text: 'An unexpected error occurred while processing your request.',
                             icon: 'error',
                             confirmButtonColor: '#d4af37',
                             background: '#1a1a1a',

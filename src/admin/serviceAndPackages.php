@@ -197,6 +197,7 @@ if ($result) {
 
     <script src="../../bootstrap-5.3.8-dist/js/bootstrap.bundle.min.js"></script>
     <script src="js/notifications.js"></script>
+    <script src="admin.js"></script>
     <script>
         var editModal = document.getElementById('editPackageModal');
         editModal.addEventListener('show.bs.modal', function (event) {

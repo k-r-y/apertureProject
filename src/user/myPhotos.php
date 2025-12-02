@@ -297,12 +297,25 @@ while ($row = $result->fetch_assoc()) {
         import PhotoSwipeLightbox from 'https://cdn.jsdelivr.net/npm/photoswipe@5.3.8/dist/photoswipe-lightbox.esm.js';
         import PhotoSwipe from 'https://cdn.jsdelivr.net/npm/photoswipe@5.3.8/dist/photoswipe.esm.js';
 
-        const lightbox = new PhotoSwipeLightbox({
-            gallery: '#galleryGrid',
-            children: '.gallery-item .gallery-link', // Updated selector
-            pswpModule: PhotoSwipe
-        });
-        lightbox.init();
+        let lightbox = null;
+
+        // Initialize or reinitialize PhotoSwipe with only visible items
+        function initLightbox() {
+            // Destroy existing lightbox if present
+            if (lightbox) {
+                lightbox.destroy();
+            }
+
+            // Create new lightbox
+            // PhotoSwipe will automatically skip hidden elements thanks to CSS
+            // But we need to reinit so the internal items array is rebuilt
+            lightbox = new PhotoSwipeLightbox({
+                gallery: '#galleryGrid',
+                children: '.gallery-item:not([style*="display: none"]) .gallery-link',
+                pswpModule: PhotoSwipe
+            });
+            lightbox.init();
+        }
 
         // Filtering Logic
         const eventFilter = document.getElementById('eventFilter');
@@ -328,6 +341,9 @@ while ($row = $result->fetch_assoc()) {
                 }
             });
 
+            // Reinitialize PhotoSwipe to update the items array
+            initLightbox();
+
             // Update GDrive Button
             if (selectedEvent !== 'all') {
                 const selectedOption = eventFilter.options[eventFilter.selectedIndex];
@@ -343,6 +359,10 @@ while ($row = $result->fetch_assoc()) {
             }
         }
 
+        // Initial lightbox initialization
+        initLightbox();
+
+        // Add filter event listeners
         if (eventFilter) {
             eventFilter.addEventListener('change', filterPhotos);
         }

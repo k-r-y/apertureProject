@@ -202,9 +202,9 @@ document.addEventListener("DOMContentLoaded", function () {
                 console.log('Summary element:', summaryPackageName);
 
                 if (summaryPackageName) {
-                    // Use innerHTML to render the span tag
+                    // Use innerHTML to render the span tag (packageName comes from data attributes which are already escaped by PHP)
                     summaryPackageName.innerHTML = `<div class="d-flex justify-content-between align-items-center">
-                   <span class="text-muted" style="font-size: 0.875rem; font-weight: 400;">${sanitizeInput(packageName)}</span>
+                   <span class="text-muted" style="font-size: 0.875rem; font-weight: 400;">${packageName}</span>
                    <span class="text-muted" style="font-size: 0.875rem; font-weight: 400;"> ₱${packagePrice.toLocaleString()}</span>
                 </div>`;
                     console.log('Package summary updated:', summaryPackageName.innerHTML);
@@ -234,10 +234,11 @@ document.addEventListener("DOMContentLoaded", function () {
                     total += addonPrice;
 
                     const addonItem = document.createElement('div');
+                    // addonName comes from data attributes which are already escaped by PHP
                     addonItem.innerHTML = `
                     
                     <div class="d-flex justify-content-between align-items-center">
-                   <span class="text-muted" style="font-size: 0.875rem; font-weight: 400;">${sanitizeInput(addonName)}</span>
+                   <span class="text-muted" style="font-size: 0.875rem; font-weight: 400;">${addonName}</span>
                    <span class="text-muted" style="font-size: 0.875rem; font-weight: 400;"> ₱${addonPrice.toLocaleString()}</span>
                 </div>`;
                     summaryAddonsList.appendChild(addonItem);

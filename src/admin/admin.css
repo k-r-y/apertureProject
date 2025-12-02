@@ -25,23 +25,6 @@ body.admin-dashboard {
   background-attachment: fixed;
 }
 
-.nav-section-title {
-  font-size: 0.75rem;
-  text-transform: uppercase;
-  letter-spacing: 1.5px;
-  color: var(--gold-dim);
-  margin: 1.5rem 0 0.5rem 1rem;
-  font-weight: 600;
-  font-family: "Playfair Display", serif;
-}
-
-.nav-icon {
-  font-size: 1.1rem;
-  margin-right: 0.75rem;
-  color: var(--gold-dim);
-  transition: color 0.3s ease;
-}
-
 /* --- Main Content Area --- */
 .page-wrapper {
   margin-left: var(--sidebar-width);

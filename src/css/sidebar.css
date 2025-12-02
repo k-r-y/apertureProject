@@ -100,7 +100,7 @@
   flex: 1;
   overflow-y: auto;
   overflow-x: hidden;
-  padding: 0.5rem 0;
+  padding: 0.375rem 0;
   margin: 0;
   list-style: none;
 }
@@ -124,11 +124,11 @@
 
 /* Section Titles */
 .nav-section-title {
-  font-size: 0.65rem;
+  font-size: 0.6rem;
   text-transform: uppercase;
   letter-spacing: 1.2px;
   color: var(--gold-dim);
-  padding: 1rem 1rem 0.5rem;
+  padding: 0.75rem 0.75rem 0.375rem;
   font-weight: 600;
   font-family: "Poppins", sans-serif;
   white-space: nowrap;
@@ -138,25 +138,25 @@
 
 /* Nav Items */
 .sidebar-nav-item {
-  margin: 0.125rem 0.5rem;
+  margin: 0.1rem 0.5rem;
   list-style: none;
 }
 
 .sidebar-nav-link {
   display: flex;
   align-items: center;
-  padding: 0.6rem 0.875rem;
+  padding: 0.5rem 0.75rem;
   color: var(--text-muted);
   text-decoration: none;
   border-radius: 8px;
   transition: all var(--transition-speed);
   position: relative;
-  font-size: 0.875rem;
+  font-size: 0.8125rem;
   font-weight: 400;
 }
 
 .sidebar-nav-link .nav-icon {
-  font-size: 1.1rem;
+  font-size: 1rem;
   min-width: 24px;
   color: var(--gold-dim);
   transition: color var(--transition-speed);
@@ -397,18 +397,85 @@ body.sidebar-mini .admin-header {
   }
 }
 
-/* Tablet & Mobile (<= 991px) */
-@media (max-width: 991px) {
+/* Tablet (\u003e= 768px and \u003c= 991px) - Keep sidebar visible */
+@media (min-width: 768px) and (max-width: 991px) {
+  /* Sidebar stays visible on tablets */
+  .sidebar {
+    transform: translateX(0) !important;
+    position: fixed;
+    left: 0;
+    z-index: 1000;
+  }
+
+  /* Show header with proper spacing */
+  .admin-header {
+    display: flex;
+    left: var(--sidebar-width);
+    width: auto;
+  }
+
+  /* Page wrapper needs left margin for sidebar */
+  .page-wrapper {
+    margin-left: var(--sidebar-width) !important;
+    padding-top: var(--header-height);
+  }
+
+  /* Hide mobile toggle button on tablets */
+  .header-toggle {
+    display: none;
+  }
+
+  /* Show desktop toggle in sidebar */
+  .sidebar-toggle-btn {
+    display: flex;
+  }
+
+  /* Prevent any horizontal overflow at the root level */
+  html,
+  body {
+    overflow-x: hidden !important;
+    max-width: 100vw !important;
+    width: 100% !important;
+  }
+
+  .main-content {
+    width: 100% !important;
+    max-width: 100% !important;
+    overflow-x: hidden !important;
+  }
+
+  /* Override Bootstrap container max-widths */
+  .container,
+  .container-sm,
+  .container-md,
+  .container-lg,
+  .container-xl,
+  .container-xxl {
+    max-width: 100% !important;
+  }
+
+  /* Ensure container-fluid uses full width */
+  .container-fluid {
+    max-width: 100% !important;
+    padding-left: 1.5rem !important;
+    padding-right: 1.5rem !important;
+  }
+}
+
+/* Mobile Only (\u003c 768px) */
+@media (max-width: 767px) {
   /* Show header with toggle button */
   .admin-header {
     display: flex;
+    left: 0 !important;
+    width: 100% !important;
   }
 
   .header-toggle {
     display: flex;
   }
 
-  /* Hide sidebar by default */
+  /* Hide sidebar by default on mobile */
   .sidebar {
     transform: translateX(-100%);
   }
@@ -468,52 +535,6 @@ body.sidebar-mini .admin-header {
 
   body.sidebar-mini .page-wrapper {
     margin-left: 0 !important;
-  }
-}
-
-/* Specific fixes for tablets (768px - 991px) */
-@media (min-width: 768px) and (max-width: 991px) {
-  /* Prevent any horizontal overflow at the root level */
-  html,
-  body {
-    overflow-x: hidden !important;
-    max-width: 100vw !important;
-    width: 100% !important;
-  }
-
-  .page-wrapper {
-    margin-left: 0 !important;
-    width: 100% !important;
-    max-width: 100vw !important;
-  }
-
-  .main-content {
-    width: 100% !important;
-    max-width: 100% !important;
-    overflow-x: hidden !important;
-  }
-
-  .admin-header {
-    width: 100% !important;
-    left: 0 !important;
-    right: 0 !important;
-  }
-
-  /* Override Bootstrap container max-widths */
-  .container,
-  .container-sm,
-  .container-md,
-  .container-lg,
-  .container-xl,
-  .container-xxl {
-    max-width: 100% !important;
-  }
-
-  /* Ensure container-fluid uses full width */
-  .container-fluid {
-    max-width: 100% !important;
-    padding-left: 1.5rem !important;
-    padding-right: 1.5rem !important;
   }
 }
 

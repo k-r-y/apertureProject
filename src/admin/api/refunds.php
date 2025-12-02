@@ -137,11 +137,18 @@ try {
                     }
                     createNotification($details['userID'], 'refund_update', $notifTitle, $notifMessage, 'appointments.php');
 
-                    // Auto-update booking status to cancelled if refund is approved or processed
+                    // Auto-update booking status based on refund status
                     if ($status === 'approved' || $status === 'processed') {
+                        // Approve or complete refund - mark booking as cancelled
                         $cancelStmt = $conn->prepare("UPDATE bookings SET booking_status = 'cancelled' WHERE bookingID = ?");
-                        $cancelStmt->bind_param("i", $details['bookingRef']); // Use bookingRef from details
+                        $cancelStmt->bind_param("i", $details['bookingRef']);
                         $cancelStmt->execute();
+                    } elseif ($status === 'rejected') {
+                        // Reject refund - restore booking to confirmed status and reset refund_amount
+                        // User wanted to cancel but admin rejected it, so booking continues normally
+                        $rejectStmt = $conn->prepare("UPDATE bookings SET booking_status = 'confirmed', refund_amount = 0 WHERE bookingID = ?");
+                        $rejectStmt->bind_param("i", $details['bookingRef']);
+                        $rejectStmt->execute();
                     }
                 }
                 

@@ -85,10 +85,7 @@ if (isset($_GET['action']) and $_GET['action'] === 'logout') {
                                         <label for="contact_phone" class="luxury-label">Public Contact Phone</label>
                                         <input type="text" class="neo-input" id="contact_phone" name="contact_phone">
                                     </div>
-                                    <div class="form-check form-switch mb-3">
-                                        <input class="form-check-input" type="checkbox" role="switch" id="maintenance_mode" name="maintenance_mode">
-                                        <label class="form-check-label" for="maintenance_mode">Enable Maintenance Mode</label>
-                                    </div>
+                                    
                                     <button type="submit" class="btn btn-gold w-100 mt-2">Save Changes</button>
                                 </form>
                             </div>
