@@ -18,7 +18,7 @@ $userID = $_SESSION['userId'];
 $bookingsStmt = $conn->prepare("
     SELECT bookingID, event_type, event_date, gdrive_link 
     FROM bookings 
-    WHERE userID = ? AND (booking_status = 'completed' OR is_fully_paid = 1)
+    WHERE userID = ? AND is_fully_paid = 1 AND (booking_status = 'completed' OR booking_status = 'post_production' OR booking_status = 'confirmed')
     ORDER BY event_date DESC
 ");
 $bookingsStmt->bind_param("i", $userID);
@@ -29,7 +29,7 @@ while ($row = $bookingsResult->fetch_assoc()) {
     $bookings[] = $row;
 }
 
-// Fetch photos with booking and package info
+// Fetch photos with booking and package info - STRICTLY ENFORCE PAYMENT CHECK
 $sql = "
     SELECT 
         p.*, 
@@ -41,7 +41,7 @@ $sql = "
     FROM user_photos p
     LEFT JOIN bookings b ON p.bookingID = b.bookingID
     LEFT JOIN packages pkg ON b.packageID = pkg.packageID
-    WHERE p.userID = ?
+    WHERE p.userID = ? AND b.is_fully_paid = 1
     GROUP BY p.photoID
     ORDER BY p.uploadDate DESC
 ";
@@ -60,14 +60,14 @@ while ($row = $result->fetch_assoc()) {
         $duration = (int)$row['access_duration_months'];
         $expirationDate = clone $uploadDate;
         $expirationDate->modify("+$duration months");
-        
+
         $now = new DateTime();
         $interval = $now->diff($expirationDate);
         $daysLeft = (int)$interval->format('%r%a');
-        
+
         $row['expiration_date'] = $expirationDate->format('M d, Y');
         $row['days_left'] = $daysLeft;
-        
+
         if ($daysLeft < 0) {
             $row['expiration_status'] = 'expired';
         } elseif ($daysLeft <= 7) {
@@ -81,6 +81,7 @@ while ($row = $result->fetch_assoc()) {
 ?>
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -108,17 +109,29 @@ while ($row = $result->fetch_assoc()) {
             font-weight: 600;
             z-index: 2;
             backdrop-filter: blur(4px);
-            box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
             background-color: rgba(0, 0, 0, 0.73);
         }
-        .badge-lifetime { background-color: rgba(25, 135, 84, 0.9); color: white; }
-        .badge-warning { background-color: rgba(255, 193, 7, 0.9); color: #000; }
-        .badge-expired { background-color: rgba(220, 53, 69, 0.9); color: white; }
-        
-    .gallery-item{
+
+        .badge-lifetime {
+            background-color: rgba(25, 135, 84, 0.9);
+            color: white;
+        }
+
+        .badge-warning {
+            background-color: rgba(255, 193, 7, 0.9);
+            color: #000;
+        }
+
+        .badge-expired {
+            background-color: rgba(220, 53, 69, 0.9);
+            color: white;
+        }
+
+        .gallery-item {
             margin-bottom: 20px;
         }
-        
+
         .gallery-item .gallery-link {
             display: block;
             width: 100% !important;
@@ -138,7 +151,7 @@ while ($row = $result->fetch_assoc()) {
             transition: none;
         }
 
-        .gallery-link:hover{
+        .gallery-link:hover {
             height: 100% !important;
             width: 100% !important;
             object-fit: cover !important;
@@ -151,23 +164,24 @@ while ($row = $result->fetch_assoc()) {
         }
 
         /* Active State for Filter Buttons */
-        .btn-check:checked + .btn-outline-gold {
+        .btn-check:checked+.btn-outline-gold {
             background-color: #d4af37;
             color: #000;
             border-color: #d4af37;
         }
-        
+
         .btn-outline-gold {
             color: #d4af37;
             border-color: #d4af37;
         }
-        
+
         .btn-outline-gold:hover {
             background-color: rgba(212, 175, 55, 0.1);
             color: #d4af37;
         }
     </style>
 </head>
+
 <body class="admin-dashboard">
     <?php include_once 'components/sidebar.php'; ?>
 
@@ -222,32 +236,32 @@ while ($row = $result->fetch_assoc()) {
                 <?php else: ?>
                     <div class="gallery-grid" id="galleryGrid">
                         <?php foreach ($photos as $photo): ?>
-                            <div class="gallery-item" 
-                                 data-booking-id="<?= $photo['bookingID'] ?? '0' ?>"
-                                 data-photo-type="<?= $photo['photo_type'] ?? 'edited' ?>">
+                            <div class="gallery-item"
+                                data-booking-id="<?= $photo['bookingID'] ?? '0' ?>"
+                                data-photo-type="<?= $photo['photo_type'] ?? 'edited' ?>">
                                 <?php
-                                    $imagePath = '../../uploads/user_photos/' . $userID . '/' . $photo['fileName'];
-                                    $serverPath = __DIR__ . '/../../uploads/user_photos/' . $userID . '/' . $photo['fileName'];
-                                    $width = 100; // Default fallback
-                                    $height = 100; // Default fallback
-                                    
-                                    if (file_exists($serverPath)) {
-                                        list($w, $h) = getimagesize($serverPath);
-                                        if ($w && $h) {
-                                            $width = $w;
-                                            $height = $h;
-                                        }
+                                $imagePath = '../../uploads/user_photos/' . $userID . '/' . $photo['fileName'];
+                                $serverPath = __DIR__ . '/../../uploads/user_photos/' . $userID . '/' . $photo['fileName'];
+                                $width = 100; // Default fallback
+                                $height = 100; // Default fallback
+
+                                if (file_exists($serverPath)) {
+                                    list($w, $h) = getimagesize($serverPath);
+                                    if ($w && $h) {
+                                        $width = $w;
+                                        $height = $h;
                                     }
+                                }
                                 ?>
-                                <a href="<?= $imagePath ?>" 
-                                style="width: 100px; height: 100px; object-fit: cover;"
-                                   class="gallery-link"
-                                   data-pswp-width="<?= $width ?>" 
-                                   data-pswp-height="<?= $height ?>" 
-                                   target="_blank">
+                                <a href="<?= $imagePath ?>"
+                                    style="width: 100px; height: 100px; object-fit: cover;"
+                                    class="gallery-link"
+                                    data-pswp-width="<?= $width ?>"
+                                    data-pswp-height="<?= $height ?>"
+                                    target="_blank">
                                     <img src="<?= $imagePath ?>" alt="<?= htmlspecialchars($photo['caption']) ?>" loading="lazy">
                                 </a>
-                                
+
                                 <!-- Photo Type Badge -->
                                 <div class="photo-badge">
                                     <?= ucfirst($photo['photo_type'] ?? 'edited') ?>
@@ -263,8 +277,8 @@ while ($row = $result->fetch_assoc()) {
                                         Expired
                                     </div>
                                 <?php else: ?>
-                                    <div class="expiration-badge <?= $photo['expiration_status'] === 'warning' ? 'badge-warning' : 'badge-normal' ?>" 
-                                         title="Expires on <?= $photo['expiration_date'] ?>">
+                                    <div class="expiration-badge <?= $photo['expiration_status'] === 'warning' ? 'badge-warning' : 'badge-normal' ?>"
+                                        title="Expires on <?= $photo['expiration_date'] ?>">
                                         <i class="bi bi-clock-history"></i> <?= $photo['days_left'] ?> days left
                                     </div>
                                 <?php endif; ?>
@@ -292,7 +306,7 @@ while ($row = $result->fetch_assoc()) {
     <script src="user.js"></script>
     <script src="js/notifications.js"></script>
     <script src="js/user_notifications.js"></script>
-    
+
     <script type="module">
         import PhotoSwipeLightbox from 'https://cdn.jsdelivr.net/npm/photoswipe@5.3.8/dist/photoswipe-lightbox.esm.js';
         import PhotoSwipe from 'https://cdn.jsdelivr.net/npm/photoswipe@5.3.8/dist/photoswipe.esm.js';
@@ -369,4 +383,5 @@ while ($row = $result->fetch_assoc()) {
         typeFilters.forEach(radio => radio.addEventListener('change', filterPhotos));
     </script>
 </body>
+
 </html>

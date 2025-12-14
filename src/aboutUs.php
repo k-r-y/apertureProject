@@ -35,7 +35,7 @@ $activeMember = isset($_GET['member']) ? $_GET['member'] : 'casiano';
 
                                 <div class="profileInfoText text-center d-flex flex-column justify-content-center align-content-center">
                                     <p class="m-0 fw-bold fs-6">Prince Andrew Casiano</p>
-                                    <small class="mt-1 role"><span class="bg-secondary px-2 py-1 rounded text-light">Web Developer</span></small>
+                                    <small class="mt-1 role"><span class="bg-secondary px-2 py-1 rounded text-light">Full Stack</span></small>
                                 </div>
 
                             </div>
@@ -128,7 +128,7 @@ $activeMember = isset($_GET['member']) ? $_GET['member'] : 'casiano';
 
                                 <div class="profileInfoText text-center d-flex flex-column justify-content-center align-content-center">
                                     <p class="m-0 fw-bold fs-6">Aljhon Buban</p>
-                                    <small class="mt-1 role"><span class="bg-secondary px-2 py-1 rounded text-light">Web Developer</span></small>
+                                    <small class="mt-1 role"><span class="bg-secondary px-2 py-1 rounded text-light">BPM</span></small>
                                 </div>
 
                             </div>
@@ -221,7 +221,7 @@ $activeMember = isset($_GET['member']) ? $_GET['member'] : 'casiano';
 
                                 <div class="profileInfoText text-center d-flex flex-column justify-content-center align-content-center">
                                     <p class="m-0 fw-bold fs-6">Mark Anthony Centino</p>
-                                    <small class="mt-1 role"><span class="bg-secondary px-2 py-1 rounded text-light">Web Developer</span></small>
+                                    <small class="mt-1 role"><span class="bg-secondary px-2 py-1 rounded text-light">Quality Control</span></small>
                                 </div>
 
                             </div>
@@ -314,7 +314,7 @@ $activeMember = isset($_GET['member']) ? $_GET['member'] : 'casiano';
 
                                 <div class="profileInfoText text-center d-flex flex-column justify-content-center align-content-center">
                                     <p class="m-0 fw-bold fs-6">Marianne Joi Cereno</p>
-                                    <small class="mt-1 role"><span class="bg-secondary px-2 py-1 rounded text-light">Web Developer</span></small>
+                                    <small class="mt-1 role"><span class="bg-secondary px-2 py-1 rounded text-light">UI/UX Designer</span></small>
                                 </div>
 
                             </div>
@@ -407,7 +407,7 @@ $activeMember = isset($_GET['member']) ? $_GET['member'] : 'casiano';
 
                                 <div class="profileInfoText text-center d-flex flex-column justify-content-center align-content-center">
                                     <p class="m-0 fw-bold fs-6">Dionilo Conosido</p>
-                                    <small class="mt-1 role"><span class="bg-secondary px-2 py-1 rounded text-light">Web Developer</span></small>
+                                    <small class="mt-1 role"><span class="bg-secondary px-2 py-1 rounded text-light">System Analyst</span></small>
                                 </div>
 
                             </div>

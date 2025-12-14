@@ -198,7 +198,7 @@ if ($_SERVER['REQUEST_METHOD'] == "POST") {
           <img src="./assets/pic.png" alt="" class="shadow-sm pfp">
           <div class=" textContent mb-3 text-center">
             <h1 class="fw-bold serif">Prince Andrew Casiano</h1>
-            <p class="text-dark fw-normal">Frontend Developer</p>
+            <p class="text-dark fw-normal">Full Stack</p>
           </div>
           <div class="socmed justify-content-center align-items-center d-flex flex-row gap-3">
             <a href="https://www.facebook.com/prince.andrew.casiano.2024" target="_blank"><img src="./assets/facebook-app-symbol.png" alt="Facebook"></a>
@@ -214,7 +214,7 @@ if ($_SERVER['REQUEST_METHOD'] == "POST") {
           <img src="./assets/buban.png" alt="" class="shadow-sm pfp">
           <div class=" textContent mb-3 text-center">
             <h1 class="fw-bold serif">Aljhon Buban </h1>
-            <p class="text-dark fw-normal">Frontend Developer</p>
+            <p class="text-dark fw-normal">BPM</p>
           </div>
           <div class="socmed justify-content-center align-items-center d-flex flex-row gap-3">
             <a href="https://www.facebook.com/aljhon.buban.35" target="_blank"><img src="./assets/facebook-app-symbol.png" alt="Facebook"></a>
@@ -231,7 +231,7 @@ if ($_SERVER['REQUEST_METHOD'] == "POST") {
           <img src="./assets/centino.png" alt="" class="shadow-sm pfp">
           <div class=" textContent mb-3 text-center">
             <h1 class="fw-bold serif">Mark Anthony Centino</h1>
-            <p class="text-dark fw-normal">Frontend Developer</p>
+            <p class="text-dark fw-normal">Quality Control</p>
           </div>
           <div class="socmed justify-content-center align-items-center d-flex flex-row gap-3">
             <a href="https://www.facebook.com/share/1NgM7yjHLx/" target="_blank"><img src="./assets/facebook-app-symbol.png" alt="Facebook"></a>
@@ -247,7 +247,7 @@ if ($_SERVER['REQUEST_METHOD'] == "POST") {
           <img src="./assets/cereno.png" alt="" class="shadow-sm pfp">
           <div class=" textContent mb-3 text-center">
             <h1 class="fw-bold serif">Marianne Joi Cereno</h1>
-            <p class="text-dark fw-normal">Frontend Developer</p>
+            <p class="text-dark fw-normal">UI/UX Designer</p>
           </div>
           <div class="socmed justify-content-center align-items-center d-flex flex-row gap-3">
             <a href="https://www.facebook.com/mariannejoi.cereno" target="_blank"><img src="./assets/facebook-app-symbol.png" alt="Facebook"></a>
@@ -263,7 +263,7 @@ if ($_SERVER['REQUEST_METHOD'] == "POST") {
           <img src="./assets/conosido.png" alt="" class="shadow-sm pfp">
           <div class=" textContent mb-3 text-center">
             <h1 class="fw-bold serif">Dionilo Conosido</h1>
-            <p class="text-dark fw-normal">Frontend Developer</p>
+            <p class="text-dark fw-normal">System Analyst</p>
           </div>
           <div class="socmed justify-content-center align-items-center d-flex flex-row gap-3">
             <a href="https://www.facebook.com/dionilo.conosido.71" target="_blank"><img src="./assets/facebook-app-symbol.png" alt="Facebook"></a>

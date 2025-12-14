@@ -3,8 +3,10 @@ require_once '../../includes/functions/config.php';
 require_once '../../includes/functions/auth.php';
 require_once '../../includes/functions/booking_workflow.php';
 
-// Clear buffer before sending JSON headers
-ob_clean();
+// Start output buffering first
+ob_start();
+
+// Set JSON header early
 header('Content-Type: application/json');
 
 // Check admin access

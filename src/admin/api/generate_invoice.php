@@ -242,8 +242,7 @@ if ($booking['final_payment_paid'] == 1 || $booking['is_fully_paid'] == 1) {
             <div class="brand">
                 <h1>APERTURE</h1>
                 <p>Photography & Visual Arts</p>
-                <p>123 Creative Studio, Design District</p>
-                <p>Manila, Philippines</p>
+                <p>Dasmariñas City, Cavite, Philippines</p>
                 <p>contact@aperture.com</p>
             </div>
             <div class="invoice-details">

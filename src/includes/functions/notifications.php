@@ -37,12 +37,24 @@ class NotificationSystem {
     private function createInAppNotification($userId, $title, $message, $type, $link = null) {
         try {
             $stmt = $this->conn->prepare("INSERT INTO notifications (userID, title, message, type, link, created_at) VALUES (?, ?, ?, ?, ?, NOW())");
+            if (!$stmt) {
+                error_log("In-App Notification Error: Failed to prepare statement - " . $this->conn->error);
+                return false;
+            }
+            
             $stmt->bind_param("issss", $userId, $title, $message, $type, $link);
-            $stmt->execute();
+            
+            if (!$stmt->execute()) {
+                error_log("In-App Notification Error: Failed to execute - " . $stmt->error);
+                $stmt->close();
+                return false;
+            }
+            
             $stmt->close();
+            error_log("In-App Notification Created Successfully: UserID=$userId, Title=$title");
             return true;
         } catch (Exception $e) {
-            error_log("In-App Notification Error: " . $e->getMessage());
+            error_log("In-App Notification Exception: " . $e->getMessage() . " | Trace: " . $e->getTraceAsString());
             return false;
         }
     }

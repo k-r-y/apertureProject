@@ -219,7 +219,7 @@ if (!isset($_SESSION["userId"])) {
     <script src="../libs/sweetalert2/sweetalert2.all.min.js"></script>
     <script src="user.js?v=2"></script>
 
-    <script src="appointmentsHandler.js?v=2"></script>
+    <script src="appointmentsHandler.js?v=3"></script>
     <script src="js/user_notifications.js?v=2"></script>
 </body>
 </html>

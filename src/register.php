@@ -192,7 +192,7 @@ if (isset($_GET['cancel']) and $_GET['cancel'] === 'true') {
                             <!-- Email  -->
                             <div class="mb-2">
                                 <label class="form-label" for="email">Email<span class="text-danger">*</span></label>
-                                <input type="email" name="email" id="email" value="<?= htmlspecialchars($email ?? '') ?>" class="form-control <?= (!isset($errors['email']) ? '' : 'is-invalid')  ?> " placeholder="Enter your email" required>
+                                <input type="email" name="email" id="email" value="<?= htmlspecialchars($email ?? '') ?>" class="form-control <?= (!isset($errors['email']) ? '' : 'is-invalid')  ?> "  required>
                                 <p class="text-danger"><?= (isset($errors['email'])) ? htmlspecialchars($errors['email']) : '' ?></p>
                             </div>
 

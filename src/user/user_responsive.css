@@ -1,0 +1,214 @@
+/* ================================================
+   USER DASHBOARD RESPONSIVE ENHANCEMENTS
+   ================================================ */
+
+/* ===================================
+   FIX: CHART RESPONSIVENESS
+   =================================== */
+#userBookingsChart {
+  width: 100%;
+  height: 350px;
+}
+
+@media (max-width: 768px) {
+  #userBookingsChart {
+    height: 300px;
+  }
+}
+
+@media (max-width: 576px) {
+  #userBookingsChart {
+    height: 250px;
+  }
+}
+
+/* ===================================
+   FIX: KPI CARDS - VERTICAL LAYOUT
+   =================================== */
+.neo-card.h-100 {
+  min-height: auto !important;
+}
+
+/* Stack icon and text vertically on all screens */
+.neo-card.h-100.d-flex {
+  flex-direction: column !important;
+  text-align: center;
+  padding: 1.5rem !important;
+}
+
+.neo-card .rounded-circle {
+  margin: 0 auto 1rem auto !important;
+  width: 56px;
+  height: 56px;
+  padding: 0.75rem !important;
+}
+
+.neo-card .bi {
+  font-size: 1.5rem !important;
+}
+
+.neo-card .h2 {
+  font-size: 1.875rem;
+  margin-bottom: 0.25rem !important;
+}
+
+.neo-card .small {
+  font-size: 0.75rem !important;
+  letter-spacing: 0.5px;
+}
+
+/* Mobile adjustments */
+@media (max-width: 767px) {
+  .neo-card.h-100.d-flex {
+    padding: 1.25rem !important;
+  }
+
+  .neo-card .rounded-circle {
+    width: 48px;
+    height: 48px;
+    padding: 0.625rem !important;
+  }
+
+  .neo-card .bi {
+    font-size: 1.25rem !important;
+  }
+
+  .neo-card .h2 {
+    font-size: 1.5rem;
+  }
+
+  .neo-card .small {
+    font-size: 0.7rem !important;
+  }
+}
+
+/* ===================================
+   FIX: HEADER TITLE RESPONSIVENESS
+   =================================== */
+h1.mb-2 {
+  font-size: clamp(1.5rem, 5vw, 2.5rem);
+  word-wrap: break-word;
+}
+
+.text-muted {
+  font-size: clamp(0.875rem, 3vw, 1rem);
+}
+
+/* ===================================
+   FIX: GLASS PANEL ON MOBILE
+   =================================== */
+.glass-panel {
+  padding: 1.5rem;
+}
+
+@media (max-width: 768px) {
+  .glass-panel {
+    padding: 1rem;
+  }
+}
+
+@media (max-width: 576px) {
+  .glass-panel {
+    padding: 0.75rem;
+  }
+
+  .glass-panel h5 {
+    font-size: 1rem;
+  }
+}
+
+/* ===================================
+   FIX: CONTAINER PADDING
+   =================================== */
+.container-fluid.px-3.px-lg-5 {
+  padding-left: 1rem !important;
+  padding-right: 1rem !important;
+}
+
+@media (min-width: 992px) {
+  .container-fluid.px-3.px-lg-5 {
+    padding-left: 2rem !important;
+    padding-right: 2rem !important;
+  }
+}
+
+/* ===================================
+   FIX: MAIN CONTENT OVERFLOW
+   =================================== */
+.main-content {
+  overflow-x: hidden;
+  width: 100%;
+  max-width: 100%;
+}
+
+.main-content * {
+  max-width: 100%;
+}
+
+/* ===================================
+   FIX: ROW GUTTERS ON MOBILE
+   =================================== */
+@media (max-width: 576px) {
+  .row.g-4 {
+    row-gap: 1rem !important;
+  }
+}
+
+/* ===================================
+   FIX: TEXT OVERFLOW
+   =================================== */
+.text-gold,
+.text-light {
+  word-break: break-word;
+  overflow-wrap: break-word;
+}
+
+/* ===================================
+   FIX: SIDEBAR OVERLAP ON MOBILE
+   =================================== */
+@media (max-width: 767px) {
+  .page-wrapper {
+    margin-left: 0 !important;
+    width: 100%;
+  }
+
+  body.sidebar-open .page-wrapper {
+    overflow: hidden;
+  }
+}
+
+/* ===================================
+   FIX: BUTTON SIZES ON MOBILE
+   =================================== */
+@media (max-width: 576px) {
+  .btn {
+    font-size: 0.875rem;
+    padding: 0.5rem 1rem;
+  }
+
+  .btn i {
+    font-size: 0.875rem;
+  }
+}
+
+/* ===================================
+   FIX: BUTTON ICON SIZES ON MOBILE
+   =================================== */
+@media (max-width: 576px) {
+  .btn i {
+    font-size: 0.875rem;
+  }
+}
+
+/* ===================================
+   ENSURE PROPER VIEWPORT
+   =================================== */
+html {
+  overflow-x: hidden;
+}
+
+body {
+  overflow-x: hidden;
+  width: 100%;
+  max-width: 100vw;
+}

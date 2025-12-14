@@ -1,4 +1,7 @@
 <?php
+// Start output buffering to prevent any stray output
+ob_start();
+
 require_once '../includes/functions/config.php';
 require_once '../includes/functions/session.php';
 require_once '../includes/functions/auth.php';
@@ -8,8 +11,12 @@ error_reporting(E_ALL);
 ini_set('display_errors', 0); // Disable for production
 ini_set('log_errors', 1);
 
+// Set content type header early
+header('Content-Type: application/json');
+
 // Check if user is logged in
 if (!isset($_SESSION["userId"])) {
+    ob_clean(); // Clear any captured output
     http_response_code(401);
     echo json_encode(['success' => false, 'message' => 'Unauthorized']);
     exit;
@@ -134,7 +141,7 @@ try {
     $countStmt->close();
     
     // Return JSON response
-    header('Content-Type: application/json');
+    ob_clean(); // Clear any captured output before sending JSON
     echo json_encode([
         'success' => true,
         'appointments' => $appointments,
@@ -146,6 +153,7 @@ try {
 } catch (Exception $e) {
     error_log("Get Appointments Error: " . $e->getMessage());
     error_log("Stack trace: " . $e->getTraceAsString());
+    ob_clean(); // Clear any captured output before sending error JSON
     http_response_code(500);
     echo json_encode([
         'success' => false,

@@ -46,6 +46,7 @@ foreach ($bookingsByType as $booking) {
     <link rel="stylesheet" href="../luxuryDesignSystem.css">
     <!-- Custom User CSS -->
     <link rel="stylesheet" href="user.css">
+    <link rel="stylesheet" href="user_responsive.css?v=<?= time() ?>">
     <!-- Main Stylesheet -->
     <link rel="stylesheet" href="../style.css">
     <!-- Favicon -->

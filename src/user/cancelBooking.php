@@ -2,6 +2,9 @@
 // Start output buffering to catch any errors/warnings
 ob_start();
 
+// Set content type header early
+header('Content-Type: application/json');
+
 $response = ['success' => false, 'message' => 'An unexpected error occurred'];
 
 try {
@@ -146,23 +149,37 @@ try {
             ]
         );
 
+        // Get client name for notifications
+        $userQuery = $conn->prepare("SELECT FirstName, LastName, Email FROM users WHERE userID = ?");
+        $userQuery->bind_param("i", $userId);
+        $userQuery->execute();
+        $userResult = $userQuery->get_result();
+        $userData = $userResult->fetch_assoc();
+        $userQuery->close();
+        
+        $clientName = trim(($userData['FirstName'] ?? '') . ' ' . ($userData['LastName'] ?? ''));
+        $clientEmail = $userData['Email'] ?? $_SESSION['email'] ?? 'user@example.com';
+        
+        // Generate booking reference
+        $bookingRef = str_pad($booking['bookingID'], 6, '0', STR_PAD_LEFT);
+
         // Send Admin Notification
         $notifier = new NotificationSystem($conn);
         $adminEmail = $_ENV['SMTP_USERNAME'] ?? 'admin@aperture.com'; // Fallback
-        $notifier->sendAdminCancellationSubmitted(
+        $notifier->sendAdminCancellationRequest(
             $adminEmail,
-            $userId,
-            $booking['bookingID'],
+            $bookingRef,
+            $clientName,
             $booking['event_type'],
             $refundAmount
         );
 
         // Send User Notification
         $notifier->sendUserCancellationSubmitted(
-            $_SESSION['email'] ?? 'user@example.com', // Fallback if session email not set, though it should be
-            $_SESSION['FirstName'] . ' ' . $_SESSION['LastName'],
+            $clientEmail,
+            $clientName,
             $userId,
-            $booking['bookingID'],
+            $bookingRef,
             $refundAmount
         );
     } catch (Exception $e) {
@@ -182,8 +199,6 @@ try {
 }
 
 // Clean buffer and output JSON
-ob_end_clean();
-header('Content-Type: application/json');
+ob_clean(); // Use ob_clean() instead of ob_end_clean() to preserve the buffer
 echo json_encode($response);
 exit;
-?>

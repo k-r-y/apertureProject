@@ -16,7 +16,19 @@ async function fetchAppointments(status = 'all') {
             : `getAppointments.php?status=${encodeURIComponent(status)}`;
 
         const response = await fetch(url);
-        const data = await response.json();
+
+        // Get the raw text first
+        const responseText = await response.text();
+
+        // Try to parse as JSON
+        let data;
+        try {
+            data = JSON.parse(responseText);
+        } catch (parseError) {
+            console.error('JSON Parse Error:', parseError);
+            console.error('Response Text:', responseText);
+            throw new Error('Invalid JSON response from server. Check console for details.');
+        }
 
         if (data.success) {
             allAppointments = data.appointments;
@@ -34,8 +46,12 @@ async function fetchAppointments(status = 'all') {
         console.error('Error fetching appointments:', error);
         loadingState.style.display = 'none';
         emptyState.style.display = 'block';
-        document.querySelector('#emptyState h3').textContent = 'Error Loading Appointments';
-        document.querySelector('#emptyState p').textContent = 'There was an error loading your appointments. Please try again.';
+
+        // Show more specific error message
+        const errorTitle = document.querySelector('#emptyState h3');
+        const errorMsg = document.querySelector('#emptyState p');
+        errorTitle.textContent = 'Error Loading Appointments';
+        errorMsg.textContent = error.message || 'There was an error loading your appointments. Please try again.';
     }
 }
 

@@ -27,6 +27,9 @@ $currentPage = 'bookings.php';
     <link rel="stylesheet" href="../style.css">
     <link rel="icon" href="../assets/camera.png" type="image/x-icon">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Playfair+Display:wght@400;500;600;700&display=swap" rel="stylesheet">
+    
+    <!-- SweetAlert2 -->
+    <link rel="stylesheet" href="../libs/sweetalert2/sweetalert2.min.css">
     <style>
         /* Fix for modal width issue */
         .modal-dialog {
@@ -264,6 +267,7 @@ $currentPage = 'bookings.php';
     </div>
 
     <script src="../../bootstrap-5.3.8-dist/js/bootstrap.bundle.min.js"></script>
+    <script src="../libs/sweetalert2/sweetalert2.all.min.js"></script>
     <script src="../js/feedback.js"></script>
     <script src="js/booking-modal.js?v=<?= time() ?>"></script>
     <script src="js/bookings.js?v=<?= time() ?>"></script>

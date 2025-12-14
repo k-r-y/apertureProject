@@ -14,8 +14,8 @@ if (!isset($_SESSION["userId"]) || !isset($_SESSION["role"]) || $_SESSION["role"
     exit;
 }
 if (!isset($_SESSION["isVerified"]) || !$_SESSION["isVerified"]) {
-     header("Location: ../logIn.php");
-     exit;
+    header("Location: ../logIn.php");
+    exit;
 }
 
 
@@ -56,6 +56,7 @@ $minBookingDate = date('Y-m-d', strtotime('+3 days'));
 ?>
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -73,9 +74,9 @@ $minBookingDate = date('Y-m-d', strtotime('+3 days'));
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Playfair+Display:wght@400;500;600;700&display=swap" rel="stylesheet">
 
 
- 
 
- 
+
+
 </head>
 
 <body class="admin-dashboard">
@@ -86,7 +87,7 @@ $minBookingDate = date('Y-m-d', strtotime('+3 days'));
 
         <main class="main-content">
             <div class="container-fluid px-3 px-lg-5 ">
-                
+
                 <!-- Page Header -->
                 <div class="text-center mb-5">
                     <h1 class="mb-2">Create Your Booking</h1>
@@ -96,10 +97,10 @@ $minBookingDate = date('Y-m-d', strtotime('+3 days'));
                 <form action="processBooking.php" method="POST" enctype="multipart/form-data" id="bookingForm" class="needs-validation-luxury" novalidate>
                     <?php csrfField(); ?>
                     <div class="row g-4">
-                        
+
                         <!-- Left Column: Form -->
                         <div class="col-lg-8">
-                            
+
                             <!-- Client Information -->
                             <div class="neo-card mb-4">
                                 <div class="mb-4 pb-2 border-bottom border-secondary">
@@ -150,7 +151,7 @@ $minBookingDate = date('Y-m-d', strtotime('+3 days'));
                                         <label class="text-muted small mb-2 text-uppercase letter-spacing-1">Event Type <span class="text-gold">*</span></label>
                                         <select name="eventType" id="eventType" class="neo-input" required>
                                             <option value="" class="text-light" selected disabled>Select event type</option>
-                                            
+
                                             <optgroup label="Weddings & Romance">
                                                 <option value="Wedding Ceremony & Reception" <?= (isset($savedData['eventType']) && $savedData['eventType'] === 'Wedding Ceremony & Reception') ? 'selected' : '' ?>>Wedding Ceremony & Reception</option>
                                                 <option value="Engagement / Pre-Nup Session" <?= (isset($savedData['eventType']) && $savedData['eventType'] === 'Engagement / Pre-Nup Session') ? 'selected' : '' ?>>Engagement / Pre-Nup Session</option>
@@ -244,27 +245,27 @@ $minBookingDate = date('Y-m-d', strtotime('+3 days'));
                                 </div>
                                 <div class="row g-3">
                                     <?php foreach ($packages as $pkg): ?>
-                                    <div class="col-12">
-                                        <div class="form-check p-0">
-                                            <input type="radio" name="packageID" id="luxury-pkg-<?= $pkg['packageID'] ?>" value="<?= $pkg['packageID'] ?>" class="btn-check luxury-radio" <?= (isset($savedData['packageID']) && $savedData['packageID'] === $pkg['packageID']) ? 'checked' : '' ?> required>
-                                            <label for="luxury-pkg-<?= $pkg['packageID'] ?>" class="neo-card d-flex justify-content-between align-items-center w-100 cursor-pointer package-label" 
-                                                data-price="<?= $pkg['Price'] ?>" 
-                                                data-name="<?= htmlspecialchars($pkg['packageName']) ?>"
-                                                data-coverage-hours="<?= isset($pkg['coverage_hours']) ? $pkg['coverage_hours'] : 4 ?>"
-                                                data-hourly-rate="<?= isset($pkg['extra_hour_rate']) ? $pkg['extra_hour_rate'] : 1000 ?>"
-                                                style="cursor: pointer;">
-                                                <div class="d-flex flex-column">
-                                                    <h5 class="text-gold mb-1"><?= htmlspecialchars($pkg['packageName']) ?></h5>
-                                                    <p class="text-muted small mb-0"><?= htmlspecialchars($pkg['description']) ?></p>
-                                                </div>
-                                                <div class="text-end">
-                                                    <span class="h5 text-light d-block mb-0">₱<?= number_format($pkg['Price']) ?></span>
-                                                    <i class="bi bi-check-circle-fill text-gold opacity-0 check-icon transition-all"></i>
-                                                </div>
-                                            </label>
+                                        <div class="col-12">
+                                            <div class="form-check p-0">
+                                                <input type="radio" name="packageID" id="luxury-pkg-<?= $pkg['packageID'] ?>" value="<?= $pkg['packageID'] ?>" class="btn-check luxury-radio" <?= (isset($savedData['packageID']) && $savedData['packageID'] === $pkg['packageID']) ? 'checked' : '' ?> required>
+                                                <label for="luxury-pkg-<?= $pkg['packageID'] ?>" class="neo-card d-flex justify-content-between align-items-center w-100 cursor-pointer package-label"
+                                                    data-price="<?= $pkg['Price'] ?>"
+                                                    data-name="<?= htmlspecialchars($pkg['packageName']) ?>"
+                                                    data-coverage-hours="<?= isset($pkg['coverage_hours']) ? $pkg['coverage_hours'] : 4 ?>"
+                                                    data-hourly-rate="<?= isset($pkg['extra_hour_rate']) ? $pkg['extra_hour_rate'] : 1000 ?>"
+                                                    style="cursor: pointer;">
+                                                    <div class="d-flex flex-column">
+                                                        <h5 class="text-gold mb-1"><?= htmlspecialchars($pkg['packageName']) ?></h5>
+                                                        <p class="text-muted small mb-0"><?= htmlspecialchars($pkg['description']) ?></p>
+                                                    </div>
+                                                    <div class="text-end">
+                                                        <span class="h5 text-light d-block mb-0">₱<?= number_format($pkg['Price']) ?></span>
+                                                        <i class="bi bi-check-circle-fill text-gold opacity-0 check-icon transition-all"></i>
+                                                    </div>
+                                                </label>
+                                            </div>
+                                            <div id="details-<?= $pkg['packageID'] ?>" class="mt-3 ps-4 border-start border-gold" style="display: none;"></div>
                                         </div>
-                                        <div id="details-<?= $pkg['packageID'] ?>" class="mt-3 ps-4 border-start border-gold" style="display: none;"></div>
-                                    </div>
                                     <?php endforeach; ?>
                                 </div>
                             </div>
@@ -275,23 +276,23 @@ $minBookingDate = date('Y-m-d', strtotime('+3 days'));
                                     <h4 class="m-0"><i class="bi bi-credit-card me-2 text-gold"></i>Payment Method</h4>
                                 </div>
                                 <div class="row g-3">
-                                    <?php 
+                                    <?php
                                     $methods = [
                                         'GCash' => 'phone',
                                         'PayMaya' => 'wallet2',
                                         'Bank Transfer' => 'bank',
                                         'Cash' => 'cash'
                                     ];
-                                    foreach($methods as $name => $icon):
+                                    foreach ($methods as $name => $icon):
                                         $id = 'pm-' . strtolower(str_replace(' ', '-', $name));
                                     ?>
-                                    <div class="col-md-6 col-lg-3">
-                                        <input type="radio" name="paymentMethod" id="<?= $id ?>" value="<?= $name ?>" class="btn-check" required>
-                                        <label for="<?= $id ?>" class="neo-card w-100 h-100 text-center py-2 px-1 cursor-pointer payment-label" style="cursor: pointer;">
-                                            <i class="bi bi-<?= $icon ?> fs-3 text-gold mb-2 d-block"></i>
-                                            <span class="text-light"><?= $name ?></span>
-                                        </label>
-                                    </div>
+                                        <div class="col-md-6 col-lg-3">
+                                            <input type="radio" name="paymentMethod" id="<?= $id ?>" value="<?= $name ?>" class="btn-check" required>
+                                            <label for="<?= $id ?>" class="neo-card w-100 h-100 text-center py-2 px-1 cursor-pointer payment-label" style="cursor: pointer;">
+                                                <i class="bi bi-<?= $icon ?> fs-3 text-gold mb-2 d-block"></i>
+                                                <span class="text-light"><?= $name ?></span>
+                                            </label>
+                                        </div>
                                     <?php endforeach; ?>
                                 </div>
 
@@ -333,7 +334,7 @@ $minBookingDate = date('Y-m-d', strtotime('+3 days'));
                                     <h4 class="m-0"><i class="bi bi-camera-video me-2 text-gold"></i>Consultation Schedule</h4>
                                 </div>
                                 <p class="text-muted small mb-3">Schedule a Google Meet / Zoom call with our team to discuss your event details. <span class="text-gold">Maximum duration: 1.5 hours</span></p>
-                                
+
                                 <div class="row g-3">
                                     <div class="col-md-12">
                                         <label class="text-muted small mb-2 text-uppercase letter-spacing-1">Preferred Date <span class="text-gold">*</span></label>
@@ -378,7 +379,7 @@ $minBookingDate = date('Y-m-d', strtotime('+3 days'));
                                     <div class="mb-4 pb-2 border-bottom border-secondary">
                                         <h4 class="m-0"><i class="bi bi-receipt me-2 text-gold"></i>Booking Summary</h4>
                                     </div>
-                                    
+
                                     <!-- User Information -->
                                     <div class="mb-3">
                                         <div class="text-muted small mb-1"><i class="bi bi-person me-1"></i> Client Information</div>
@@ -452,8 +453,8 @@ $minBookingDate = date('Y-m-d', strtotime('+3 days'));
                                     </div>
 
                                     <!-- Submit Button -->
-                                     <input type="submit" value="Confirm Booking" class="btn btn-gold w-100 luxury-submit-btn">
-                                   
+                                    <input type="submit" value="Confirm Booking" class="btn btn-gold w-100 luxury-submit-btn">
+
 
                                     <!-- Info Alert -->
                                     <div class="mt-3 p-2 rounded border   bg-opacity-50 text-center">
@@ -473,99 +474,116 @@ $minBookingDate = date('Y-m-d', strtotime('+3 days'));
     <?php include "../includes/modals/terms.php" ?>
     <?php include "../includes/modals/privacy.php" ?>
     <?php include "../includes/modals/refund.php" ?>
-    
+
     <!-- Custom Modal Component -->
     <?php include '../includes/components/modal.php'; ?>
-    
+
     <script src="../../bootstrap-5.3.8-dist/js/bootstrap.bundle.min.js"></script>
     <script src="../js/modal.js"></script>
     <script src="../js/feedback.js"></script>
     <script src="../js/validation.js"></script>
-    
+
     <!-- Restore saved form state -->
     <?php if (!empty($savedData)): ?>
-    <script>
-        // Wait for booking.js to fully load before restoring state
-        window.addEventListener('load', function() {
-            setTimeout(function() {
-                console.log('Restoring saved form state...');
-                
-                <?php if (isset($savedData['packageID'])): ?>
-                const savedPackageId = '<?= htmlspecialchars($savedData['packageID']) ?>';
-                const savedPackage = document.querySelector(`input[name="packageID"][value="${savedPackageId}"]`);
-                
-                if (savedPackage) {
-                    savedPackage.checked = true;
-                    const detailsContainer = document.getElementById(`details-${savedPackageId}`);
-                    if (detailsContainer && typeof fetchAndDisplayPackageDetails === 'function') {
-                        fetchAndDisplayPackageDetails(savedPackageId, detailsContainer);
-                    }
-                    savedPackage.dispatchEvent(new Event('change', { bubbles: true }));
-                }
-                <?php endif; ?>
-                
-                <?php if (isset($savedData['paymentMethod'])): ?>
-                const paymentMethod = document.querySelector('input[name="paymentMethod"][value="<?= htmlspecialchars($savedData['paymentMethod']) ?>"]');
-                if (paymentMethod) {
-                    paymentMethod.checked = true;
-                    paymentMethod.dispatchEvent(new Event('change', { bubbles: true }));
-                }
-                <?php endif; ?>
-
-                <?php if (isset($savedData['addons']) && is_array($savedData['addons'])): ?>
+        <script>
+            // Wait for booking.js to fully load before restoring state
+            window.addEventListener('load', function() {
                 setTimeout(function() {
-                    <?php foreach ($savedData['addons'] as $addonId): ?>
-                    const addon_<?= $addonId ?> = document.querySelector('input[name="addons[]"][value="<?= htmlspecialchars($addonId) ?>"]');
-                    if (addon_<?= $addonId ?>) {
-                        addon_<?= $addonId ?>.checked = true;
-                        addon_<?= $addonId ?>.dispatchEvent(new Event('change', { bubbles: true }));
-                    }
-                    <?php endforeach; ?>
-                }, 1500);
-                <?php endif; ?>
+                    console.log('Restoring saved form state...');
 
-                <?php if (isset($savedData['eventDate'])): ?>
-                const eventDateInput = document.getElementById('eventDate');
-                if (eventDateInput && eventDateInput.value) {
-                    eventDateInput.dispatchEvent(new Event('change', { bubbles: true }));
-                }
-                <?php endif; ?>
+                    <?php if (isset($savedData['packageID'])): ?>
+                        const savedPackageId = '<?= htmlspecialchars($savedData['packageID']) ?>';
+                        const savedPackage = document.querySelector(`input[name="packageID"][value="${savedPackageId}"]`);
 
-                <?php if (isset($savedData['startTime'])): ?>
-                const startTimeInput = document.querySelector('input[name="startTime"]');
-                if (startTimeInput && startTimeInput.value) {
-                    startTimeInput.dispatchEvent(new Event('change', { bubbles: true }));
-                }
-                <?php endif; ?>
+                        if (savedPackage) {
+                            savedPackage.checked = true;
+                            const detailsContainer = document.getElementById(`details-${savedPackageId}`);
+                            if (detailsContainer && typeof fetchAndDisplayPackageDetails === 'function') {
+                                fetchAndDisplayPackageDetails(savedPackageId, detailsContainer);
+                            }
+                            savedPackage.dispatchEvent(new Event('change', {
+                                bubbles: true
+                            }));
+                        }
+                    <?php endif; ?>
 
-                <?php if (isset($savedData['endTime'])): ?>
-                const endTimeInput = document.querySelector('input[name="endTime"]');
-                if (endTimeInput && endTimeInput.value) {
-                    endTimeInput.dispatchEvent(new Event('change', { bubbles: true }));
-                }
-                <?php endif; ?>
-                
-            }, 1000);
-        });
-    </script>
+                    <?php if (isset($savedData['paymentMethod'])): ?>
+                        const paymentMethod = document.querySelector('input[name="paymentMethod"][value="<?= htmlspecialchars($savedData['paymentMethod']) ?>"]');
+                        if (paymentMethod) {
+                            paymentMethod.checked = true;
+                            paymentMethod.dispatchEvent(new Event('change', {
+                                bubbles: true
+                            }));
+                        }
+                    <?php endif; ?>
+
+                    <?php if (isset($savedData['addons']) && is_array($savedData['addons'])): ?>
+                        setTimeout(function() {
+                            <?php foreach ($savedData['addons'] as $addonId): ?>
+                                const addon_<?= $addonId ?> = document.querySelector('input[name="addons[]"][value="<?= htmlspecialchars($addonId) ?>"]');
+                                if (addon_<?= $addonId ?>) {
+                                    addon_<?= $addonId ?>.checked = true;
+                                    addon_<?= $addonId ?>.dispatchEvent(new Event('change', {
+                                        bubbles: true
+                                    }));
+                                }
+                            <?php endforeach; ?>
+                        }, 1500);
+                    <?php endif; ?>
+
+                    <?php if (isset($savedData['eventDate'])): ?>
+                        const eventDateInput = document.getElementById('eventDate');
+                        if (eventDateInput && eventDateInput.value) {
+                            eventDateInput.dispatchEvent(new Event('change', {
+                                bubbles: true
+                            }));
+                        }
+                    <?php endif; ?>
+
+                    <?php if (isset($savedData['startTime'])): ?>
+                        const startTimeInput = document.querySelector('input[name="startTime"]');
+                        if (startTimeInput && startTimeInput.value) {
+                            startTimeInput.dispatchEvent(new Event('change', {
+                                bubbles: true
+                            }));
+                        }
+                    <?php endif; ?>
+
+                    <?php if (isset($savedData['endTime'])): ?>
+                        const endTimeInput = document.querySelector('input[name="endTime"]');
+                        if (endTimeInput && endTimeInput.value) {
+                            endTimeInput.dispatchEvent(new Event('change', {
+                                bubbles: true
+                            }));
+                        }
+                    <?php endif; ?>
+
+                }, 1000);
+            });
+        </script>
     <?php endif; ?>
 
     <!-- Pre-select package from sessionStorage (from services.php) -->
     <script>
         document.addEventListener('DOMContentLoaded', function() {
             const selectedPackageId = sessionStorage.getItem('selectedPackageId');
-            
+
             if (selectedPackageId) {
                 // Wait a bit for other scripts to initialize
                 setTimeout(() => {
                     const packageRadio = document.querySelector(`input[name="packageID"][value="${selectedPackageId}"]`);
                     if (packageRadio) {
                         packageRadio.checked = true;
-                        packageRadio.dispatchEvent(new Event('change', { bubbles: true }));
-                        
+                        packageRadio.dispatchEvent(new Event('change', {
+                            bubbles: true
+                        }));
+
                         // Scroll to package section
-                        packageRadio.closest('.neo-card').scrollIntoView({ behavior: 'smooth', block: 'center' });
-                        
+                        packageRadio.closest('.neo-card').scrollIntoView({
+                            behavior: 'smooth',
+                            block: 'center'
+                        });
+
                         // Clear storage so it doesn't persist forever
                         sessionStorage.removeItem('selectedPackageId');
                         sessionStorage.removeItem('selectedPackageName');
@@ -575,217 +593,243 @@ $minBookingDate = date('Y-m-d', strtotime('+3 days'));
             }
         });
     </script>
-    
+
     <!-- Consultation Time Validation -->
     <script>
-    document.addEventListener('DOMContentLoaded', function() {
-        const consultationDate = document.getElementById('consultationDate');
-        const startTimeSelect = document.getElementById('consultationStartTime');
-        const endTimeSelect = document.getElementById('consultationEndTime');
-        const conflictWarning = document.getElementById('conflictWarning');
-        const conflictMessage = document.getElementById('conflictMessage');
-        const durationInfo = document.getElementById('duractionInfo');
-        
-        // Enable end time when start time is selected
-        startTimeSelect.addEventListener('change', function() {
-            const startTime = this.value;
-            if (!startTime) return;
-            
-            // Clear and enable end time
-            endTimeSelect.innerHTML = '<option value="" disabled selected>Select end time</option>';
-            endTimeSelect.disabled = false;
-            
-            // Generate end time options (start + 30min to start + 90min)
-            const startMinutes = timeToMinutes(startTime);
-            const minEnd = startMinutes + 30;  // Min 30 minutes
-            const maxEnd = startMinutes + 90;  // Max 1.5 hours
-            
-            // Generate 30-minute intervals
-            for (let minutes = minEnd; minutes <= maxEnd && minutes <= 1080; minutes += 30) { // 1080 = 18:00
-                const timeValue = minutesToTime(minutes);
-                const timeLabel = formatTime(timeValue);
-                const option = document.createElement('option');
-                option.value = timeValue;
-                option.textContent = timeLabel;
-                endTimeSelect.appendChild(option);
-            }
-        });
-        
-        // Check for conflicts when end time is selected
-        endTimeSelect.addEventListener('change', function() {
-            checkConsultationConflict();
-        });
-        
-        // Also check when date changes
-        consultationDate.addEventListener('change', function() {
-            if (startTimeSelect.value && endTimeSelect.value) {
-                checkConsultationConflict();
-            }
-            validateDateTime();
-        });
-        
-        startTimeSelect.addEventListener('change', function() {
-            validateDateTime();
-        });
-        
-        function validateDateTime() {
-            const selectedDate = consultationDate.value;
-            const selectedTime = startTimeSelect.value;
-            
-            if (!selectedDate || !selectedTime) return;
-            
-            const now = new Date();
-            const selected = new Date(selectedDate + 'T' + selectedTime);
-            
-            if (selected <= now) {
-                conflictWarning.classList.remove('d-none');
-                conflictMessage.textContent = 'Cannot schedule consultation in the past. Please select a future date and time.';
-                conflictWarning.style.background = 'rgba(220, 53, 69, 0.1)';
-                conflictWarning.style.borderColor = 'rgba(220, 53, 69, 0.3)';
-                conflictWarning.style.color = '#dc3545';
-                startTimeSelect.setCustomValidity('Invalid time');
-                return false;
-            } else {
-                startTimeSelect.setCustomValidity('');
-                if (conflictMessage.textContent.includes('past')) {
-                    conflictWarning.classList.add('d-none');
+        document.addEventListener('DOMContentLoaded', function() {
+            const consultationDate = document.getElementById('consultationDate');
+            const startTimeSelect = document.getElementById('consultationStartTime');
+            const endTimeSelect = document.getElementById('consultationEndTime');
+            const conflictWarning = document.getElementById('conflictWarning');
+            const conflictMessage = document.getElementById('conflictMessage');
+            const durationInfo = document.getElementById('duractionInfo');
+
+            // Enable end time when start time is selected
+            startTimeSelect.addEventListener('change', function() {
+                const startTime = this.value;
+                if (!startTime) return;
+
+                // Clear and enable end time
+                endTimeSelect.innerHTML = '<option value="" disabled selected>Select end time</option>';
+                endTimeSelect.disabled = false;
+
+                // Generate end time options (start + 30min to start + 90min)
+                const startMinutes = timeToMinutes(startTime);
+                const minEnd = startMinutes + 30; // Min 30 minutes
+                const maxEnd = startMinutes + 90; // Max 1.5 hours
+
+                // Generate 30-minute intervals
+                for (let minutes = minEnd; minutes <= maxEnd && minutes <= 1080; minutes += 30) { // 1080 = 18:00
+                    const timeValue = minutesToTime(minutes);
+                    const timeLabel = formatTime(timeValue);
+                    const option = document.createElement('option');
+                    option.value = timeValue;
+                    option.textContent = timeLabel;
+                    endTimeSelect.appendChild(option);
                 }
-                return true;
-            }
-        }
-        
-        function checkConsultationConflict() {
-            const date = consultationDate.value;
-            const startTime = startTimeSelect.value;
-            const endTime = endTimeSelect.value;
-            
-            if (!date || !startTime || !endTime) return;
-            
-            // Validate date/time first
-            if (!validateDateTime()) return;
-            
-            // Calculate and show duration
-            const duration = (timeToMinutes(endTime) - timeToMinutes(startTime));
-            if (duration > 0) {
-                const hours = Math.floor(duration / 60);
-                const mins = duration % 60;
-                let durationText = '';
-                if (hours > 0) durationText += hours + (hours === 1 ? ' hour' : ' hours');
-                if (mins > 0) durationText += (hours > 0 ? ' ' : '') + mins + (mins === 1 ? ' minute' : ' minutes');
-                durationInfo.textContent = 'Duration: ' + durationText;
-            }
-            
-            // Check for conflicts
-            fetch('api/check_consultation_conflict.php', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify({
-                    consultationDate: date,
-                    startTime: startTime + ':00',
-                    endTime: endTime + ':00'
-                })
-            })
-            .then(response => response.json())
-            .then(data => {
-                if (!data.success) {
+            });
+
+            // Check for conflicts when end time is selected
+            endTimeSelect.addEventListener('change', function() {
+                checkConsultationConflict();
+            });
+
+            // Also check when date changes
+            consultationDate.addEventListener('change', function() {
+                if (startTimeSelect.value && endTimeSelect.value) {
+                    checkConsultationConflict();
+                }
+                validateDateTime();
+            });
+
+            startTimeSelect.addEventListener('change', function() {
+                validateDateTime();
+            });
+
+            function validateDateTime() {
+                const selectedDate = consultationDate.value;
+                const selectedTime = startTimeSelect.value;
+
+                if (!selectedDate || !selectedTime) return;
+
+                const now = new Date();
+                const selected = new Date(selectedDate + 'T' + selectedTime);
+
+                if (selected <= now) {
                     conflictWarning.classList.remove('d-none');
+                    conflictMessage.textContent = 'Cannot schedule consultation in the past. Please select a future date and time.';
                     conflictWarning.style.background = 'rgba(220, 53, 69, 0.1)';
                     conflictWarning.style.borderColor = 'rgba(220, 53, 69, 0.3)';
                     conflictWarning.style.color = '#dc3545';
-                    
-                    if (data.conflicts && data.conflicts.length > 0) {
-                        const conflictTimes = data.conflicts.map(c => `${c.startTime} - ${c.endTime}`).join(', ');
-                        conflictMessage.innerHTML = `${data.message}:<br><strong>${conflictTimes}</strong><br>Please choose a different time.`;
-                    } else {
-                        conflictMessage.textContent = data.message;
-                    }
-                    endTimeSelect.setCustomValidity('Time conflict');
-                } else {
-                    conflictWarning.classList.add('d-none');
-                    endTimeSelect.setCustomValidity('');
+                    startTimeSelect.setCustomValidity('Invalid time');
+                    return false;
                 }
-            })
-            .catch(error => {
-                console.error('Error checking conflicts:', error);
-            });
-        }
-        
-        // Helper functions
-        function timeToMinutes(time) {
-            const [hours, minutes] = time.split(':').map(Number);
-            return hours * 60 + minutes;
-        }
-        
-        function minutesToTime(minutes) {
-            const hours = Math.floor(minutes / 60);
-            const mins = minutes % 60;
-            return String(hours).padStart(2, '0') + ':' + String(mins).padStart(2, '0');
-        }
-        
-        function formatTime(time) {
-            const [hours, minutes] = time.split(':');
-            const hour = parseInt(hours);
-            const ampm = hour >= 12 ? 'PM' : 'AM';
-            const displayHour = hour % 12 || 12;
-        return displayHour + ':' + minutes + ' ' + ampm;
-    }
-    });
+
+                // Check if consultation is before event date
+                const eventDateInput = document.getElementById('eventDate');
+                if (eventDateInput && eventDateInput.value) {
+                    const eventDateVal = eventDateInput.value;
+                    const checkConsultationDate = new Date(selectedDate);
+                    checkConsultationDate.setHours(0, 0, 0, 0);
+
+                    const checkEventDate = new Date(eventDateVal);
+                    checkEventDate.setHours(0, 0, 0, 0);
+
+                    if (checkConsultationDate >= checkEventDate) {
+                        conflictWarning.classList.remove('d-none');
+                        conflictMessage.textContent = 'Consultation must be scheduled BEFORE the event date.';
+                        conflictWarning.style.background = 'rgba(220, 53, 69, 0.1)';
+                        conflictWarning.style.borderColor = 'rgba(220, 53, 69, 0.3)';
+                        conflictWarning.style.color = '#dc3545';
+                        consultationDate.setCustomValidity('Invalid date');
+                        return false;
+                    } else {
+                        consultationDate.setCustomValidity('');
+                    }
+                } else {
+                    startTimeSelect.setCustomValidity('');
+                    if (conflictMessage.textContent.includes('past')) {
+                        conflictWarning.classList.add('d-none');
+                    }
+                    return true;
+                }
+            }
+
+            function checkConsultationConflict() {
+                const date = consultationDate.value;
+                const startTime = startTimeSelect.value;
+                const endTime = endTimeSelect.value;
+
+                if (!date || !startTime || !endTime) return;
+
+                // Validate date/time first
+                if (!validateDateTime()) return;
+
+                // Calculate and show duration
+                const duration = (timeToMinutes(endTime) - timeToMinutes(startTime));
+                if (duration > 0) {
+                    const hours = Math.floor(duration / 60);
+                    const mins = duration % 60;
+                    let durationText = '';
+                    if (hours > 0) durationText += hours + (hours === 1 ? ' hour' : ' hours');
+                    if (mins > 0) durationText += (hours > 0 ? ' ' : '') + mins + (mins === 1 ? ' minute' : ' minutes');
+                    durationInfo.textContent = 'Duration: ' + durationText;
+                }
+
+                // Check for conflicts
+                fetch('api/check_consultation_conflict.php', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify({
+                            consultationDate: date,
+                            startTime: startTime + ':00',
+                            endTime: endTime + ':00'
+                        })
+                    })
+                    .then(response => response.json())
+                    .then(data => {
+                        if (!data.success) {
+                            conflictWarning.classList.remove('d-none');
+                            conflictWarning.style.background = 'rgba(220, 53, 69, 0.1)';
+                            conflictWarning.style.borderColor = 'rgba(220, 53, 69, 0.3)';
+                            conflictWarning.style.color = '#dc3545';
+
+                            if (data.conflicts && data.conflicts.length > 0) {
+                                const conflictTimes = data.conflicts.map(c => `${c.startTime} - ${c.endTime}`).join(', ');
+                                conflictMessage.innerHTML = `${data.message}:<br><strong>${conflictTimes}</strong><br>Please choose a different time.`;
+                            } else {
+                                conflictMessage.textContent = data.message;
+                            }
+                            endTimeSelect.setCustomValidity('Time conflict');
+                        } else {
+                            conflictWarning.classList.add('d-none');
+                            endTimeSelect.setCustomValidity('');
+                        }
+                    })
+                    .catch(error => {
+                        console.error('Error checking conflicts:', error);
+                    });
+            }
+
+            // Helper functions
+            function timeToMinutes(time) {
+                const [hours, minutes] = time.split(':').map(Number);
+                return hours * 60 + minutes;
+            }
+
+            function minutesToTime(minutes) {
+                const hours = Math.floor(minutes / 60);
+                const mins = minutes % 60;
+                return String(hours).padStart(2, '0') + ':' + String(mins).padStart(2, '0');
+            }
+
+            function formatTime(time) {
+                const [hours, minutes] = time.split(':');
+                const hour = parseInt(hours);
+                const ampm = hour >= 12 ? 'PM' : 'AM';
+                const displayHour = hour % 12 || 12;
+                return displayHour + ':' + minutes + ' ' + ampm;
+            }
+        });
     </script>
-    
+
     <script src="booking.js"></script>
     <script src="user.js"></script>
     <script src="js/user_notifications.js"></script>
-    
+
     <!-- Booking Status Notifications -->
     <?php if ($bookingStatus): ?>
-    <script>
-        document.addEventListener('DOMContentLoaded', function() {
-            <?php if ($bookingStatus === 'success'): ?>
-                LuxuryModal.show({
-                    title: 'Booking Submitted!',
-                    message: '<?= addslashes($bookingMessage) ?>',
-                    icon: 'success',
-                    confirmText: 'View My Bookings',
-                    cancelText: 'Stay Here'
-                }).then((result) => {
-                    if (result.isConfirmed) {
-                        window.location.href = 'appointments.php';
-                    } else {
+        <script>
+            document.addEventListener('DOMContentLoaded', function() {
+                <?php if ($bookingStatus === 'success'): ?>
+                    LuxuryModal.show({
+                        title: 'Booking Submitted!',
+                        message: '<?= addslashes($bookingMessage) ?>',
+                        icon: 'success',
+                        confirmText: 'View My Bookings',
+                        cancelText: 'Stay Here'
+                    }).then((result) => {
+                        if (result.isConfirmed) {
+                            window.location.href = 'appointments.php';
+                        } else {
+                            const url = new URL(window.location);
+                            url.searchParams.delete('booking');
+                            window.history.replaceState({}, '', url);
+                        }
+                    });
+                <?php elseif ($bookingStatus === 'error'): ?>
+                    LuxuryModal.show({
+                        title: 'Booking Failed',
+                        message: '<?= addslashes($bookingMessage) ?>',
+                        icon: 'error',
+                        confirmText: 'Try Again'
+                    }).then(() => {
                         const url = new URL(window.location);
-                        url.searchParams.delete('booking');
+                        url.searchParams.delete('error');
                         window.history.replaceState({}, '', url);
-                    }
-                });
-            <?php elseif ($bookingStatus === 'error'): ?>
-                LuxuryModal.show({
-                    title: 'Booking Failed',
-                    message: '<?= addslashes($bookingMessage) ?>',
-                    icon: 'error',
-                    confirmText: 'Try Again'
-                }).then(() => {
-                    const url = new URL(window.location);
-                    url.searchParams.delete('error');
-                    window.history.replaceState({}, '', url);
-                });
-            <?php endif; ?>
-        });
-    </script>
+                    });
+                <?php endif; ?>
+            });
+        </script>
     <?php endif; ?>
-    
+
     <style>
         /* Additional styles for radio button active states */
-        .btn-check:checked + .neo-card {
+        .btn-check:checked+.neo-card {
             border-color: var(--gold-main);
             box-shadow: 0 0 15px rgba(212, 175, 55, 0.1);
         }
-        .btn-check:checked + .neo-card .check-icon {
+
+        .btn-check:checked+.neo-card .check-icon {
             opacity: 1 !important;
         }
-        .btn-check:checked + .neo-card .text-gold {
+
+        .btn-check:checked+.neo-card .text-gold {
             text-shadow: 0 0 10px rgba(212, 175, 55, 0.3);
         }
     </style>
 </body>
+
 </html>
